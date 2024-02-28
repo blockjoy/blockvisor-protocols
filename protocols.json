@@ -16,5 +16,17 @@
         "repo": "op-geth",
         "client": "op-geth",
         "type": "github"
+    },
+    "solana":{
+        "org": "solana-labs",
+        "repo": "solana",
+        "client": "solana",
+        "type": "github"
+    },
+    "near":{
+        "org": "near",
+        "repo": "nearcore",
+        "client": "near",
+        "type": "github"
     }
 }
