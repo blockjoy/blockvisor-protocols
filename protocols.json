@@ -1,0 +1,20 @@
+{
+    "geth":{
+        "org": "ethereum",
+        "repo": "go-ethereum",
+        "client": "geth",
+        "type": "github"
+    },
+    "erigon":{
+        "org": "ledgerwatch",
+        "repo": "erigon",
+        "client": "erigon",
+        "type": "github"
+    },
+    "op-geth":{
+        "org": "ethereum-optimism",
+        "repo": "op-geth",
+        "client": "op-geth",
+        "type": "github"
+    }
+}
