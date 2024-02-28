@@ -28,5 +28,11 @@
         "repo": "nearcore",
         "client": "near",
         "type": "github"
+    },
+    "avalanche":{
+        "org": "ava-labs",
+        "repo": "avalanchego",
+        "client": "avalanche",
+        "type": "github"
     }
 }
