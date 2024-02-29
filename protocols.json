@@ -1,35 +1,35 @@
 {
-    "geth":{
+    "geth": {
         "org": "ethereum",
         "repo": "go-ethereum",
         "client": "geth",
         "type": "github"
     },
-    "erigon":{
+    "erigon": {
         "org": "ledgerwatch",
         "repo": "erigon",
         "client": "erigon",
         "type": "github"
     },
-    "op-geth":{
+    "op-geth": {
         "org": "ethereum-optimism",
         "repo": "op-geth",
         "client": "op-geth",
         "type": "github"
     },
-    "solana":{
+    "solana": {
         "org": "solana-labs",
         "repo": "solana",
         "client": "solana",
         "type": "github"
     },
-    "near":{
+    "near": {
         "org": "near",
         "repo": "nearcore",
         "client": "near",
         "type": "github"
     },
-    "avalanche":{
+    "avalanche": {
         "org": "ava-labs",
         "repo": "avalanchego",
         "client": "avalanche",
