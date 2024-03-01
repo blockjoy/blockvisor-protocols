@@ -69,16 +69,9 @@
         "name": "arbitrum",
         "type": "github"
     },
-    "blast": {
-        "org": "blasy-io",
-        "repo": "blast",
-        "client": "op-blast",
-        "name": "blast",
-        "type": "github"
-    },
     "reth": {
         "org": "paradigmxyz",
-        "repo": "rath",
+        "repo": "reth",
         "client": "reth",
         "name": "reth",
         "type": "github"
@@ -88,6 +81,13 @@
         "repo": "op-erigon",
         "client": "op-erigon",
         "name": "op-erigon",
+        "type": "github"
+    },
+    "blast": {
+        "org": "blast-io",
+        "repo": "blast",
+        "client": "op-blast",
+        "name": "blast",
         "type": "github"
     }
 }
