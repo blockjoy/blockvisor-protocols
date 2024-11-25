@@ -46,7 +46,7 @@ jobs:
           if [[ "${{ matrix.image_path }}" == clients/* ]]; then
             IMAGE_NAME="blockjoy-$(basename ${{ matrix.image_path }})"
             if [[ -f "${{ matrix.image_path }}/Dockerfile" ]]; then
-              CLIENT_VERSION=$(grep -E "ENV.*_VERSION[[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+")
+              CLIENT_VERSION=$(grep -E "ENV.*_VERSION=[[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
               if [[ ! -z "$CLIENT_VERSION" ]]; then
                 CLIENT_VERSION=${CLIENT_VERSION#v}
                 IMAGE_TAG="${CLIENT_VERSION}-$(git rev-parse --short HEAD)"
