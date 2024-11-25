@@ -20,7 +20,9 @@ jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      base_matrix: ${{ steps.set-matrix.outputs.base_matrix }}
+      clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
+      protocols_matrix: ${{ steps.set-matrix.outputs.protocols_matrix }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,14 +35,16 @@ jobs:
           files: |
             **/Dockerfile
 
-      - name: Generate build matrix
+      - name: Generate build matrices
         id: set-matrix
         run: |
           # Get list of changed Dockerfiles and convert to newline-separated
           CHANGED_FILES=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n')
           
-          # Order: node-base first, then clients, then protocols
-          MATRIX_DIRS=()
+          # Initialize empty arrays for each group
+          BASE_MATRIX='{"include":[]}'
+          CLIENTS_MATRIX='{"include":[]}'
+          PROTOCOLS_MATRIX='{"include":[]}'
           
           # Process each changed Dockerfile
           while IFS= read -r file; do
@@ -51,117 +55,126 @@ jobs:
             # Get directory containing Dockerfile
             DIR=$(dirname "$file")
             
-            # Store based on priority
+            # Add to appropriate matrix
             if [[ "$DIR" == "node-base" ]]; then
-              # node-base goes first if changed
-              MATRIX_DIRS=("node-base" "${MATRIX_DIRS[@]}")
+              BASE_MATRIX=$(echo $BASE_MATRIX | jq --arg path "$DIR" '.include += [{"image_path": $path}]')
             elif [[ "$DIR" == clients/* ]]; then
-              # Add client dirs after node-base
-              if [[ " ${MATRIX_DIRS[@]} " =~ " node-base " ]]; then
-                MATRIX_DIRS+=("$DIR")
-              else
-                MATRIX_DIRS=("$DIR" "${MATRIX_DIRS[@]}")
-              fi
+              CLIENTS_MATRIX=$(echo $CLIENTS_MATRIX | jq --arg path "$DIR" '.include += [{"image_path": $path}]')
             else
-              # Add protocol dirs last
-              MATRIX_DIRS+=("$DIR")
+              PROTOCOLS_MATRIX=$(echo $PROTOCOLS_MATRIX | jq --arg path "$DIR" '.include += [{"image_path": $path}]')
             fi
           done <<< "$CHANGED_FILES"
           
-          # Convert to JSON array
-          if [ ${#MATRIX_DIRS[@]} -eq 0 ]; then
-            echo "matrix=[]" >> $GITHUB_OUTPUT
-          else
-            # Create proper JSON array string
-            JSON_ARRAY=$(printf '%s\n' "${MATRIX_DIRS[@]}" | jq -R . | jq -sc .)
-            echo "matrix=$JSON_ARRAY" >> $GITHUB_OUTPUT
-          fi
+          echo "base_matrix=$BASE_MATRIX" >> $GITHUB_OUTPUT
+          echo "clients_matrix=$CLIENTS_MATRIX" >> $GITHUB_OUTPUT
+          echo "protocols_matrix=$PROTOCOLS_MATRIX" >> $GITHUB_OUTPUT
 
-  build:
+  build-base:
     needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.matrix != '[]' }}
+    if: ${{ fromJson(needs.detect-changes.outputs.base_matrix).include[0] }}
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        image_path: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.detect-changes.outputs.base_matrix) }}
     steps:
       - uses: actions/checkout@v4
-      
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Generate version
-        id: version
-        run: |
-          if [[ "${{ matrix.image_path }}" == "node-base" ]]; then
-            IMAGE_NAME="node-base"
-            IMAGE_TAG="$(git rev-parse --short HEAD)"
-          elif [[ "${{ matrix.image_path }}" == clients/* ]]; then
-            CLIENT_NAME=$(basename ${{ matrix.image_path }})
-            IMAGE_NAME="blockjoy-${CLIENT_NAME}"
-            if [[ -f "${{ matrix.image_path }}/Dockerfile" ]]; then
-              # Extract client version from Dockerfile (e.g., ERIGON_VERSION, RETH_VERSION)
-              CLIENT_VERSION=$(grep -E "ENV.*_VERSION=[[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
-              if [[ ! -z "$CLIENT_VERSION" ]]; then
-                CLIENT_VERSION=${CLIENT_VERSION#v}
-                IMAGE_TAG="${CLIENT_VERSION}-$(git rev-parse --short HEAD)"
-              else
-                IMAGE_TAG="$(git rev-parse --short HEAD)"
-              fi
-            else
-              IMAGE_TAG="$(git rev-parse --short HEAD)"
-            fi
-          else
-            IMAGE_NAME=$(echo ${{ matrix.image_path }} | tr '/' '-')
-            IMAGE_TAG="$(git rev-parse --short HEAD)"
-          fi
-          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
-          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
-      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
-      - name: Build and push images
+      - name: Build and push base image
         uses: docker/build-push-action@v5
         with:
           context: ./${{ matrix.image_path }}
           push: true
           build-args: |
-            ${{ matrix.image_path == 'node-base' && format('GRAFANA_LOKI_API_KEY={0}
-            GRAFANA_PROM_API_KEY={1}', secrets.GRAFANA_LOKI_API_KEY, secrets.GRAFANA_PROM_API_KEY) || '' }}
-            ${{ (startsWith(matrix.image_path, 'clients/') || !startsWith(matrix.image_path, 'node-base/')) && format('GRAFANA_LOKI_BASICAUTH={0}
-            GRAFANA_PROM_BASICAUTH={1}
-            CLOUDFLARE_API_KEY={2}', secrets.GRAFANA_LOKI_BASICAUTH, secrets.GRAFANA_PROM_BASICAUTH, secrets.CLOUDFLARE_API_KEY) || '' }}
+            GRAFANA_LOKI_API_KEY=${{ secrets.GRAFANA_LOKI_API_KEY }}
+            GRAFANA_PROM_API_KEY=${{ secrets.GRAFANA_PROM_API_KEY }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ghcr.io/blockjoy/node-base:latest
+
+  build-clients:
+    needs: [detect-changes, build-base]
+    if: |
+      always() &&
+      needs.build-base.result != 'failure' &&
+      fromJson(needs.detect-changes.outputs.clients_matrix).include[0]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.clients_matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate version
+        id: version
+        run: |
+          CLIENT_NAME=$(basename ${{ matrix.image_path }})
+          IMAGE_NAME="blockjoy-${CLIENT_NAME}"
+          if [[ -f "${{ matrix.image_path }}/Dockerfile" ]]; then
+            CLIENT_VERSION=$(grep -E "ENV.*_VERSION=[[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
+            if [[ ! -z "$CLIENT_VERSION" ]]; then
+              CLIENT_VERSION=${CLIENT_VERSION#v}
+              IMAGE_TAG="${CLIENT_VERSION}-latest"
+            else
+              IMAGE_TAG="latest"
+            fi
+          else
+            IMAGE_TAG="latest"
+          fi
+          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push client images
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.image_path }}
+          push: true
+          build-args: |
+            GRAFANA_LOKI_BASICAUTH=${{ secrets.GRAFANA_LOKI_BASICAUTH }}
+            GRAFANA_PROM_BASICAUTH=${{ secrets.GRAFANA_PROM_BASICAUTH }}
+            CLOUDFLARE_API_KEY=${{ secrets.CLOUDFLARE_API_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
 
-      - name: Trigger Renovate update
-        if: success() && (matrix.image_path == 'node-base' || startsWith(matrix.image_path, 'clients/'))
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Wait a bit for the image to be available
-          sleep 10
-          
-          # Determine which paths to update based on what was built
-          if [[ "${{ matrix.image_path }}" == "node-base" ]]; then
-            PATHS="clients/**/Dockerfile"
-          elif [[ "${{ matrix.image_path }}" == clients/* ]]; then
-            CLIENT_NAME=$(basename ${{ matrix.image_path }})
-            PATHS="ethereum/**/Dockerfile"
-          fi
-          
-          # Create repository issue to trigger Renovate
-          gh issue create \
-            --title "build: update dependencies for ${{ matrix.image_path }}" \
-            --body "renovate:enableVulnerabilityAlerts
-            
-            Update dependencies for newly built image ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
-            
-            Paths to update: ${PATHS}" \
-            --label "dependencies"
+  build-protocols:
+    needs: [detect-changes, build-clients]
+    if: |
+      always() &&
+      needs.build-clients.result != 'failure' &&
+      fromJson(needs.detect-changes.outputs.protocols_matrix).include[0]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push protocol images
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.image_path }}
+          push: true
+          build-args: |
+            GRAFANA_LOKI_BASICAUTH=${{ secrets.GRAFANA_LOKI_BASICAUTH }}
+            GRAFANA_PROM_BASICAUTH=${{ secrets.GRAFANA_PROM_BASICAUTH }}
+            CLOUDFLARE_API_KEY=${{ secrets.CLOUDFLARE_API_KEY }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ghcr.io/blockjoy/${{ matrix.image_path | replace('/', '-') }}:latest
