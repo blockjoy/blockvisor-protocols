@@ -1,4 +1,4 @@
-name: Docker Build Test
+name: Docker Build
 
 on:
   pull_request:
@@ -6,7 +6,6 @@ on:
     paths:
       - '**/Dockerfile'
 
-# Configure GITHUB_TOKEN permissions
 permissions:
   contents: read
   packages: read
@@ -28,8 +27,33 @@ jobs:
       - name: Generate build matrix
         id: set-matrix
         run: |
-          DIRS=$(find . -name Dockerfile -exec dirname {} \; | sed 's|^\./||' | jq -R -s -c 'split("\n")[:-1]')
-          echo "matrix=${DIRS}" >> $GITHUB_OUTPUT
+          # Order: node-base first, then clients, then protocols
+          MATRIX_DIRS=()
+          
+          # Add node-base if it exists
+          if [ -f "node-base/Dockerfile" ]; then
+            MATRIX_DIRS+=("node-base")
+          fi
+          
+          # Add client directories
+          CLIENT_DIRS=$(find ./clients -name Dockerfile -exec dirname {} \; | sed 's|^\./||' || true)
+          if [ ! -z "$CLIENT_DIRS" ]; then
+            while IFS= read -r dir; do
+              MATRIX_DIRS+=("$dir")
+            done <<< "$CLIENT_DIRS"
+          fi
+          
+          # Add protocol directories
+          PROTOCOL_DIRS=$(find . -name Dockerfile -not -path "./node-base/*" -not -path "./clients/*" -exec dirname {} \; | sed 's|^\./||' || true)
+          if [ ! -z "$PROTOCOL_DIRS" ]; then
+            while IFS= read -r dir; do
+              MATRIX_DIRS+=("$dir")
+            done <<< "$PROTOCOL_DIRS"
+          fi
+          
+          # Convert to JSON array
+          printf '%s\n' "${MATRIX_DIRS[@]}" | jq -R . | jq -s . > matrix.json
+          echo "matrix=$(cat matrix.json)" >> $GITHUB_OUTPUT
 
   build-test:
     needs: test-build
@@ -50,9 +74,14 @@ jobs:
       - name: Generate version
         id: version
         run: |
-          if [[ "${{ matrix.image_path }}" == clients/* ]]; then
-            IMAGE_NAME="blockjoy-$(basename ${{ matrix.image_path }})"
+          if [[ "${{ matrix.image_path }}" == "node-base" ]]; then
+            IMAGE_NAME="node-base"
+            IMAGE_TAG="$(git rev-parse --short HEAD)"
+          elif [[ "${{ matrix.image_path }}" == clients/* ]]; then
+            CLIENT_NAME=$(basename ${{ matrix.image_path }})
+            IMAGE_NAME="blockjoy-${CLIENT_NAME}"
             if [[ -f "${{ matrix.image_path }}/Dockerfile" ]]; then
+              # Extract client version from Dockerfile (e.g., ERIGON_VERSION, RETH_VERSION)
               CLIENT_VERSION=$(grep -E "ENV.*_VERSION=[[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
               if [[ ! -z "$CLIENT_VERSION" ]]; then
                 CLIENT_VERSION=${CLIENT_VERSION#v}
@@ -73,16 +102,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       
-      - name: Test build image
+      - name: Build and push images
         uses: docker/build-push-action@v5
         with:
           context: ./${{ matrix.image_path }}
-          push: false
-          load: true
+          push: true
           build-args: |
-            ${{ startsWith(matrix.image_path, 'node-base') && format('GRAFANA_LOKI_API_KEY={0}
+            ${{ matrix.image_path == 'node-base' && format('GRAFANA_LOKI_API_KEY={0}
             GRAFANA_PROM_API_KEY={1}', secrets.GRAFANA_LOKI_API_KEY, secrets.GRAFANA_PROM_API_KEY) || '' }}
-            ${{ startsWith(matrix.image_path, 'clients') && format('GRAFANA_LOKI_BASICAUTH={0}
+            ${{ (startsWith(matrix.image_path, 'clients/') || !startsWith(matrix.image_path, 'node-base/')) && format('GRAFANA_LOKI_BASICAUTH={0}
             GRAFANA_PROM_BASICAUTH={1}
             CLOUDFLARE_API_KEY={2}', secrets.GRAFANA_LOKI_BASICAUTH, secrets.GRAFANA_PROM_BASICAUTH, secrets.CLOUDFLARE_API_KEY) || '' }}
           cache-from: type=gha
