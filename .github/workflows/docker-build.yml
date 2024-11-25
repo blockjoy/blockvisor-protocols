@@ -38,36 +38,13 @@ jobs:
       - name: Generate build matrices
         id: set-matrix
         run: |
-          # Get list of changed Dockerfiles and convert to newline-separated
-          CHANGED_FILES=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n')
+          # Get list of changed Dockerfiles and convert to JSON array
+          CHANGED_FILES=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | jq -R -s 'split("\n")[:-1]')
           
-          # Initialize empty arrays for each group
-          BASE_MATRIX='{"include":[]}'
-          CLIENTS_MATRIX='{"include":[]}'
-          PROTOCOLS_MATRIX='{"include":[]}'
-          
-          # Process each changed Dockerfile
-          while IFS= read -r file; do
-            if [ -z "$file" ]; then
-              continue
-            fi
-            
-            # Get directory containing Dockerfile
-            DIR=$(dirname "$file")
-            
-            # Add to appropriate matrix
-            if [[ "$DIR" == "node-base" ]]; then
-              BASE_MATRIX=$(echo $BASE_MATRIX | jq --arg path "$DIR" '.include += [{"image_path": $path}]')
-            elif [[ "$DIR" == clients/* ]]; then
-              CLIENTS_MATRIX=$(echo $CLIENTS_MATRIX | jq --arg path "$DIR" '.include += [{"image_path": $path}]')
-            else
-              PROTOCOLS_MATRIX=$(echo $PROTOCOLS_MATRIX | jq --arg path "$DIR" '.include += [{"image_path": $path}]')
-            fi
-          done <<< "$CHANGED_FILES"
-          
-          echo "base_matrix=$BASE_MATRIX" >> $GITHUB_OUTPUT
-          echo "clients_matrix=$CLIENTS_MATRIX" >> $GITHUB_OUTPUT
-          echo "protocols_matrix=$PROTOCOLS_MATRIX" >> $GITHUB_OUTPUT
+          # Create matrices using jq filters
+          echo "base_matrix=$(echo $CHANGED_FILES | jq '{"include": map(select(startswith("node-base")) | {image_path: .})')" >> $GITHUB_OUTPUT
+          echo "clients_matrix=$(echo $CHANGED_FILES | jq '{"include": map(select(startswith("clients/")) | {image_path: split("/")[0:2]|join("/")})')" >> $GITHUB_OUTPUT
+          echo "protocols_matrix=$(echo $CHANGED_FILES | jq '{"include": map(select(startswith("ethereum/")) | {image_path: split("/")[0:2]|join("/")})')" >> $GITHUB_OUTPUT
 
   build-base:
     needs: detect-changes
