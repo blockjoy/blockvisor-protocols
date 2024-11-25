@@ -13,6 +13,13 @@ ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 ENV RETH_VERSION=v1.1.2
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 
+# Install system dependencies including libclang
+RUN apt-get update && \
+    apt-get install -y \
+    clang \
+    libclang-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install Rust and required dependencies
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
     . "$HOME/.cargo/env" && \
