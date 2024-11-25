@@ -83,6 +83,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate version
+        id: version
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          echo "image_name=node-base" >> $GITHUB_OUTPUT
+          echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build and push base image
@@ -95,7 +101,7 @@ jobs:
             GRAFANA_PROM_API_KEY=${{ secrets.GRAFANA_PROM_API_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ghcr.io/blockjoy/node-base:latest
+          tags: ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
 
   build-clients:
     needs: [detect-changes, build-base]
@@ -117,18 +123,20 @@ jobs:
       - name: Generate version
         id: version
         run: |
+          SHA=$(git rev-parse --short HEAD)
           CLIENT_NAME=$(basename ${{ matrix.image_path }})
           IMAGE_NAME="blockjoy-${CLIENT_NAME}"
+          
           if [[ -f "${{ matrix.image_path }}/Dockerfile" ]]; then
             CLIENT_VERSION=$(grep -E "ENV.*_VERSION=[[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
             if [[ ! -z "$CLIENT_VERSION" ]]; then
               CLIENT_VERSION=${CLIENT_VERSION#v}
-              IMAGE_TAG="${CLIENT_VERSION}-latest"
+              IMAGE_TAG="${CLIENT_VERSION}-${SHA}"
             else
-              IMAGE_TAG="latest"
+              IMAGE_TAG="${SHA}"
             fi
           else
-            IMAGE_TAG="latest"
+            IMAGE_TAG="${SHA}"
           fi
           echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -164,6 +172,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate version
+        id: version
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          IMAGE_NAME=$(basename $(dirname ${{ matrix.image_path }}))"-"$(basename ${{ matrix.image_path }})
+          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build and push protocol images
@@ -177,4 +192,4 @@ jobs:
             CLOUDFLARE_API_KEY=${{ secrets.CLOUDFLARE_API_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ghcr.io/blockjoy/${{ matrix.image_path | replace('/', '-') }}:latest
+          tags: ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
