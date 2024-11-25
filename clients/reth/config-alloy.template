@@ -105,7 +105,7 @@ prometheus.remote_write "default" {
 
                 basic_auth {
                         username = "1234567"
-                        password = ${GRAFANA_PROM_BASICAUTH}
+                        password = "${GRAFANA_PROM_BASICAUTH}"
                 }
         }
 }

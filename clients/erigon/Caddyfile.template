@@ -6,7 +6,7 @@
 		format json
 		level INFO
 	}
-	acme_dns cloudflare UR8KSq7bqAWNJkpol5eEQPiU_K0ADrdXzCZoXEl3
+	acme_dns cloudflare {$CLOUDFLARE_API_KEY}
 	auto_https disable_redirects
 	storage file_system {{ data_dir }}
 	email ops@blockjoy.com

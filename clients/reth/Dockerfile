@@ -1,15 +1,16 @@
-FROM node-base:0.0.1
+FROM ghcr.io/blockjoy/node-base:abc123
+
+# Add build arguments for Cloudflare and Grafana push credentials
+ARG CLOUDFLARE_API_KEY
+ARG GRAFANA_LOKI_BASICAUTH
+ARG GRAFANA_PROM_BASICAUTH
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
+ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
+ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y \
-    clang \
-    libclang-dev \
-    llvm-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-ENV RETH_VERSION=v1.1.2
+ENV RETH_VERSION=v0.1.0-alpha.11
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 # Install Rust and required dependencies

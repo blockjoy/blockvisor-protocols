@@ -8,7 +8,7 @@ datasources:
     basicAuth: true
     basicAuthUser: 1322871
     secureJsonData:
-      basicAuthPassword: ${GRAFANA_PROM_API_KEY}
+      basicAuthPassword: "${GRAFANA_PROM_API_KEY}"
   - name: grafanacloud-logs
     type: loki
     url: https://logs-prod-012.grafana.net
@@ -17,4 +17,4 @@ datasources:
     basicAuth: true
     basicAuthUser: 760471
     secureJsonData:
-      basicAuthPassword: ${GRAFANA_LOKI_API_KEY}
+      basicAuthPassword: "${GRAFANA_LOKI_API_KEY}"

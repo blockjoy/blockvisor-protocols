@@ -1,10 +1,12 @@
 FROM ghcr.io/blockjoy/node-base:abc123
 
-# Add build arguments for Grafana credentials
+# Add build arguments for Cloudflare and Grafana push credentials
+ARG CLOUDFLARE_API_KEY
 ARG GRAFANA_LOKI_BASICAUTH
 ARG GRAFANA_PROM_BASICAUTH
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
 ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
 ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 
