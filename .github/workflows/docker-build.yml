@@ -72,8 +72,9 @@ jobs:
           if [ ${#MATRIX_DIRS[@]} -eq 0 ]; then
             echo "matrix=[]" >> $GITHUB_OUTPUT
           else
-            printf '%s\n' "${MATRIX_DIRS[@]}" | jq -R . | jq -s . > matrix.json
-            echo "matrix=$(cat matrix.json)" >> $GITHUB_OUTPUT
+            # Create proper JSON array string
+            JSON_ARRAY=$(printf '%s\n' "${MATRIX_DIRS[@]}" | jq -R . | jq -sc .)
+            echo "matrix=$JSON_ARRAY" >> $GITHUB_OUTPUT
           fi
 
   build:
