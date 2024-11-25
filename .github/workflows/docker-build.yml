@@ -7,9 +7,9 @@ on:
       - '**/Dockerfile'
 
 permissions:
-  contents: read
-  packages: read
-  pull-requests: read
+  contents: write
+  packages: write
+  pull-requests: write
   id-token: write
 
 concurrency:
@@ -139,3 +139,27 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
+
+      - name: Update dependent Dockerfiles
+        if: success() && (matrix.image_path == 'node-base' || startsWith(matrix.image_path, 'clients/'))
+        run: |
+          # Configure git
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Update dependent Dockerfiles based on what was just built
+          if [[ "${{ matrix.image_path }}" == "node-base" ]]; then
+            # Update all client Dockerfiles with new node-base tag
+            find ./clients -name Dockerfile -type f -exec sed -i "s|FROM ghcr.io/blockjoy/node-base:[^ ]*|FROM ghcr.io/blockjoy/node-base:${{ steps.version.outputs.image_tag }}|g" {} \;
+          elif [[ "${{ matrix.image_path }}" == clients/* ]]; then
+            # Get client name and update corresponding protocol Dockerfiles
+            CLIENT_NAME=$(basename ${{ matrix.image_path }})
+            find . -name Dockerfile -not -path "./node-base/*" -not -path "./clients/*" -type f -exec sed -i "s|FROM ghcr.io/blockjoy/blockjoy-${CLIENT_NAME}:[^ ]*|FROM ghcr.io/blockjoy/blockjoy-${CLIENT_NAME}:${{ steps.version.outputs.image_tag }}|g" {} \;
+          fi
+          
+          # Check if there are changes to commit
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add -A
+            git commit -m "chore: update Dockerfile dependencies for ${{ matrix.image_path }}"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
