@@ -42,9 +42,9 @@ jobs:
           CHANGED_FILES=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | jq -R -s 'split("\n")[:-1]')
           
           # Create matrices using jq filters
-          echo "base_matrix=$(echo $CHANGED_FILES | jq '{"include": map(select(startswith("node-base")) | {image_path: .})')" >> $GITHUB_OUTPUT
-          echo "clients_matrix=$(echo $CHANGED_FILES | jq '{"include": map(select(startswith("clients/")) | {image_path: split("/")[0:2]|join("/")})')" >> $GITHUB_OUTPUT
-          echo "protocols_matrix=$(echo $CHANGED_FILES | jq '{"include": map(select(startswith("ethereum/")) | {image_path: split("/")[0:2]|join("/")})')" >> $GITHUB_OUTPUT
+          echo "base_matrix=$(echo $CHANGED_FILES | jq '{include: map(select(startswith("node-base")) | {image_path: .}) }')" >> $GITHUB_OUTPUT
+          echo "clients_matrix=$(echo $CHANGED_FILES | jq '{include: map(select(startswith("clients/")) | {image_path: (split("/")[0:2]|join("/"))}) }')" >> $GITHUB_OUTPUT
+          echo "protocols_matrix=$(echo $CHANGED_FILES | jq '{include: map(select(startswith("ethereum/")) | {image_path: (split("/")[0:2]|join("/"))}) }')" >> $GITHUB_OUTPUT
 
   build-base:
     needs: detect-changes
