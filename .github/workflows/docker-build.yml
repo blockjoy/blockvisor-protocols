@@ -17,50 +17,72 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-build:
+  detect-changes:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
+      - name: Get changed Dockerfiles
+        id: changed-files
+        uses: tj-actions/changed-files@v40
+        with:
+          files: |
+            **/Dockerfile
+
       - name: Generate build matrix
         id: set-matrix
         run: |
+          # Get list of changed Dockerfiles
+          CHANGED_FILES="${{ steps.changed-files.outputs.all_changed_files }}"
+          
           # Order: node-base first, then clients, then protocols
           MATRIX_DIRS=()
           
-          # Add node-base if it exists
-          if [ -f "node-base/Dockerfile" ]; then
-            MATRIX_DIRS+=("node-base")
-          fi
-          
-          # Add client directories
-          CLIENT_DIRS=$(find ./clients -name Dockerfile -exec dirname {} \; | sed 's|^\./||' || true)
-          if [ ! -z "$CLIENT_DIRS" ]; then
-            while IFS= read -r dir; do
-              MATRIX_DIRS+=("$dir")
-            done <<< "$CLIENT_DIRS"
-          fi
-          
-          # Add protocol directories
-          PROTOCOL_DIRS=$(find . -name Dockerfile -not -path "./node-base/*" -not -path "./clients/*" -exec dirname {} \; | sed 's|^\./||' || true)
-          if [ ! -z "$PROTOCOL_DIRS" ]; then
-            while IFS= read -r dir; do
-              MATRIX_DIRS+=("$dir")
-            done <<< "$PROTOCOL_DIRS"
-          fi
+          # Process each changed Dockerfile
+          while IFS= read -r file; do
+            if [ -z "$file" ]; then
+              continue
+            fi
+            
+            # Get directory containing Dockerfile
+            DIR=$(dirname "$file")
+            
+            # Store based on priority
+            if [[ "$DIR" == "node-base" ]]; then
+              # node-base goes first if changed
+              MATRIX_DIRS=("node-base" "${MATRIX_DIRS[@]}")
+            elif [[ "$DIR" == clients/* ]]; then
+              # Add client dirs after node-base
+              if [[ " ${MATRIX_DIRS[@]} " =~ " node-base " ]]; then
+                MATRIX_DIRS+=("$DIR")
+              else
+                MATRIX_DIRS=("$DIR" "${MATRIX_DIRS[@]}")
+              fi
+            else
+              # Add protocol dirs last
+              MATRIX_DIRS+=("$DIR")
+            fi
+          done <<< "$CHANGED_FILES"
           
           # Convert to JSON array
-          printf '%s\n' "${MATRIX_DIRS[@]}" | jq -R . | jq -s . > matrix.json
-          echo "matrix=$(cat matrix.json)" >> $GITHUB_OUTPUT
+          if [ ${#MATRIX_DIRS[@]} -eq 0 ]; then
+            echo "matrix=[]" >> $GITHUB_OUTPUT
+          else
+            printf '%s\n' "${MATRIX_DIRS[@]}" | jq -R . | jq -s . > matrix.json
+            echo "matrix=$(cat matrix.json)" >> $GITHUB_OUTPUT
+          fi
 
-  build-test:
-    needs: test-build
+  build:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.matrix != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        image_path: ${{ fromJson(needs.test-build.outputs.matrix) }}
+        image_path: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
       
