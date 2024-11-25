@@ -36,8 +36,8 @@ jobs:
       - name: Generate build matrix
         id: set-matrix
         run: |
-          # Get list of changed Dockerfiles
-          CHANGED_FILES="${{ steps.changed-files.outputs.all_changed_files }}"
+          # Get list of changed Dockerfiles and convert to newline-separated
+          CHANGED_FILES=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n')
           
           # Order: node-base first, then clients, then protocols
           MATRIX_DIRS=()
