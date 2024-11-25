@@ -1,0 +1,41 @@
+{
+	admin 127.0.0.1:2019 {
+	}
+	log {
+		output stdout
+		format json
+		level INFO
+	}
+	acme_dns cloudflare UR8KSq7bqAWNJkpol5eEQPiU_K0ADrdXzCZoXEl3
+	auto_https disable_redirects
+	storage file_system {{ data_dir }}
+	email ops@blockjoy.com
+	servers {
+		metrics
+	}
+}
+
+http://{{ hostname }}{{ tld }}, https://{{ hostname }}{{ tld }}, *.blkjy.io, http:// {
+	log {
+		output stdout
+	}
+	log_append upstream_host {rp.upstream.host}
+	log_append upstream_port {rp.upstream.port}
+	log_append upstream_requests {rp.upstream.requests}
+	log_append upstream_max_requests {rp.upstream.max_requests}
+	log_append upstream_fails {rp.upstream.fails}
+	log_append upstream_latency {rp.upstream.latency}
+	log_append upstream_latency_ms {rp.upstream.latency_ms}
+	log_append upstream_duration_ms {rp.upstream.duration_ms}
+	log_append duration_ms {rp.duration_ms}
+	@websockets {
+		header Connection *Upgrade*
+		header Upgrade websocket
+	}
+	reverse_proxy 127.0.0.1:{{ rpc_port }} {
+		header_up Host localhost
+	}
+	reverse_proxy @websockets 127.0.0.1:{{ ws_port }} {
+		header_up Host localhost
+	}
+}

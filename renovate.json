@@ -1,0 +1,52 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    "docker:enableMajor"
+  ],
+  "enabledManagers": ["dockerfile", "github-actions"],
+  "dependencyDashboard": true,
+  "pinDigests": true,
+  "repositories": ["blockjoy/blockjoy-protocols"],
+  "packageRules": [
+    {
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["major", "minor", "patch", "digest"],
+      "enabled": true
+    },
+    {
+      "description": "Base image updates",
+      "matchPaths": ["node-base/Dockerfile"],
+      "groupName": "base-dependencies",
+      "separateMinorPatch": true
+    },
+    {
+      "description": "Client image updates",
+      "matchPaths": ["clients/**/Dockerfile"],
+      "matchPackagePatterns": ["ghcr.io/blockjoy/node-base"],
+      "automerge": true,
+      "automergeType": "branch",
+      "groupName": "client-dependencies"
+    },
+    {
+      "description": "Protocol implementation updates",
+      "matchPaths": ["ethereum/**/Dockerfile"],
+      "matchPackagePatterns": ["ghcr.io/blockjoy/blockjoy-*"],
+      "automerge": true,
+      "automergeType": "branch",
+      "groupName": "protocol-dependencies"
+    }
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["^.+/Dockerfile$"],
+      "matchStrings": [
+        "FROM ghcr.io/blockjoy/(?<depName>[^:]+):(?<currentValue>(?:[0-9]+\\.[0-9]+\\.[0-9]+-)?[a-f0-9]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    }
+  ],
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0
+}
