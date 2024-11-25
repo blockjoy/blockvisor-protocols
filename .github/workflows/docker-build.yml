@@ -7,9 +7,9 @@ on:
       - '**/Dockerfile'
 
 permissions:
-  contents: write
+  contents: read
   packages: write
-  pull-requests: write
+  pull-requests: read
   id-token: write
 
 concurrency:
@@ -140,26 +140,28 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
 
-      - name: Update dependent Dockerfiles
+      - name: Trigger Renovate update
         if: success() && (matrix.image_path == 'node-base' || startsWith(matrix.image_path, 'clients/'))
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Configure git
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          # Wait a bit for the image to be available
+          sleep 10
           
-          # Update dependent Dockerfiles based on what was just built
+          # Determine which paths to update based on what was built
           if [[ "${{ matrix.image_path }}" == "node-base" ]]; then
-            # Update all client Dockerfiles with new node-base tag
-            find ./clients -name Dockerfile -type f -exec sed -i "s|FROM ghcr.io/blockjoy/node-base:[^ ]*|FROM ghcr.io/blockjoy/node-base:${{ steps.version.outputs.image_tag }}|g" {} \;
+            PATHS="clients/**/Dockerfile"
           elif [[ "${{ matrix.image_path }}" == clients/* ]]; then
-            # Get client name and update corresponding protocol Dockerfiles
             CLIENT_NAME=$(basename ${{ matrix.image_path }})
-            find . -name Dockerfile -not -path "./node-base/*" -not -path "./clients/*" -type f -exec sed -i "s|FROM ghcr.io/blockjoy/blockjoy-${CLIENT_NAME}:[^ ]*|FROM ghcr.io/blockjoy/blockjoy-${CLIENT_NAME}:${{ steps.version.outputs.image_tag }}|g" {} \;
+            PATHS="ethereum/**/Dockerfile"
           fi
           
-          # Check if there are changes to commit
-          if [[ -n "$(git status --porcelain)" ]]; then
-            git add -A
-            git commit -m "chore: update Dockerfile dependencies for ${{ matrix.image_path }}"
-            git push origin HEAD:${{ github.head_ref }}
-          fi
+          # Create repository issue to trigger Renovate
+          gh issue create \
+            --title "build: update dependencies for ${{ matrix.image_path }}" \
+            --body "renovate:enableVulnerabilityAlerts
+            
+            Update dependencies for newly built image ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
+            
+            Paths to update: ${PATHS}" \
+            --label "dependencies"
