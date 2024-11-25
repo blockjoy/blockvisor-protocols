@@ -1,4 +1,4 @@
-FROM ghcr.io/blockjoy/node-base:abc123
+FROM ghcr.io/blockjoy/node-base:latest
 
 # Add build arguments for Cloudflare and Grafana push credentials
 ARG CLOUDFLARE_API_KEY
