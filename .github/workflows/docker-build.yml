@@ -3,8 +3,10 @@ name: Docker Build
 on:
   pull_request:
     branches: [ main ]
-    paths:
-      - '**/Dockerfile'
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+      - '!.github/workflows/docker-build.yml'
 
 permissions:
   contents: read
@@ -28,23 +30,29 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Get changed Dockerfiles
+      - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v40
         with:
           files: |
-            **/Dockerfile
+            **
 
       - name: Generate build matrices
         id: set-matrix
         run: |
-          # Get list of changed Dockerfiles
-          CHANGED_FILES=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n')
+          # Get list of changed files and filter to unique directories containing Dockerfile
+          CHANGED_DIRS=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | while read -r file; do
+            dir=$(dirname "$file")
+            if [[ -f "$dir/Dockerfile" ]]; then
+              echo "$dir"
+            fi
+          done | sort -u)
           
-          # Create matrices using jq
-          echo "base_matrix=$(echo "$CHANGED_FILES" | grep "^node-base/" | sed 's|/Dockerfile$||' | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
-          echo "clients_matrix=$(echo "$CHANGED_FILES" | grep "^clients/" | sed 's|/Dockerfile$||' | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
-          echo "protocols_matrix=$(echo "$CHANGED_FILES" | grep "^ethereum/" | sed 's|/Dockerfile$||' | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          # Create matrices using jq, filtering by directory structure
+          echo "base_matrix=$(echo "$CHANGED_DIRS" | grep "^node-base$" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          echo "clients_matrix=$(echo "$CHANGED_DIRS" | grep "^clients/" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          # Any directory that's not node-base or clients/ and contains a Dockerfile is a protocol
+          echo "protocols_matrix=$(echo "$CHANGED_DIRS" | grep -v "^node-base$" | grep -v "^clients/" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
 
   build-base:
     needs: detect-changes
