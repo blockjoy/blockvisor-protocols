@@ -9,7 +9,7 @@ variants:
   # The same protocol can have different implementations. This field let identify what implementation(s) has been used.
   # Variant name may additional contain protocol network name e.g. "eth-mainnet".
   # This value will be available in a Rhai runtime via `node_env().variant_key`.
-  - key: reth_mainnet_archive
+  - key: reth-mainnet-archive
     min_cpu: 12
     min_memory_mb: 32000
     min_disk_gb: 3500
@@ -17,7 +17,7 @@ variants:
       - pointer: !store_id ethereum-reth-mainnet-archive-v1
       - pointer: !store_id ethereum-reth-mainnet-archive-v1
         new_archive_properties: [ "tracing-api-on-value" ]
-  - key: reth_sepolia_archive
+  - key: reth-sepolia-archive
     min_cpu: 6
     min_memory_mb: 16000
     min_disk_gb: 1000
@@ -25,7 +25,7 @@ variants:
       - pointer: !store_id ethereum-reth-sepolia-archive-v1
       - pointer: !store_id ethereum-reth-sepolia-archive-v1 
         new_archive_properties: [ "tracing-api-on-value" ]
-  - key: reth_mainnet_full
+  - key: reth-mainnet-full
     min_cpu: 8
     min_memory_mb: 16000
     min_disk_gb: 1500
@@ -33,7 +33,7 @@ variants:
       - pointer: !store_id ethereum-reth-mainnet-full-v1
       - pointer: !combination_disallowed
         new_archive_properties: [ "tracing-api-on-value" ]
-  - key: reth_sepolia_full
+  - key: reth-sepolia-full
     min_cpu: 4
     min_memory_mb: 8000
     min_disk_gb: 400
@@ -91,3 +91,5 @@ properties:
       off:
         value: off-value
         impact: null
+
+
