@@ -73,7 +73,26 @@ const PLUGIN_CONFIG = #{
                     ${global::RETH_EXTRA_ARGS}`,
             shutdown_timeout_secs: 120,
             use_blockchain_data: true,
+            log_timestamp: false,
         },
+        #{
+            name: "lighthouse",
+            run_sh: `RUST_LOG=info /root/bin/lighthouse bn \
+                    --network ${global::NET.networkname} \
+                    --datadir ${global::LIGHTHOUSE_DIR} \
+                    --checkpoint-sync-url ${global::NET.url} \
+                     --disable-deposit-contract-sync --http \
+                     --http-address 127.0.0.1 --http-port 5052 \
+                     --execution-endpoint http://127.0.0.1:8551 \
+                     --execution-jwt ${global::HOME}/jwt.hex \
+                     --metrics --metrics-port 9002 --prune-blobs false \
+                    --reconstruct-historic-states --block-cache-size 64 \
+                    --genesis-backfill --historic-state-cache-size 4 \
+                    --disable-backfill-rate-limiting`,
+            shutdown_timeout_secs: 120,
+            use_blockchain_data: true,
+            log_timestamp: false,
+        },  
     ],
     alternative_download: #{
         run_sh: "echo dummy"
@@ -95,7 +114,6 @@ fn application_status() {
         "delinquent"
     }
 }
-
 
 fn height() {
     parse_hex(run_jrpc(#{host: global::API_HOST, method: "eth_blockNumber"}).expect(200).result)

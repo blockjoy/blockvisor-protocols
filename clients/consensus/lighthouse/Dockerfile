@@ -26,5 +26,5 @@ RUN git clone https://github.com/sigp/lighthouse.git && \
     git checkout $LIGHTHOUSE_VERSION
 
 WORKDIR /root/lighthouse
-RUN . "$HOME/.cargo/env" && make
+RUN . "$HOME/.cargo/env" && cargo build
 

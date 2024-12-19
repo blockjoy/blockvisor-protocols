@@ -17,6 +17,6 @@ COPY --from=reth-build /root/reth/target/maxperf/reth /root/bin/
 COPY --from=lighthouse-build /root/lighthouse/target/release/lighthouse /root/bin/
 
 COPY ./Caddyfile.template /var/lib/babel/templates/
-COPY ./reth.rhai /var/lib/babel/plugin/reth.rhai
+COPY ./reth.rhai /var/lib/babel/plugin/
 COPY ./main.rhai /var/lib/babel/plugin/
 COPY ./config-alloy.template /var/lib/babel/templates/config-alloy.template
