@@ -1,7 +1,7 @@
 import "base" as base;
 import "reth" as reth;
 
-const CADDY_DIR = DATA_DRIVE_MOUNT_POINT + "/caddy";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const METRICS_PORT = 6665;
@@ -14,26 +14,26 @@ const BASE_CONFIG  = #{
 };
 
 const VARIANTS = #{
-    reth_sepolia_full: #{
+    "reth-sepolia-full": #{
         net: "sepolia",
     },
-    reth_mainnet_full: #{
+    "reth-mainnet-full": #{
         net: "mainnet",
     },
-    reth_sepolia_archive: #{
+    "reth-sepolia-archive": #{
         net: "sepolia",
     },
-    reth_mainnet_archive: #{
+    "reth-mainnet-archive": #{
         net: "mainnet",
     },
 };
 
 const API_HOST = `http://127.0.0.1:${global::RPC_PORT}`;
-const HOME = PROTOCOL_DATA_PATH + "/reth";
+const HOME = node_env().protocol_data_path + "/reth";
 const NET = VARIANTS[node_env().node_variant].net;
-const CADDY_DIR = DATA_DRIVE_MOUNT_POINT + "/caddy";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 
-const RETH_EXTRA_ARGS = if node_params().nodetype == "full" {
+const RETH_EXTRA_ARGS = if node_env().node_variant.ends_with("-full") {
     "--db-mode=full --pruning.block-limit=1048576"
 } else {
     "--db-mode=archive"
