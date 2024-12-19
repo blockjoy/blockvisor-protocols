@@ -1,4 +1,4 @@
-version: 0.0.1
+version: 0.0.2
 container_uri: docker-daemon://ethereum-reth:latest
 sku_code: ETH-RETH
 org_id: null
@@ -6,21 +6,6 @@ description: Ethereum Reth node
 visibility: public
 protocol_key: ethereum
 variants:
-  # The same protocol can have different implementations. This field let identify what implementation(s) has been used.
-  # Variant name may additional contain protocol network name e.g. "eth-mainnet".
-  # This value will be available in a Rhai runtime via `node_env().variant_key`.
-  - key: reth-mainnet-archive
-    min_cpu: 12
-    min_memory_mb: 32000
-    min_disk_gb: 3500
-    archive_pointers:
-      - pointer: !store_id ethereum-reth-mainnet-archive-v1
-  - key: reth-sepolia-archive
-    min_cpu: 6
-    min_memory_mb: 16000
-    min_disk_gb: 1000
-    archive_pointers:
-      - pointer: !store_id ethereum-reth-sepolia-archive-v1
   - key: reth-mainnet-full
     min_cpu: 8
     min_memory_mb: 16000
@@ -65,17 +50,4 @@ firewall_config:
           name: P2P port
         - port: 42069
           name: Torrent port
-properties:
-  # Property values will be available in a Rhai runtime via `node_params().<key>` (e.g. `node_params().tracing-api`).
-  # It is required to be lower-kebab-case.
-  - key: tracing-api
-    name: Tracing API
-    description: This enables or disables the tracing API
-    dynamic_value: false
-    default_value: off
-    ui_type: !switch
-      on:
-        add_cpu: 3
-        add_memory_bytes: 10000000
-        add_disk_bytes: 10000000000
-      off: null
+properties: []

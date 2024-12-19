@@ -1,15 +1,9 @@
 FROM node-base:latest
-# Add build arguments for Cloudflare and Grafana push credentials
-ARG CLOUDFLARE_API_KEY
-ARG GRAFANA_LOKI_BASICAUTH
-ARG GRAFANA_PROM_BASICAUTH
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
-ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
-ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 
-ENV RETH_VERSION=v1.1.2
+ENV RETH_VERSION=v1.1.4
+ENV LIGHTHOUSE_VERSION=v5.3.0
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 # Install system dependencies including libclang
@@ -32,12 +26,4 @@ RUN git clone https://github.com/paradigmxyz/reth.git && \
 
 # Build reth with performance features
 WORKDIR /root/reth
-RUN . "$HOME/.cargo/env" && \
-    mkdir /root/bin && \
-    cargo build --profile maxperf && \
-    cp target/maxperf/reth /root/bin/ && \
-    rm -rf /root/reth
-
-COPY Caddyfile.template /var/lib/babel/templates/Caddyfile.template
-COPY config-alloy.template /var/lib/babel/templates/config-alloy.template
-COPY reth.rhai /var/lib/babel/plugin/reth.rhai
+RUN . "$HOME/.cargo/env" && cargo build --profile maxperf
