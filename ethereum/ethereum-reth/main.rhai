@@ -16,27 +16,33 @@ const BASE_CONFIG  = #{
 const VARIANTS = #{
     "reth-sepolia-full": #{
         net: "sepolia",
+        url: "https://sepolia.beaconstate.info",
     },
     "reth-mainnet-full": #{
         net: "mainnet",
+        url: "https://mainnet.checkpoint.sigp.io",
     },
     "reth-sepolia-archive": #{
         net: "sepolia",
+        url: "https://sepolia.beaconstate.info",
     },
     "reth-mainnet-archive": #{
         net: "mainnet",
+        url: "https://mainnet.checkpoint.sigp.io",
     },
 };
 
 const API_HOST = `http://127.0.0.1:${global::RPC_PORT}`;
 const HOME = node_env().protocol_data_path + "/reth";
+const LIGHTHOUSE_DIR = node_env().protocol_data_path + "/lighthouse";
 const NET = VARIANTS[node_env().node_variant].net;
 const CADDY_DIR = node_env().data_mount_point + "/caddy";
+const CHECKPOINT_URL = VARIANTS[node_env().node_variant].url;
 
 const RETH_EXTRA_ARGS = if node_env().node_variant.ends_with("-full") {
-    "--db-mode=full --pruning.block-limit=1048576"
+    "--full"
 } else {
-    "--db-mode=archive"
+    ""
 };
 
 const BABEL_VERSION = "0.9.0";
@@ -45,6 +51,7 @@ const PLUGIN_CONFIG = #{
     init: #{
         commands: [
             `mkdir -p ${global::HOME}`,
+            `mkdir -p ${global::LIGHTHOUSE_DIR}`,
             `mkdir -p ${global::CADDY_DIR}`,
         ],
         jobs: [
@@ -78,9 +85,9 @@ const PLUGIN_CONFIG = #{
         #{
             name: "lighthouse",
             run_sh: `RUST_LOG=info /root/bin/lighthouse bn \
-                    --network ${global::NET.networkname} \
+                    --network ${global::NET} \
                     --datadir ${global::LIGHTHOUSE_DIR} \
-                    --checkpoint-sync-url ${global::NET.url} \
+                    --checkpoint-sync-url ${global::CHECKPOINT_URL} \
                      --disable-deposit-contract-sync --http \
                      --http-address 127.0.0.1 --http-port 5052 \
                      --execution-endpoint http://127.0.0.1:8551 \
