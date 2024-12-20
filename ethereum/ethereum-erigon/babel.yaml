@@ -6,57 +6,30 @@ description: Ethereum Erigon node
 visibility: public
 protocol_key: ethereum
 variants:
-  # The same protocol can have different implementations. This field let identify what implementation(s) has been used.
-  # Variant name may additional contain protocol network name e.g. "eth-mainnet".
-  # This value will be available in a Rhai runtime via `node_env().variant_key`.
-  - key: erigon-mainnet-archive
-    archive_pointers:
-      - pointer: !store_id ethereum-erigon-mainnet-archive-v1
-      - pointer: !store_id ethereum-erigon-mainnet-archive-v1
-        new_archive_properties: [ "tracing-api-on-value" ]
-    min_cpu: 8
-    min_memory_mb: 32000
-    min_disk_gb: 5000
-  - key: erigon-sepolia-archive
-    archive_pointers:
-      - pointer: !store_id ethereum-erigon-sepolia-archive-v1
-      - pointer: !store_id ethereum-erigon-sepolia-archive-v1 
-        new_archive_properties: [ "tracing-api-on-value" ]
-    min_cpu: 4
-    min_memory_mb: 16000
-    min_disk_gb: 2000
-  - key: erigon-goerli-archive
-    archive_pointers:
-      - pointer: !store_id ethereum-erigon-goerli-archive-v1
-      - pointer: !store_id ethereum-erigon-goerli-archive-v1 
-        new_archive_properties: [ "tracing-api-on-value" ]
-    min_cpu: 4
-    min_memory_mb: 16000
-    min_disk_gb: 2000
   - key: erigon-mainnet-full
+    min_cpu: 16
+    min_memory_mb: 65536
+    min_disk_gb: 5000
     archive_pointers:
       - pointer: !store_id ethereum-erigon-mainnet-full-v1
-      - pointer: !combination_disallowed
-        new_archive_properties: [ "tracing-api-on-value" ]
-    min_cpu: 8
-    min_memory_mb: 32000
-    min_disk_gb: 5000
   - key: erigon-sepolia-full
+    min_cpu: 4
+    min_memory_mb: 16000
+    min_disk_gb: 2000
     archive_pointers:
       - pointer: !store_id ethereum-erigon-sepolia-full-v1
-      - pointer: !combination_disallowed
-        new_archive_properties: [ "tracing-api-on-value" ]
-    min_cpu: 4
-    min_memory_mb: 16000
-    min_disk_gb: 2000
-  - key: erigon-goerli-full
+  - key: erigon-mainnet-archive
+    min_cpu: 16
+    min_memory_mb: 65536
+    min_disk_gb: 5000
     archive_pointers:
-      - pointer: !store_id ethereum-erigon-goerli-full-v1
-      - pointer: !combination_disallowed
-        new_archive_properties: [ "tracing-api-on-value" ]
+      - pointer: !store_id ethereum-erigon-mainnet-archive-v1
+  - key: erigon-sepolia-archive
     min_cpu: 4
     min_memory_mb: 16000
     min_disk_gb: 2000
+    archive_pointers:
+      - pointer: !store_id ethereum-erigon-sepolia-archive-v1
 firewall_config:
   default_in: deny
   default_out: allow
@@ -91,21 +64,4 @@ firewall_config:
           name: P2P port 2 
         - port: 42069
           name: Torrent port
-properties:
-  - key: tracing-api
-    description: This enables or disables the tracing API
-    dynamic_value: false
-    default_value: off-value
-    ui_type: !switch
-      on:
-        value: on-value
-        impact:
-          new_archive: true
-          add_cpu: 3
-          add_memory_bytes: 10000000
-          add_disk_bytes: 10000000000
-      off:
-        value: off-value
-        impact: null
-  # Unique property key. Property value will be available in a Rhai runtime via `node_params().<key>` (e.g. `node_params().arbitrary_property`).
-  # It is required to be lower-kebab-case.
+properties: []

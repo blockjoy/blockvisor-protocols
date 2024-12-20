@@ -1,4 +1,4 @@
-FROM ghcr.io/blockjoy/node-base:866a6bb@sha256:7923a8832df1119faf8d56cb501764ad9edb5bba6f54a2382edd0b8a2385bda3
+FROM node-base:latest
 
 # Add build arguments for Cloudflare and Grafana push credentials
 ARG CLOUDFLARE_API_KEY
@@ -25,9 +25,5 @@ RUN git clone https://github.com/erigontech/erigon.git && \
 WORKDIR /root/erigon
 RUN make erigon
 
-RUN cp /root/erigon/build/bin/erigon /root/bin/erigon && \
-    rm -rf /root/erigon
+RUN cp /root/erigon/build/bin/erigon /root/bin/erigon
 
-COPY Caddyfile.template /var/lib/babel/templates/Caddyfile.template
-COPY config-alloy.template /var/lib/babel/templates/config-alloy.template
-COPY erigon.rhai /var/lib/babel/plugin/erigon.rhai

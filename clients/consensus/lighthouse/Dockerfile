@@ -11,6 +11,7 @@ RUN apt-get update && \
     clang \
     libclang-dev \
     cmake \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Rust and required dependencies
@@ -26,5 +27,7 @@ RUN git clone https://github.com/sigp/lighthouse.git && \
     git checkout $LIGHTHOUSE_VERSION
 
 WORKDIR /root/lighthouse
-RUN . "$HOME/.cargo/env" && cargo build
+RUN . "$HOME/.cargo/env" && cargo build --release --features portable && \
+    mkdir -p /root/bin && \
+    cp  /root/lighthouse/target/release/lighthouse /root/bin/lighthouse
 

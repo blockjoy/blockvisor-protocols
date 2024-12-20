@@ -26,4 +26,6 @@ RUN git clone https://github.com/paradigmxyz/reth.git && \
 
 # Build reth with performance features
 WORKDIR /root/reth
-RUN . "$HOME/.cargo/env" && cargo build --profile maxperf
+RUN . "$HOME/.cargo/env" && cargo build --profile maxperf && \
+    mkdir -p /root/bin && \
+    cp /root/reth/target/maxperf/reth /root/bin/reth
