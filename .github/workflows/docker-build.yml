@@ -57,10 +57,18 @@ jobs:
           done | sort -u)
           
           # Create matrices using jq, filtering by directory structure
-          echo "base_matrix=$(echo "$CHANGED_DIRS" | grep "^node-base$" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
-          echo "clients_matrix=$(echo "$CHANGED_DIRS" | grep "^clients/" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          echo "base_matrix=$(echo "$CHANGED_DIRS" | grep "^./node-base$" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          echo "clients_matrix=$(echo "$CHANGED_DIRS" | grep "^./clients/" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          
           # Any directory that's not node-base or clients/ and contains a Dockerfile is a protocol
-          echo "protocols_matrix=$(echo "$CHANGED_DIRS" | grep -v "^node-base$" | grep -v "^clients/" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          # Make sure to exclude empty results by checking if there are any matches
+          PROTOCOLS=$(echo "$CHANGED_DIRS" | grep -v "^./node-base$" | grep -v "^./clients/")
+          if [[ -n "$PROTOCOLS" ]]; then
+            echo "protocols_matrix=$(echo "$PROTOCOLS" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          else
+            # Provide empty but valid matrix when no protocols changed
+            echo 'protocols_matrix={"include":[]}' >> $GITHUB_OUTPUT
+          fi
 
   build-base:
     needs: detect-changes
