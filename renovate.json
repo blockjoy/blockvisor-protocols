@@ -6,7 +6,6 @@
   "enabledManagers": ["dockerfile", "github-actions"],
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Dependencies Dashboard",
-  "logLevel": "debug",
   "packageRules": [
     {
       "description": "Disable updates for Ubuntu base images",
