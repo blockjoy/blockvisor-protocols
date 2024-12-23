@@ -39,7 +39,9 @@ jobs:
         with:
           files: |
             **/*
-      
+          json: true
+          dir_names: false
+          
       - name: Generate build matrices
         id: set-matrix
         run: |
@@ -50,10 +52,11 @@ jobs:
           
           # Get list of changed files
           echo "Changed files in this commit:"
-          echo "${{ steps.changed-files.outputs.all_changed_and_modified_files }}"
+          CHANGED_FILES=$(echo '${{ steps.changed-files.outputs.modified_files }}' | jq -r '.[]' 2>/dev/null || echo '')
+          echo "$CHANGED_FILES"
           
           # For each changed file, find which Docker directory it belongs to
-          CHANGED_DIRS=$(echo "${{ steps.changed-files.outputs.all_changed_and_modified_files }}" | tr ' ' '\n' | while read -r file; do
+          CHANGED_DIRS=$(echo "$CHANGED_FILES" | while read -r file; do
             echo "Checking file: $file"
             echo "$DOCKER_DIRS" | while read -r docker_dir; do
               if [[ "$file" =~ ^"$docker_dir"(/|$) ]]; then
