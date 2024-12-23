@@ -38,7 +38,8 @@
       "automergeType": "branch",
       "groupName": "internal-dependencies",
       "followTag": "latest",
-      "pinDigests": true
+      "pinDigests": true,
+      "versioning": "docker"
     }
   ],
   "customManagers": [
@@ -52,14 +53,12 @@
       ],
       "datasourceTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io",
-      "currentValueTemplate": "latest"
+      "currentValueTemplate": "latest",
+      "versioningTemplate": "docker"
     }
   ],
   "ignoreDeps": [
     "ubuntu"
-  ],
-  "repositories": [
-    "blockjoy/blockjoy-protocols"
   ],
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0
