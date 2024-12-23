@@ -1,6 +1,13 @@
 ARG RETH_IMAGE=ghcr.io/blockjoy/reth:latest
 ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:latest
 ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:latest
+
+FROM ${RETH_IMAGE} AS reth-build
+
+FROM ${LIGHTHOUSE_IMAGE} AS lighthouse-build
+
+FROM ${BASE_IMAGE}
+
 ARG CLOUDFLARE_API_KEY
 ARG GRAFANA_LOKI_BASICAUTH
 ARG GRAFANA_PROM_BASICAUTH
@@ -8,12 +15,6 @@ ARG GRAFANA_PROM_BASICAUTH
 ENV CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
 ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
 ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
-
-FROM ${RETH_IMAGE} AS reth-build
-
-FROM ${LIGHTHOUSE_IMAGE} AS lighthouse-build
-
-FROM ${BASE_IMAGE}
 
 RUN mkdir -p /root/bin
 COPY --from=reth-build /root/bin/reth /root/bin/
