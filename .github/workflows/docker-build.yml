@@ -56,11 +56,13 @@ jobs:
             # Walk up the directory tree until we find a Dockerfile or reach root
             while [[ "$dir" != "." && "$dir" != "/" ]]; do
               echo "Checking dir: $dir"
-              if echo "$DOCKER_DIRS" | grep -q "^${dir}$"; then
-                echo "Found Docker dir: $dir"
-                echo "$dir"
-                break
-              fi
+              echo "$DOCKER_DIRS" | while read -r docker_dir; do
+                if [[ "$dir" == "$docker_dir" ]]; then
+                  echo "Found Docker dir: $dir"
+                  echo "$dir"
+                  break 2
+                fi
+              done
               dir=$(dirname "$dir")
             done
           done | sort -u)
@@ -76,8 +78,18 @@ jobs:
           echo "Client dirs: $CLIENTS"
           echo "Protocol dirs: $PROTOCOLS"
           
-          echo "base_matrix=$(echo "$BASE" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
-          echo "clients_matrix=$(echo "$CLIENTS" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          # Only output matrices if we have changes
+          if [[ -n "$BASE" ]]; then
+            echo "base_matrix=$(echo "$BASE" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          else
+            echo 'base_matrix={"include":[]}' >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ -n "$CLIENTS" ]]; then
+            echo "clients_matrix=$(echo "$CLIENTS" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          else
+            echo 'clients_matrix={"include":[]}' >> $GITHUB_OUTPUT
+          fi
           
           if [[ -n "$PROTOCOLS" ]]; then
             echo "protocols_matrix=$(echo "$PROTOCOLS" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
