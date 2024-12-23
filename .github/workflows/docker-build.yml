@@ -74,6 +74,19 @@ jobs:
           SHA=$(git rev-parse --short HEAD)
           echo "image_name=node-base" >> $GITHUB_OUTPUT
           echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
+      - name: Generate build contexts
+        id: build-contexts
+        run: |
+          # Extract all FROM directives and their aliases from Dockerfile
+          BUILD_CONTEXTS=$(grep -h "^FROM" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
+            # Extract image name and remove any tag/digest
+            image=$(echo "$line" | awk '{print $2}' | cut -d':' -f1 | cut -d'@' -f1)
+            # Skip if it's a full registry path
+            if [[ "$image" != *"/"* ]]; then
+              echo "${image}=ghcr.io/blockjoy/${image}:${{ steps.version.outputs.image_tag }}"
+            fi
+          done | sort -u | tr '\n' ',' | sed 's/,$//')
+          echo "contexts=${BUILD_CONTEXTS}" >> $GITHUB_OUTPUT
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build and push base image
@@ -84,6 +97,7 @@ jobs:
           build-args: |
             GRAFANA_LOKI_API_KEY=${{ secrets.GRAFANA_LOKI_API_KEY }}
             GRAFANA_PROM_API_KEY=${{ secrets.GRAFANA_PROM_API_KEY }}
+          build-contexts: ${{ steps.build-contexts.outputs.contexts }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
@@ -125,6 +139,19 @@ jobs:
           fi
           echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+      - name: Generate build contexts
+        id: build-contexts
+        run: |
+          # Extract all FROM directives and their aliases from Dockerfile
+          BUILD_CONTEXTS=$(grep -h "^FROM" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
+            # Extract image name and remove any tag/digest
+            image=$(echo "$line" | awk '{print $2}' | cut -d':' -f1 | cut -d'@' -f1)
+            # Skip if it's a full registry path
+            if [[ "$image" != *"/"* ]]; then
+              echo "${image}=ghcr.io/blockjoy/${image}:${{ steps.version.outputs.image_tag }}"
+            fi
+          done | sort -u | tr '\n' ',' | sed 's/,$//')
+          echo "contexts=${BUILD_CONTEXTS}" >> $GITHUB_OUTPUT
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build and push client images
@@ -136,6 +163,7 @@ jobs:
             GRAFANA_LOKI_BASICAUTH=${{ secrets.GRAFANA_LOKI_BASICAUTH }}
             GRAFANA_PROM_BASICAUTH=${{ secrets.GRAFANA_PROM_BASICAUTH }}
             CLOUDFLARE_API_KEY=${{ secrets.CLOUDFLARE_API_KEY }}
+          build-contexts: ${{ steps.build-contexts.outputs.contexts }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
@@ -164,6 +192,19 @@ jobs:
           IMAGE_NAME=$(basename $(dirname ${{ matrix.image_path }}))"-"$(basename ${{ matrix.image_path }})
           echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
+      - name: Generate build contexts
+        id: build-contexts
+        run: |
+          # Extract all FROM directives and their aliases from Dockerfile
+          BUILD_CONTEXTS=$(grep -h "^FROM" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
+            # Extract image name and remove any tag/digest
+            image=$(echo "$line" | awk '{print $2}' | cut -d':' -f1 | cut -d'@' -f1)
+            # Skip if it's a full registry path
+            if [[ "$image" != *"/"* ]]; then
+              echo "${image}=ghcr.io/blockjoy/${image}:${{ steps.version.outputs.image_tag }}"
+            fi
+          done | sort -u | tr '\n' ',' | sed 's/,$//')
+          echo "contexts=${BUILD_CONTEXTS}" >> $GITHUB_OUTPUT
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build and push protocol images
@@ -175,6 +216,7 @@ jobs:
             GRAFANA_LOKI_BASICAUTH=${{ secrets.GRAFANA_LOKI_BASICAUTH }}
             GRAFANA_PROM_BASICAUTH=${{ secrets.GRAFANA_PROM_BASICAUTH }}
             CLOUDFLARE_API_KEY=${{ secrets.CLOUDFLARE_API_KEY }}
+          build-contexts: ${{ steps.build-contexts.outputs.contexts }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
