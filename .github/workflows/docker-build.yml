@@ -56,13 +56,18 @@ jobs:
             # Walk up the directory tree until we find a Dockerfile or reach root
             while [[ "$dir" != "." && "$dir" != "/" ]]; do
               echo "Checking dir: $dir"
-              echo "$DOCKER_DIRS" | while read -r docker_dir; do
+              found=false
+              while IFS= read -r docker_dir; do
                 if [[ "$dir" == "$docker_dir" ]]; then
                   echo "Found Docker dir: $dir"
                   echo "$dir"
-                  break 2
+                  found=true
+                  break
                 fi
-              done
+              done <<< "$DOCKER_DIRS"
+              if [[ "$found" == "true" ]]; then
+                break
+              fi
               dir=$(dirname "$dir")
             done
           done | sort -u)
