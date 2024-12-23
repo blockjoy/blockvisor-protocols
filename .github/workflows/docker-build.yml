@@ -160,7 +160,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build and push base image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355 # v6
         with:
           context: ./${{ matrix.image_path }}
           push: true
@@ -245,7 +245,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build and push client images
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355 # v6
         with:
           context: ./${{ matrix.image_path }}
           push: true
@@ -332,7 +332,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build and push protocol images
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355 # v6
         with:
           context: ./${{ matrix.image_path }}
           push: true
