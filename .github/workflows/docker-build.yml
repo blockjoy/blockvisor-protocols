@@ -159,10 +159,7 @@ jobs:
 
   build-clients:
     needs: [detect-changes, build-base]
-    if: |
-      always() &&
-      needs.build-base.result != 'failure' &&
-      fromJson(needs.detect-changes.outputs.clients_matrix).include[0]
+    if: needs.build-base.result != 'failure' && fromJson(needs.detect-changes.outputs.clients_matrix).include[0]
     runs-on: self-hosted
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.clients_matrix) }}
@@ -247,10 +244,7 @@ jobs:
 
   build-protocols:
     needs: [detect-changes, build-clients]
-    if: |
-      always() &&
-      needs.build-clients.result != 'failure' &&
-      fromJson(needs.detect-changes.outputs.protocols_matrix).include[0]
+    if: needs.build-clients.result != 'failure' && fromJson(needs.detect-changes.outputs.protocols_matrix).include[0]
     runs-on: self-hosted
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
