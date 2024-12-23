@@ -29,9 +29,10 @@ jobs:
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
       protocols_matrix: ${{ steps.set-matrix.outputs.protocols_matrix }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       
       - name: Get changed files
         id: changed-files
