@@ -45,12 +45,19 @@ jobs:
           echo "Found Docker directories:"
           echo "$DOCKER_DIRS"
           
+          echo "Changed files from action:"
+          echo "${{ steps.changed-files.outputs.all_changed_files }}"
+          
           # Get list of changed files and map them to build contexts
           CHANGED_DIRS=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | while read -r file; do
             dir=$(dirname "$file")
+            echo "Processing file: $file"
+            echo "Initial dir: $dir"
             # Walk up the directory tree until we find a Dockerfile or reach root
             while [[ "$dir" != "." && "$dir" != "/" ]]; do
+              echo "Checking dir: $dir"
               if echo "$DOCKER_DIRS" | grep -q "^${dir}$"; then
+                echo "Found Docker dir: $dir"
                 echo "$dir"
                 break
               fi
