@@ -96,8 +96,8 @@ jobs:
             image=$(echo "$line" | awk '{print $2}' | cut -d':' -f1 | cut -d'@' -f1)
             # Check if this image is in our valid image list
             if echo "$VALID_IMAGES" | grep -q "^${image}$"; then
-              # Generate --from argument for each base image
-              echo "DOCKER_BUILDKIT=1 --from=${image}=ghcr.io/blockjoy/${image}:${SHA}"
+              # Generate --from argument for each base image, using full path in both places
+              echo "--from=ghcr.io/blockjoy/${image}=ghcr.io/blockjoy/${image}:${SHA}"
             fi
           done | sort -u | tr '\n' ' ')
           echo "args=${BUILD_ARGS}" >> $GITHUB_OUTPUT
@@ -177,8 +177,8 @@ jobs:
             image=$(echo "$line" | awk '{print $2}' | cut -d':' -f1 | cut -d'@' -f1)
             # Check if this image is in our valid image list
             if echo "$VALID_IMAGES" | grep -q "^${image}$"; then
-              # Generate --from argument for each base image
-              echo "DOCKER_BUILDKIT=1 --from=${image}=ghcr.io/blockjoy/${image}:${SHA}"
+              # Generate --from argument for each base image, using full path in both places
+              echo "--from=ghcr.io/blockjoy/${image}=ghcr.io/blockjoy/${image}:${SHA}"
             fi
           done | sort -u | tr '\n' ' ')
           echo "args=${BUILD_ARGS}" >> $GITHUB_OUTPUT
@@ -244,8 +244,8 @@ jobs:
             image=$(echo "$line" | awk '{print $2}' | cut -d':' -f1 | cut -d'@' -f1)
             # Check if this image is in our valid image list
             if echo "$VALID_IMAGES" | grep -q "^${image}$"; then
-              # Generate --from argument for each base image
-              echo "DOCKER_BUILDKIT=1 --from=${image}=ghcr.io/blockjoy/${image}:${SHA}"
+              # Generate --from argument for each base image, using full path in both places
+              echo "--from=ghcr.io/blockjoy/${image}=ghcr.io/blockjoy/${image}:${SHA}"
             fi
           done | sort -u | tr '\n' ' ')
           echo "args=${BUILD_ARGS}" >> $GITHUB_OUTPUT
