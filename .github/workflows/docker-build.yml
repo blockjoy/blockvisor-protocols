@@ -88,9 +88,6 @@ jobs:
             fi
           done | sort -u)
 
-          # Get the SHA for base images
-          SHA=$(git rev-parse --short HEAD)
-
           # Now extract FROM directives and filter against our valid images
           BUILD_CONTEXTS=$(grep -h "^FROM.*\${.*_IMAGE}" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
             # Extract variable name from FROM line
@@ -100,7 +97,7 @@ jobs:
             # Check if this image is in our valid image list
             if echo "$VALID_IMAGES" | grep -q "^${image}$"; then
               # Use short name for context key but specify it as a docker-image context with SHA tag
-              echo "${image}=docker-image://ghcr.io/blockjoy/${image}:${SHA}"
+              echo "${image}=docker-image://ghcr.io/blockjoy/${image}:${{ steps.version.outputs.sha }}"
             fi
           done | sort -u | tr '\n' ',' | sed 's/,$//')
           echo "contexts=${BUILD_CONTEXTS}" >> $GITHUB_OUTPUT
@@ -175,9 +172,6 @@ jobs:
             fi
           done | sort -u)
 
-          # Get the SHA for base images
-          SHA=$(git rev-parse --short HEAD)
-
           # Now extract FROM directives and filter against our valid images
           BUILD_CONTEXTS=$(grep -h "^FROM.*\${.*_IMAGE}" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
             # Extract variable name from FROM line
@@ -187,7 +181,7 @@ jobs:
             # Check if this image is in our valid image list
             if echo "$VALID_IMAGES" | grep -q "^${image}$"; then
               # Use short name for context key but specify it as a docker-image context with SHA tag
-              echo "${image}=docker-image://ghcr.io/blockjoy/${image}:${SHA}"
+              echo "${image}=docker-image://ghcr.io/blockjoy/${image}:${{ steps.version.outputs.sha }}"
             fi
           done | sort -u | tr '\n' ',' | sed 's/,$//')
           echo "contexts=${BUILD_CONTEXTS}" >> $GITHUB_OUTPUT
@@ -248,9 +242,6 @@ jobs:
             fi
           done | sort -u)
 
-          # Get the SHA for base images
-          SHA=$(git rev-parse --short HEAD)
-
           # Now extract FROM directives and filter against our valid images
           BUILD_CONTEXTS=$(grep -h "^FROM.*\${.*_IMAGE}" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
             # Extract variable name from FROM line
@@ -260,7 +251,7 @@ jobs:
             # Check if this image is in our valid image list
             if echo "$VALID_IMAGES" | grep -q "^${image}$"; then
               # Use short name for context key but specify it as a docker-image context with SHA tag
-              echo "${image}=docker-image://ghcr.io/blockjoy/${image}:${SHA}"
+              echo "${image}=docker-image://ghcr.io/blockjoy/${image}:${{ steps.version.outputs.sha }}"
             fi
           done | sort -u | tr '\n' ',' | sed 's/,$//')
           echo "contexts=${BUILD_CONTEXTS}" >> $GITHUB_OUTPUT
