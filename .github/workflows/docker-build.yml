@@ -319,11 +319,12 @@ jobs:
       - name: Generate build args
         id: build-args
         run: |
-          # Extract all *_IMAGE args from Dockerfile and set them with SHA tags
+          # Extract all *_IMAGE args from Dockerfile with their specified tags
           IMAGE_ARGS=$(grep "^ARG.*_IMAGE=" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
             var_name=$(echo "$line" | cut -d'=' -f1 | cut -d' ' -f2)
-            image_name=$(echo "$line" | cut -d'=' -f2 | cut -d':' -f1 | xargs basename)
-            echo "${var_name}=ghcr.io/blockjoy/${image_name}:${{ steps.version.outputs.sha }}"
+            # Use the full image reference from the Dockerfile, including its tag
+            image_ref=$(echo "$line" | cut -d'=' -f2)
+            echo "${var_name}=${image_ref}"
           done | tr '\n' '\n')
           echo "image_args<<EOF" >> $GITHUB_OUTPUT
           echo "$IMAGE_ARGS" >> $GITHUB_OUTPUT
