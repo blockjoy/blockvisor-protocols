@@ -5,52 +5,60 @@
   ],
   "enabledManagers": [
     "dockerfile",
-    "regex"
+    "github-actions"
   ],
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Dependencies Dashboard",
-  "docker": {
-    "enabled": true,
-    "username": "renovate-bot",
-    "password": "{{secrets.GITHUB_TOKEN}}"
-  },
   "packageRules": [
+    {
+      "matchCategories": [
+        "docker"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Disable updates for Ubuntu base images",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "ubuntu"
+      ],
+      "enabled": false
+    },
     {
       "description": "Internal image dependencies",
       "matchDatasources": [
         "docker"
       ],
-      "matchPackagePatterns": [
-        "^ghcr.io/blockjoy/"
-      ],
       "automerge": true,
       "automergeType": "branch",
       "groupName": "internal-dependencies",
-      "pinDigests": true
+      "followTag": "latest",
+      "pinDigests": true,
+      "versioning": "docker",
+      "matchPackageNames": [
+        "/^ghcr.io/blockjoy//"
+      ]
     }
   ],
   "customManagers": [
     {
       "customType": "regex",
       "fileMatch": [
-        "(^|/)Dockerfile$"
+        "^.+/Dockerfile$"
       ],
       "matchStrings": [
-        "ARG (?<arg>.*?)_IMAGE=(?<depName>ghcr.io\\/blockjoy\\/[^:]+)(:(?<currentValue>[^\\s]+))?"
+        "ARG .*_IMAGE=ghcr.io/blockjoy/(?<depName>[^:]+):(?<currentValue>[^\\s]+)"
       ],
       "datasourceTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io",
-      "depNameTemplate": "{{{depName}}}",
-      "extractVersionTemplate": "^(?<version>.*?)$"
+      "currentValueTemplate": "latest",
+      "versioningTemplate": "docker"
     }
   ],
-  "hostRules": [
-    {
-      "hostType": "docker",
-      "matchHost": "ghcr.io",
-      "username": "renovate-bot",
-      "password": "{{secrets.GITHUB_TOKEN}}"
-    }
+  "ignoreDeps": [
+    "ubuntu"
   ],
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0
