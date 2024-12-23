@@ -260,10 +260,8 @@ jobs:
           tags: ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
 
   build-protocols:
-    needs: [detect-changes, build-clients]
-    if: |
-      fromJson(needs.detect-changes.outputs.protocols_matrix).include[0] &&
-      (needs.build-clients.result == 'success' || needs.build-clients.result == 'skipped' || needs.build-clients.result == null)
+    needs: [detect-changes]
+    if: fromJson(needs.detect-changes.outputs.protocols_matrix).include[0]
     runs-on: self-hosted
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
