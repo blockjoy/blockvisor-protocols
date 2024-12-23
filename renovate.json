@@ -9,16 +9,6 @@
   ],
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Dependencies Dashboard",
-  "hostRules": [
-    {
-      "hostType": "docker",
-      "matchHost": "ghcr.io",
-      "username": "renovate-bot",
-      "encrypted": {
-        "password": "{{ secrets.GITHUB_TOKEN }}"
-      }
-    }
-  ],
   "packageRules": [
     {
       "matchCategories": [
@@ -41,15 +31,15 @@
       "matchDatasources": [
         "docker"
       ],
+      "matchPackagePatterns": [
+        "^ghcr.io/blockjoy/"
+      ],
       "automerge": true,
       "automergeType": "branch",
       "groupName": "internal-dependencies",
       "followTag": "latest",
       "pinDigests": true,
-      "versioning": "docker",
-      "matchPackagePatterns": [
-        "^ghcr.io/blockjoy/"
-      ]
+      "versioning": "docker"
     }
   ],
   "customManagers": [
