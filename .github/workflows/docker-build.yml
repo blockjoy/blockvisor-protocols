@@ -41,7 +41,9 @@ jobs:
         id: set-matrix
         run: |
           # First find all Docker build contexts (directories containing Dockerfile)
-          DOCKER_DIRS=$(find . -name Dockerfile -exec dirname {} \;)
+          DOCKER_DIRS=$(find . -name Dockerfile -exec dirname {} \; | sort)
+          echo "Found Docker directories:"
+          echo "$DOCKER_DIRS"
           
           # Get list of changed files and map them to build contexts
           CHANGED_DIRS=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | while read -r file; do
@@ -55,18 +57,24 @@ jobs:
               dir=$(dirname "$dir")
             done
           done | sort -u)
+          echo "Changed directories:"
+          echo "$CHANGED_DIRS"
           
           # Create matrices using jq, filtering by directory structure
-          echo "base_matrix=$(echo "$CHANGED_DIRS" | grep "^./node-base$" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
-          echo "clients_matrix=$(echo "$CHANGED_DIRS" | grep "^./clients/" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          BASE=$(echo "$CHANGED_DIRS" | grep "^./node-base$" || true)
+          CLIENTS=$(echo "$CHANGED_DIRS" | grep "^./clients/" || true)
+          PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^./[^/]\+/[^/]\+-[^/]\+$" || true)
           
-          # Any directory that's not node-base or clients/ and contains a Dockerfile is a protocol
-          # Make sure to exclude empty results by checking if there are any matches
-          PROTOCOLS=$(echo "$CHANGED_DIRS" | grep -v "^./node-base$" | grep -v "^./clients/")
+          echo "Base dirs: $BASE"
+          echo "Client dirs: $CLIENTS"
+          echo "Protocol dirs: $PROTOCOLS"
+          
+          echo "base_matrix=$(echo "$BASE" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          echo "clients_matrix=$(echo "$CLIENTS" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          
           if [[ -n "$PROTOCOLS" ]]; then
             echo "protocols_matrix=$(echo "$PROTOCOLS" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
           else
-            # Provide empty but valid matrix when no protocols changed
             echo 'protocols_matrix={"include":[]}' >> $GITHUB_OUTPUT
           fi
 
