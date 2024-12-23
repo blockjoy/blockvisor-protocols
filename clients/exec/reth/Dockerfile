@@ -1,9 +1,11 @@
-FROM node-base:latest
+ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:57f9ec4
+ARG RETH_VERSION=v1.1.4
+ARG LIGHTHOUSE_VERSION=v5.3.0
+
+FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV RETH_VERSION=v1.1.4
-ENV LIGHTHOUSE_VERSION=v5.3.0
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 # Install system dependencies including libclang

@@ -1,8 +1,6 @@
-FROM reth:latest AS reth-build
-
-FROM lighthouse:latest AS lighthouse-build
-
-FROM node-base:latest
+ARG RETH_IMAGE=reth:latest
+ARG LIGHTHOUSE_IMAGE=lighthouse:latest
+ARG BASE_IMAGE=node-base:latest
 
 ARG CLOUDFLARE_API_KEY
 ARG GRAFANA_LOKI_BASICAUTH
@@ -11,6 +9,12 @@ ARG GRAFANA_PROM_BASICAUTH
 ENV CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
 ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
 ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
+
+FROM ${RETH_IMAGE} AS reth-build
+
+FROM ${LIGHTHOUSE_IMAGE} AS lighthouse-build
+
+FROM ${BASE_IMAGE}
 
 RUN mkdir -p /root/bin
 COPY --from=reth-build /root/bin/reth /root/bin/

@@ -1,4 +1,6 @@
-FROM node-base:latest
+ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:57f9ec4
+
+FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -30,4 +32,3 @@ WORKDIR /root/lighthouse
 RUN . "$HOME/.cargo/env" && cargo build --release --features portable && \
     mkdir -p /root/bin && \
     cp  /root/lighthouse/target/release/lighthouse /root/bin/lighthouse
-

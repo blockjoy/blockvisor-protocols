@@ -1,9 +1,11 @@
-FROM node-base:latest
+ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:57f9ec4
 
 # Add build arguments for Cloudflare and Grafana push credentials
 ARG CLOUDFLARE_API_KEY
 ARG GRAFANA_LOKI_BASICAUTH
 ARG GRAFANA_PROM_BASICAUTH
+
+FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
@@ -26,4 +28,3 @@ WORKDIR /root/erigon
 RUN make erigon
 
 RUN cp /root/erigon/build/bin/erigon /root/bin/erigon
-
