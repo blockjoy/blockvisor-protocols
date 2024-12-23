@@ -1,30 +1,50 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "config:recommended"
   ],
-  "enabledManagers": ["dockerfile", "github-actions"],
+  "enabledManagers": [
+    "dockerfile",
+    "github-actions"
+  ],
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Dependencies Dashboard",
   "packageRules": [
     {
+      "matchCategories": [
+        "docker"
+      ],
+      "enabled": false
+    },
+    {
       "description": "Disable updates for Ubuntu base images",
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["ubuntu"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "ubuntu"
+      ],
       "enabled": false
     },
     {
       "description": "Internal image dependencies",
-      "matchDatasources": ["docker"],
-      "matchPackagePatterns": ["ghcr.io/blockjoy/*"],
+      "matchDatasources": [
+        "docker"
+      ],
       "automerge": true,
       "automergeType": "branch",
-      "groupName": "internal-dependencies"
+      "groupName": "internal-dependencies",
+      "matchPackageNames": [
+        "/ghcr.io/blockjoy/*/"
+      ]
     }
   ],
-  "regexManagers": [
+  "customManagers": [
     {
-      "fileMatch": ["^.+/Dockerfile$"],
+      "customType": "regex",
+      "fileMatch": [
+        "^.+/Dockerfile$"
+      ],
       "matchStrings": [
         "ARG .*_IMAGE=ghcr.io/blockjoy/(?<depName>[^:]+):(?<currentValue>[^\\s]+)"
       ],
@@ -32,11 +52,12 @@
       "registryUrlTemplate": "https://ghcr.io"
     }
   ],
-  "ignoreDeps": ["ubuntu"],
-  "docker": {
-    "enabled": false
-  },
-  "repositories": ["blockjoy/blockjoy-protocols"],
+  "ignoreDeps": [
+    "ubuntu"
+  ],
+  "repositories": [
+    "blockjoy/blockjoy-protocols"
+  ],
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0
 }
