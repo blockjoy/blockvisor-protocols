@@ -77,12 +77,22 @@ jobs:
       - name: Generate build contexts
         id: build-contexts
         run: |
-          # Extract all FROM directives and their aliases from Dockerfile
+          # First, find all directories containing Dockerfiles to build our valid image list
+          VALID_IMAGES=$(find . -name Dockerfile -exec dirname {} \; | while read dir; do
+            # Convert directory path to image name (e.g., ./ethereum/ethereum-erigon -> ethereum-erigon)
+            basename "$dir" | tr '[:upper:]' '[:lower:]'
+            # For protocol directories, also add the protocol-client format
+            if [[ "$dir" =~ ^./[^/]+/[^/]+ ]]; then
+              echo "$dir" | sed 's|^./\([^/]\+\)/\([^/]\+\)|\1-\2|' | tr '[:upper:]' '[:lower:]'
+            fi
+          done | sort -u)
+
+          # Now extract FROM directives and filter against our valid images
           BUILD_CONTEXTS=$(grep -h "^FROM" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
             # Extract image name and remove any tag/digest
             image=$(echo "$line" | awk '{print $2}' | cut -d':' -f1 | cut -d'@' -f1)
-            # Skip if it's a full registry path
-            if [[ "$image" != *"/"* ]]; then
+            # Check if this image is in our valid image list
+            if echo "$VALID_IMAGES" | grep -q "^${image}$"; then
               echo "${image}=ghcr.io/blockjoy/${image}:${{ steps.version.outputs.image_tag }}"
             fi
           done | sort -u | tr '\n' ',' | sed 's/,$//')
@@ -142,12 +152,22 @@ jobs:
       - name: Generate build contexts
         id: build-contexts
         run: |
-          # Extract all FROM directives and their aliases from Dockerfile
+          # First, find all directories containing Dockerfiles to build our valid image list
+          VALID_IMAGES=$(find . -name Dockerfile -exec dirname {} \; | while read dir; do
+            # Convert directory path to image name (e.g., ./ethereum/ethereum-erigon -> ethereum-erigon)
+            basename "$dir" | tr '[:upper:]' '[:lower:]'
+            # For protocol directories, also add the protocol-client format
+            if [[ "$dir" =~ ^./[^/]+/[^/]+ ]]; then
+              echo "$dir" | sed 's|^./\([^/]\+\)/\([^/]\+\)|\1-\2|' | tr '[:upper:]' '[:lower:]'
+            fi
+          done | sort -u)
+
+          # Now extract FROM directives and filter against our valid images
           BUILD_CONTEXTS=$(grep -h "^FROM" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
             # Extract image name and remove any tag/digest
             image=$(echo "$line" | awk '{print $2}' | cut -d':' -f1 | cut -d'@' -f1)
-            # Skip if it's a full registry path
-            if [[ "$image" != *"/"* ]]; then
+            # Check if this image is in our valid image list
+            if echo "$VALID_IMAGES" | grep -q "^${image}$"; then
               echo "${image}=ghcr.io/blockjoy/${image}:${{ steps.version.outputs.image_tag }}"
             fi
           done | sort -u | tr '\n' ',' | sed 's/,$//')
@@ -195,12 +215,22 @@ jobs:
       - name: Generate build contexts
         id: build-contexts
         run: |
-          # Extract all FROM directives and their aliases from Dockerfile
+          # First, find all directories containing Dockerfiles to build our valid image list
+          VALID_IMAGES=$(find . -name Dockerfile -exec dirname {} \; | while read dir; do
+            # Convert directory path to image name (e.g., ./ethereum/ethereum-erigon -> ethereum-erigon)
+            basename "$dir" | tr '[:upper:]' '[:lower:]'
+            # For protocol directories, also add the protocol-client format
+            if [[ "$dir" =~ ^./[^/]+/[^/]+ ]]; then
+              echo "$dir" | sed 's|^./\([^/]\+\)/\([^/]\+\)|\1-\2|' | tr '[:upper:]' '[:lower:]'
+            fi
+          done | sort -u)
+
+          # Now extract FROM directives and filter against our valid images
           BUILD_CONTEXTS=$(grep -h "^FROM" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
             # Extract image name and remove any tag/digest
             image=$(echo "$line" | awk '{print $2}' | cut -d':' -f1 | cut -d'@' -f1)
-            # Skip if it's a full registry path
-            if [[ "$image" != *"/"* ]]; then
+            # Check if this image is in our valid image list
+            if echo "$VALID_IMAGES" | grep -q "^${image}$"; then
               echo "${image}=ghcr.io/blockjoy/${image}:${{ steps.version.outputs.image_tag }}"
             fi
           done | sort -u | tr '\n' ',' | sed 's/,$//')
