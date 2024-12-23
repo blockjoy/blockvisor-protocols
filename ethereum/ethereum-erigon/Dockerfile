@@ -1,13 +1,15 @@
-FROM ethereum-erigon:latest as erigon-build
-
-FROM lighthouse:latest AS lighthouse-build
-
+ARG ERIGON_IMAGE=ethereum-erigon:latest
+ARG LIGHTHOUSE_IMAGE=lighthouse:latest
 ARG BASE_IMAGE=node-base:latest
-FROM ${BASE_IMAGE}
-
 ARG CLOUDFLARE_API_KEY
 ARG GRAFANA_LOKI_BASICAUTH
 ARG GRAFANA_PROM_BASICAUTH
+
+FROM ghcr.io/blockjoy/${ERIGON_IMAGE} as erigon-build
+
+FROM ghcr.io/blockjoy/${LIGHTHOUSE_IMAGE} AS lighthouse-build
+
+FROM ghcr.io/blockjoy/${BASE_IMAGE}
 
 ENV CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
 ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
