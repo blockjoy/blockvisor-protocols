@@ -27,7 +27,7 @@ fn base_config(metrics_port, rpc_port, ws_port, caddy_dir) {
         ],
         services: [
             #{
-                name: "alloy-t23",
+                name: "alloy-t24",
                 run_sh: "/usr/bin/alloy run --server.http.listen-addr=127.0.0.1:12346 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy"
             },
             #{
