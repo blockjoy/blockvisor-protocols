@@ -31,12 +31,14 @@
       "matchDatasources": [
         "docker"
       ],
+      "matchPackagePatterns": [
+        "^ghcr.io/blockjoy/"
+      ],
       "automerge": true,
       "automergeType": "branch",
       "groupName": "internal-dependencies",
-      "matchPackageNames": [
-        "/ghcr.io/blockjoy/*/"
-      ]
+      "followTag": "latest",
+      "pinDigests": true
     }
   ],
   "customManagers": [
@@ -49,7 +51,8 @@
         "ARG .*_IMAGE=ghcr.io/blockjoy/(?<depName>[^:]+):(?<currentValue>[^\\s]+)"
       ],
       "datasourceTemplate": "docker",
-      "registryUrlTemplate": "https://ghcr.io"
+      "registryUrlTemplate": "https://ghcr.io",
+      "currentValueTemplate": "latest"
     }
   ],
   "ignoreDeps": [
