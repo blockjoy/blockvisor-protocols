@@ -141,10 +141,12 @@ jobs:
         run: |
           SHA=$(git rev-parse --short HEAD)
           CLIENT_NAME=$(basename ${{ matrix.image_path }})
-          IMAGE_NAME="blockjoy-${CLIENT_NAME}"
+          IMAGE_NAME="${CLIENT_NAME}"
           
-          if [[ -f "${{ matrix.image_path }}/Dockerfile" ]]; then
-            CLIENT_VERSION=$(grep -E "ENV.*_VERSION=[[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
+          if [[ "${{ matrix.image_path }}" =~ /exec/ ]]; then
+            # Only extract version for execution clients
+            CLIENT_UPPER=$(echo "${CLIENT_NAME}" | tr '[:lower:]' '[:upper:]')
+            CLIENT_VERSION=$(grep -E "ENV ${CLIENT_UPPER}_VERSION=[[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
             if [[ ! -z "$CLIENT_VERSION" ]]; then
               # Remove 'v' prefix and ensure version is Docker-compatible (only alphanumeric and . - _)
               CLIENT_VERSION=${CLIENT_VERSION#v}
