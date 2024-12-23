@@ -41,7 +41,7 @@ jobs:
         id: set-matrix
         run: |
           # First find all Docker build contexts (directories containing Dockerfile)
-          DOCKER_DIRS=$(find . -name Dockerfile -exec dirname {} \; | sort)
+          DOCKER_DIRS=$(find . -name Dockerfile -exec dirname {} \; | sed 's|^./||' | sort)
           echo "Found Docker directories:"
           echo "$DOCKER_DIRS"
           
@@ -51,8 +51,11 @@ jobs:
           
           # For each changed file, find which Docker directory it belongs to
           CHANGED_DIRS=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | while read -r file; do
+            echo "Checking file: $file"
             echo "$DOCKER_DIRS" | while read -r docker_dir; do
-              if [[ "$file" == "$docker_dir"/* || "$file" == "$docker_dir" ]]; then
+              echo "Against dir: $docker_dir"
+              if [[ "$file" =~ ^"$docker_dir"(/|$) ]]; then
+                echo "Match found: $docker_dir"
                 echo "$docker_dir"
               fi
             done
@@ -61,9 +64,9 @@ jobs:
           echo "$CHANGED_DIRS"
           
           # Create matrices using jq, filtering by directory structure
-          BASE=$(echo "$CHANGED_DIRS" | grep "^./node-base$" || true)
-          CLIENTS=$(echo "$CHANGED_DIRS" | grep "^./clients/" || true)
-          PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^./[^/]\+/[^/]\+-[^/]\+$" || true)
+          BASE=$(echo "$CHANGED_DIRS" | grep "^node-base$" || true)
+          CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
+          PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^[^/]\+/[^/]\+-[^/]\+$" || true)
           
           echo "Base dirs: $BASE"
           echo "Client dirs: $CLIENTS"
