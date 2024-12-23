@@ -2,7 +2,8 @@ FROM ethereum-erigon:latest as erigon-build
 
 FROM lighthouse:latest AS lighthouse-build
 
-FROM node-base:latest
+ARG BASE_IMAGE=node-base:latest
+FROM ${BASE_IMAGE}
 
 ARG CLOUDFLARE_API_KEY
 ARG GRAFANA_LOKI_BASICAUTH
