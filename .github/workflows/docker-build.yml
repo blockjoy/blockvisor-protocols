@@ -31,37 +31,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v40
-        with:
-          files: |
-            **/*
-          json: true
-          dir_names: false
-          fetch_depth: 0
+        uses: tj-actions/changed-files@v45
+
+      - name: List all changed files
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          for file in ${ALL_CHANGED_FILES}; do
+            echo "$file was changed"
+          done
           
       - name: Debug changed files outputs
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
           echo "Debug outputs from changed-files action:"
-          echo "all_modified_files:"
-          echo "${{ steps.changed-files.outputs.all_modified_files }}"
-          echo "modified_files:"
-          echo "${{ steps.changed-files.outputs.modified_files }}"
-          echo "added_files:"
-          echo "${{ steps.changed-files.outputs.added_files }}"
-          echo "deleted_files:"
-          echo "${{ steps.changed-files.outputs.deleted_files }}"
-          echo "renamed_files:"
-          echo "${{ steps.changed-files.outputs.renamed_files }}"
-          echo "copied_files:"
-          echo "${{ steps.changed-files.outputs.copied_files }}"
+          echo "Changed files:"
+          echo "$ALL_CHANGED_FILES"
           
       - name: Generate build matrices
         id: set-matrix
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
           # First find all Docker build contexts (directories containing Dockerfile)
           DOCKER_DIRS=$(find . -name Dockerfile -exec dirname {} \; | sed 's|^./||' | sort)
@@ -70,15 +63,10 @@ jobs:
           
           # Get list of changed files
           echo "Changed files in this commit:"
-          CHANGED_FILES=$(echo '${{ steps.changed-files.outputs.all_modified_files }}' | jq -r '.[]' 2>/dev/null || echo '')
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "Falling back to space-separated list"
-            CHANGED_FILES="${{ steps.changed-files.outputs.all_modified_files }}"
-          fi
-          echo "$CHANGED_FILES"
+          echo "$ALL_CHANGED_FILES"
           
           # For each changed file, find which Docker directory it belongs to
-          CHANGED_DIRS=$(echo "$CHANGED_FILES" | while read -r file; do
+          CHANGED_DIRS=$(for file in ${ALL_CHANGED_FILES}; do
             echo "Checking file: $file"
             echo "$DOCKER_DIRS" | while read -r docker_dir; do
               if [[ "$file" =~ ^"$docker_dir"(/|$) ]]; then
