@@ -31,11 +31,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0  # Fetch all history for all tags and branches
+
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@bab30c2299617f6615ec02a68b9a40d10bd21366 # v45
         with:
           since_last_remote_commit: true
+          fetch_depth: 0
 
       - name: List all changed files
         env:
