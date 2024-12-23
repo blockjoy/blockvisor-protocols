@@ -45,30 +45,16 @@ jobs:
           echo "Found Docker directories:"
           echo "$DOCKER_DIRS"
           
+          # Get list of changed files
           echo "Changed files from action:"
           echo "${{ steps.changed-files.outputs.all_changed_files }}"
           
-          # Get list of changed files and map them to build contexts
+          # For each changed file, find which Docker directory it belongs to
           CHANGED_DIRS=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | while read -r file; do
-            dir=$(dirname "$file")
-            echo "Processing file: $file"
-            echo "Initial dir: $dir"
-            # Walk up the directory tree until we find a Dockerfile or reach root
-            while [[ "$dir" != "." && "$dir" != "/" ]]; do
-              echo "Checking dir: $dir"
-              found=false
-              while IFS= read -r docker_dir; do
-                if [[ "$dir" == "$docker_dir" ]]; then
-                  echo "Found Docker dir: $dir"
-                  echo "$dir"
-                  found=true
-                  break
-                fi
-              done <<< "$DOCKER_DIRS"
-              if [[ "$found" == "true" ]]; then
-                break
+            echo "$DOCKER_DIRS" | while read -r docker_dir; do
+              if [[ "$file" == "$docker_dir"/* || "$file" == "$docker_dir" ]]; then
+                echo "$docker_dir"
               fi
-              dir=$(dirname "$dir")
             done
           done | sort -u)
           echo "Changed directories:"
