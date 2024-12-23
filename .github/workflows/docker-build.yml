@@ -41,6 +41,8 @@ jobs:
             **/*
           json: true
           dir_names: false
+          base_sha: ${{ github.event.pull_request.base.sha }}
+          sha: ${{ github.event.pull_request.head.sha }}
           
       - name: Debug changed files outputs
         run: |
