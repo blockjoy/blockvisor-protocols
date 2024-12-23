@@ -31,14 +31,14 @@
       "matchDatasources": [
         "docker"
       ],
-      "matchPackagePatterns": [
-        "^ghcr.io/blockjoy/"
-      ],
       "automerge": true,
       "automergeType": "branch",
       "groupName": "internal-dependencies",
       "followTag": "latest",
-      "pinDigests": true
+      "pinDigests": true,
+      "matchPackageNames": [
+        "/^ghcr.io/blockjoy//"
+      ]
     }
   ],
   "customManagers": [
