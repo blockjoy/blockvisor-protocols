@@ -40,10 +40,10 @@ jobs:
       - name: Generate build matrices
         id: set-matrix
         run: |
-          # First find all directories containing Dockerfiles
+          # First find all Docker build contexts (directories containing Dockerfile)
           DOCKER_DIRS=$(find . -name Dockerfile -exec dirname {} \;)
           
-          # Get list of changed files and map them to Dockerfile directories
+          # Get list of changed files and map them to build contexts
           CHANGED_DIRS=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | while read -r file; do
             dir=$(dirname "$file")
             # Walk up the directory tree until we find a Dockerfile or reach root
