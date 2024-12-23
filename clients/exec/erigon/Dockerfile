@@ -1,29 +1,24 @@
 ARG BASE_IMAGE=node-base:latest
-FROM ghcr.io/blockjoy/${BASE_IMAGE}
-
-# Add build arguments for Cloudflare and Grafana push credentials
-ARG CLOUDFLARE_API_KEY
-ARG GRAFANA_LOKI_BASICAUTH
-ARG GRAFANA_PROM_BASICAUTH
+FROM ghcr.io/blockjoy/${BASE_IMAGE} as builder
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
-ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
-ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
-
 ENV ERIGON_VERSION=v2.60.9
-
 ENV PATH="/usr/local/go/bin:${PATH}"
 ENV GOROOT="/usr/local/go"
 
 RUN mkdir -p /root/bin
 
+# Clone and checkout in a separate layer
 WORKDIR /root
-RUN git clone https://github.com/erigontech/erigon.git && \
-    cd erigon && \
-    git checkout $ERIGON_VERSION
+RUN git clone --depth 1 --branch $ERIGON_VERSION https://github.com/erigontech/erigon.git
 
+# Build erigon with Go caching
 WORKDIR /root/erigon
-RUN make erigon
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    make erigon && \
+    cp build/bin/erigon /root/bin/
 
-RUN cp /root/erigon/build/bin/erigon /root/bin/erigon
+# Create minimal final image
+FROM ghcr.io/blockjoy/${BASE_IMAGE}
+COPY --from=builder /root/bin/erigon /root/bin/erigon
