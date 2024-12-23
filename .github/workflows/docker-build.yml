@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   detect-changes:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       base_matrix: ${{ steps.set-matrix.outputs.base_matrix }}
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
@@ -57,7 +57,7 @@ jobs:
   build-base:
     needs: detect-changes
     if: ${{ fromJson(needs.detect-changes.outputs.base_matrix).include[0] }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.base_matrix) }}
     steps:
@@ -125,7 +125,7 @@ jobs:
       always() &&
       needs.build-base.result != 'failure' &&
       fromJson(needs.detect-changes.outputs.clients_matrix).include[0]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.clients_matrix) }}
     steps:
@@ -213,7 +213,7 @@ jobs:
       always() &&
       needs.build-clients.result != 'failure' &&
       fromJson(needs.detect-changes.outputs.protocols_matrix).include[0]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
     steps:
