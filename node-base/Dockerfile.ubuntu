@@ -1,0 +1,51 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
+    gnupg \
+    debian-keyring \
+    debian-archive-keyring \
+    apt-transport-https \
+    software-properties-common \
+    vim \
+    psmisc \
+    net-tools \
+    nano \
+    git \
+    build-essential
+
+RUN mkdir -p /etc/apt/keyrings/ && \
+    wget --inet4-only --no-check-certificate -qO - http://apt.grafana.com/gpg.key | gpg --dearmor -o /etc/apt/keyrings/grafana.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] http://apt.grafana.com stable main" > /etc/apt/sources.list.d/grafana.list
+
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/caddy/xcaddy/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-xcaddy-archive-keyring.gpg && \
+    curl -1sLf 'https://dl.cloudsmith.io/public/caddy/xcaddy/debian.deb.txt' > /etc/apt/sources.list.d/caddy-xcaddy.list
+
+RUN add-apt-repository -y universe && apt-get update
+
+RUN apt-get install -y alloy vim psmisc xcaddy
+
+RUN wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz && \
+    rm go1.23.1.linux-amd64.tar.gz
+
+ENV PATH="/usr/local/go/bin:${PATH}"
+ENV GOROOT="/usr/local/go"
+
+RUN cd / && \
+    xcaddy build --with github.com/caddy-dns/cloudflare && \
+    mv ./caddy /usr/bin/ && chmod +x /usr/bin/caddy && \
+    mkdir -p /etc/caddy
+
+RUN wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && \
+    sh /tmp/netdata-kickstart.sh --stable-channel --disable-telemetry --non-interactive --dont-start-it --native-only --disable-cloud
+
+RUN mkdir -p /var/lib/babel/templates && \
+    mkdir -p /var/lib/babel/plugins
+
+COPY base.rhai /var/lib/babel/plugin/base.rhai
+COPY netdata-conf.template /var/lib/babel/templates/netdata-conf.template
+COPY netdata-stream-conf.template /var/lib/babel/templates/netdata-stream-conf.template

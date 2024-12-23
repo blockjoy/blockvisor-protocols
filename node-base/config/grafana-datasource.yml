@@ -1,0 +1,20 @@
+apiVersion: 1
+datasources:
+  - name: grafanacloud-prom
+    type: prometheus
+    url: https://prometheus-prod-24-prod-eu-west-2.grafana.net/api/prom
+    access: server
+    isDefault: true
+    basicAuth: true
+    basicAuthUser: 1322871
+    secureJsonData:
+      basicAuthPassword: "${GRAFANA_PROM_API_KEY}"
+  - name: grafanacloud-logs
+    type: loki
+    url: https://logs-prod-012.grafana.net
+    access: server
+    isDefault: false
+    basicAuth: true
+    basicAuthUser: 760471
+    secureJsonData:
+      basicAuthPassword: "${GRAFANA_LOKI_API_KEY}"

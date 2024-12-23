@@ -1,6 +1,38 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
-  ]
+    "config:base",
+    "docker:enableMajor"
+  ],
+  "enabledManagers": ["dockerfile", "github-actions"],
+  "dependencyDashboard": true,
+  "pinDigests": true,
+  "repositories": ["blockjoy/blockjoy-protocols"],
+  "packageRules": [
+    {
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["major", "minor", "patch", "digest"],
+      "enabled": true
+    },
+    {
+      "description": "All internal image updates",
+      "matchPaths": ["**/Dockerfile"],
+      "matchPackagePatterns": ["ghcr.io/blockjoy/*"],
+      "automerge": true,
+      "automergeType": "branch",
+      "groupName": "docker-dependencies"
+    }
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["^.+/Dockerfile$"],
+      "matchStrings": [
+        "ARG .*_IMAGE=ghcr.io/blockjoy/(?<depName>[^:]+):(?<currentValue>[^\\s]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    }
+  ],
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0
 }

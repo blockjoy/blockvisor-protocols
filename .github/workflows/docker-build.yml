@@ -1,0 +1,347 @@
+name: Docker Build
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+      - '!.github/workflows/docker-build.yml'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
+
+permissions:
+  contents: read
+  packages: write
+  pull-requests: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-changes:
+    runs-on: self-hosted
+    outputs:
+      base_matrix: ${{ steps.set-matrix.outputs.base_matrix }}
+      clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
+      protocols_matrix: ${{ steps.set-matrix.outputs.protocols_matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          since_last_remote_commit: true
+
+      - name: List all changed files
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          for file in ${ALL_CHANGED_FILES}; do
+            echo "$file was changed"
+          done
+          
+      - name: Debug changed files outputs
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          echo "Debug outputs from changed-files action:"
+          echo "Changed files:"
+          echo "$ALL_CHANGED_FILES"
+          
+      - name: Generate build matrices
+        id: set-matrix
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          # First find all Docker build contexts (directories containing Dockerfile)
+          DOCKER_DIRS=$(find . -name Dockerfile -exec dirname {} \; | sed 's|^./||' | sort)
+          echo "Found Docker directories:"
+          echo "$DOCKER_DIRS"
+          
+          # Get list of changed files
+          echo "Changed files in this commit:"
+          echo "$ALL_CHANGED_FILES"
+          
+          # For each changed file, find which Docker directory it belongs to
+          CHANGED_DIRS=$(for file in ${ALL_CHANGED_FILES}; do
+            echo "Checking file: $file"
+            echo "$DOCKER_DIRS" | while read -r docker_dir; do
+              if [[ "$file" =~ ^"$docker_dir"(/|$) ]]; then
+                echo "$docker_dir"
+              fi
+            done
+          done | sort -u)
+          echo "Changed directories:"
+          echo "$CHANGED_DIRS"
+          
+          # Create matrices using jq, filtering by directory structure
+          BASE=$(echo "$CHANGED_DIRS" | grep "^node-base$" || true)
+          CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
+          PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^[^/]\+/[^/]\+-[^/]\+$" || true)
+          
+          echo "Base dirs: $BASE"
+          echo "Client dirs: $CLIENTS"
+          echo "Protocol dirs: $PROTOCOLS"
+          
+          # Only output matrices if we have changes
+          if [[ -n "$BASE" ]]; then
+            echo "base_matrix=$(echo "$BASE" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          else
+            echo 'base_matrix={"include":[]}' >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ -n "$CLIENTS" ]]; then
+            echo "clients_matrix=$(echo "$CLIENTS" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          else
+            echo 'clients_matrix={"include":[]}' >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ -n "$PROTOCOLS" ]]; then
+            echo "protocols_matrix=$(echo "$PROTOCOLS" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          else
+            echo 'protocols_matrix={"include":[]}' >> $GITHUB_OUTPUT
+          fi
+
+  build-base:
+    needs: detect-changes
+    if: ${{ fromJson(needs.detect-changes.outputs.base_matrix).include[0] }}
+    runs-on: self-hosted
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.base_matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate version
+        id: version
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          echo "image_name=node-base" >> $GITHUB_OUTPUT
+          echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
+          echo "sha=${SHA}" >> $GITHUB_OUTPUT
+      - name: Generate build contexts
+        id: build-contexts
+        run: |
+          # First, find all directories containing Dockerfiles to build our valid image list
+          VALID_IMAGES=$(find . -name Dockerfile -exec dirname {} \; | while read dir; do
+            # Convert directory path to image name (e.g., ./ethereum/ethereum-erigon -> ethereum-erigon)
+            basename "$dir" | tr '[:upper:]' '[:lower:]'
+            # For protocol directories, also add the protocol-client format
+            if [[ "$dir" =~ ^./[^/]+/[^/]+ ]]; then
+              echo "$dir" | sed 's|^./\([^/]\+\)/\([^/]\+\)|\1-\2|' | tr '[:upper:]' '[:lower:]'
+            fi
+          done | sort -u)
+
+          # Now extract FROM directives and filter against our valid images
+          BUILD_CONTEXTS=$(grep -h "^FROM.*\${.*_IMAGE}" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
+            # Extract variable name from FROM line
+            var_name=$(echo "$line" | grep -o '\${[^}]*}' | tr -d '${}\n')
+            # Extract image name and remove any default tag
+            image=$(grep "^ARG ${var_name}=" ./${{ matrix.image_path }}/Dockerfile | cut -d'=' -f2 | cut -d':' -f1)
+            # Check if this image is in our valid image list
+            if echo "$VALID_IMAGES" | grep -q "^${image}$"; then
+              # Use short name for context key but specify it as a docker-image context with SHA tag
+              echo "${image}=docker-image://ghcr.io/blockjoy/${image}:${{ steps.version.outputs.sha }}"
+            fi
+          done | sort -u | tr '\n' ',' | sed 's/,$//')
+          echo "contexts=${BUILD_CONTEXTS}" >> $GITHUB_OUTPUT
+          echo "Generated build contexts: ${BUILD_CONTEXTS}"
+          echo "Valid images: ${VALID_IMAGES}"
+          echo "Current image path: '${{ matrix.image_path }}'"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push base image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.image_path }}
+          push: true
+          build-args: |
+            GRAFANA_LOKI_API_KEY=${{ secrets.GRAFANA_LOKI_API_KEY }}
+            GRAFANA_PROM_API_KEY=${{ secrets.GRAFANA_PROM_API_KEY }}
+          build-contexts: ${{ steps.build-contexts.outputs.contexts }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
+
+  build-clients:
+    needs: [detect-changes, build-base]
+    if: |
+      fromJson(needs.detect-changes.outputs.clients_matrix).include[0] &&
+      (needs.build-base.result == 'success' || needs.build-base.result == 'skipped' || needs.build-base.result == null)
+    runs-on: self-hosted
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.clients_matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate version
+        id: version
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          CLIENT_NAME=$(basename ${{ matrix.image_path }})
+          IMAGE_NAME="${CLIENT_NAME}"
+          
+          if [[ "${{ matrix.image_path }}" =~ /exec/ ]]; then
+            # Only extract version for execution clients
+            CLIENT_UPPER=$(echo "${CLIENT_NAME}" | tr '[:lower:]' '[:upper:]')
+            CLIENT_VERSION=$(grep -E "ENV ${CLIENT_UPPER}_VERSION=[[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
+            if [[ ! -z "$CLIENT_VERSION" ]]; then
+              # Remove 'v' prefix and ensure version is Docker-compatible (only alphanumeric and . - _)
+              CLIENT_VERSION=${CLIENT_VERSION#v}
+              CLIENT_VERSION=$(echo "$CLIENT_VERSION" | tr -cd '[:alnum:].-')
+              IMAGE_TAG="${CLIENT_VERSION}-${SHA}"
+            else
+              IMAGE_TAG="${SHA}"
+            fi
+          else
+            IMAGE_TAG="${SHA}"
+          fi
+          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "sha=${SHA}" >> $GITHUB_OUTPUT
+      - name: Generate build contexts
+        id: build-contexts
+        run: |
+          # First, find all directories containing Dockerfiles to build our valid image list
+          VALID_IMAGES=$(find . -name Dockerfile -exec dirname {} \; | while read dir; do
+            # Convert directory path to image name (e.g., ./ethereum/ethereum-erigon -> ethereum-erigon)
+            basename "$dir" | tr '[:upper:]' '[:lower:]'
+            # For protocol directories, also add the protocol-client format
+            if [[ "$dir" =~ ^./[^/]+/[^/]+ ]]; then
+              echo "$dir" | sed 's|^./\([^/]\+\)/\([^/]\+\)|\1-\2|' | tr '[:upper:]' '[:lower:]'
+            fi
+          done | sort -u)
+
+          # Now extract FROM directives and filter against our valid images
+          BUILD_CONTEXTS=$(grep -h "^FROM.*\${.*_IMAGE}" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
+            # Extract variable name from FROM line
+            var_name=$(echo "$line" | grep -o '\${[^}]*}' | tr -d '${}\n')
+            # Extract image name and remove any default tag
+            image=$(grep "^ARG ${var_name}=" ./${{ matrix.image_path }}/Dockerfile | cut -d'=' -f2 | cut -d':' -f1)
+            # Check if this image is in our valid image list
+            if echo "$VALID_IMAGES" | grep -q "^${image}$"; then
+              # Use short name for context key but specify it as a docker-image context with SHA tag
+              echo "${image}=docker-image://ghcr.io/blockjoy/${image}:${{ steps.version.outputs.sha }}"
+            fi
+          done | sort -u | tr '\n' ',' | sed 's/,$//')
+          echo "contexts=${BUILD_CONTEXTS}" >> $GITHUB_OUTPUT
+          echo "Generated build contexts: ${BUILD_CONTEXTS}"
+          echo "Valid images: ${VALID_IMAGES}"
+          echo "Current image path: '${{ matrix.image_path }}'"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push client images
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.image_path }}
+          push: true
+          build-args: |
+            GRAFANA_LOKI_BASICAUTH=${{ secrets.GRAFANA_LOKI_BASICAUTH }}
+            GRAFANA_PROM_BASICAUTH=${{ secrets.GRAFANA_PROM_BASICAUTH }}
+            CLOUDFLARE_API_KEY=${{ secrets.CLOUDFLARE_API_KEY }}
+            BASE_IMAGE=node-base:${{ steps.version.outputs.sha }}
+          build-contexts: ${{ steps.build-contexts.outputs.contexts }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
+
+  build-protocols:
+    needs: [detect-changes]
+    if: fromJson(needs.detect-changes.outputs.protocols_matrix).include[0]
+    runs-on: self-hosted
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate version
+        id: version
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          if [[ -n "${{ matrix.image_path }}" ]]; then
+            # Only try to generate image name if matrix path is not empty
+            IMAGE_NAME=$(basename $(dirname "${{ matrix.image_path }}"))"-"$(basename "${{ matrix.image_path }}")
+            echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+          else
+            echo "::error ::No image path provided in matrix"
+            exit 1
+          fi
+          echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
+          echo "sha=${SHA}" >> $GITHUB_OUTPUT
+      - name: Generate build contexts
+        id: build-contexts
+        run: |
+          # First, find all directories containing Dockerfiles to build our valid image list
+          VALID_IMAGES=$(find . -name Dockerfile -exec dirname {} \; | while read dir; do
+            # Convert directory path to image name (e.g., ./ethereum/ethereum-erigon -> ethereum-erigon)
+            basename "$dir" | tr '[:upper:]' '[:lower:]'
+            # For protocol directories, also add the protocol-client format
+            if [[ "$dir" =~ ^./[^/]+/[^/]+ ]]; then
+              echo "$dir" | sed 's|^./\([^/]\+\)/\([^/]\+\)|\1-\2|' | tr '[:upper:]' '[:lower:]'
+            fi
+          done | sort -u)
+
+          # Now extract FROM directives and filter against our valid images
+          BUILD_CONTEXTS=$(grep -h "^FROM.*\${.*_IMAGE}" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
+            # Extract variable name from FROM line
+            var_name=$(echo "$line" | grep -o '\${[^}]*}' | tr -d '${}\n')
+            # Extract image name and remove any default tag
+            image=$(grep "^ARG ${var_name}=" ./${{ matrix.image_path }}/Dockerfile | cut -d'=' -f2 | cut -d':' -f1)
+            # Check if this image is in our valid image list
+            if echo "$VALID_IMAGES" | grep -q "^${image}$"; then
+              # Use short name for context key but specify it as a docker-image context with SHA tag
+              echo "${image}=docker-image://ghcr.io/blockjoy/${image}:${{ steps.version.outputs.sha }}"
+            fi
+          done | sort -u | tr '\n' ',' | sed 's/,$//')
+          echo "contexts=${BUILD_CONTEXTS}" >> $GITHUB_OUTPUT
+          echo "Generated build contexts: ${BUILD_CONTEXTS}"
+          echo "Valid images: ${VALID_IMAGES}"
+          echo "Current image path: '${{ matrix.image_path }}'"
+      - name: Generate build args
+        id: build-args
+        run: |
+          # Extract all *_IMAGE args from Dockerfile with their specified tags
+          IMAGE_ARGS=$(grep "^ARG.*_IMAGE=" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
+            var_name=$(echo "$line" | cut -d'=' -f1 | cut -d' ' -f2)
+            # Use the full image reference from the Dockerfile, including its tag
+            image_ref=$(echo "$line" | cut -d'=' -f2)
+            echo "${var_name}=${image_ref}"
+          done | tr '\n' '\n')
+          echo "image_args<<EOF" >> $GITHUB_OUTPUT
+          echo "$IMAGE_ARGS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push protocol images
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.image_path }}
+          push: true
+          build-args: |
+            GRAFANA_LOKI_BASICAUTH=${{ secrets.GRAFANA_LOKI_BASICAUTH }}
+            GRAFANA_PROM_BASICAUTH=${{ secrets.GRAFANA_PROM_BASICAUTH }}
+            CLOUDFLARE_API_KEY=${{ secrets.CLOUDFLARE_API_KEY }}
+            ${{ steps.build-args.outputs.image_args }}
+          build-contexts: ${{ steps.build-contexts.outputs.contexts }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
