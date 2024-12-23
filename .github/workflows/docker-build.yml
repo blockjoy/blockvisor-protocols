@@ -106,7 +106,7 @@ jobs:
           echo "contexts=${BUILD_CONTEXTS}" >> $GITHUB_OUTPUT
           echo "Generated build contexts: ${BUILD_CONTEXTS}"
           echo "Valid images: ${VALID_IMAGES}"
-          echo "Current image path: ${{ matrix.image_path }}
+          echo "Current image path: '${{ matrix.image_path }}'"
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build and push base image
@@ -193,7 +193,7 @@ jobs:
           echo "contexts=${BUILD_CONTEXTS}" >> $GITHUB_OUTPUT
           echo "Generated build contexts: ${BUILD_CONTEXTS}"
           echo "Valid images: ${VALID_IMAGES}"
-          echo "Current image path: ${{ matrix.image_path }}
+          echo "Current image path: '${{ matrix.image_path }}'"
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build and push client images
@@ -266,7 +266,7 @@ jobs:
           echo "contexts=${BUILD_CONTEXTS}" >> $GITHUB_OUTPUT
           echo "Generated build contexts: ${BUILD_CONTEXTS}"
           echo "Valid images: ${VALID_IMAGES}"
-          echo "Current image path: ${{ matrix.image_path }}
+          echo "Current image path: '${{ matrix.image_path }}'"
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build and push protocol images
