@@ -42,6 +42,22 @@ jobs:
           json: true
           dir_names: false
           
+      - name: Debug changed files outputs
+        run: |
+          echo "Debug outputs from changed-files action:"
+          echo "all_modified_files:"
+          echo "${{ steps.changed-files.outputs.all_modified_files }}"
+          echo "modified_files:"
+          echo "${{ steps.changed-files.outputs.modified_files }}"
+          echo "added_files:"
+          echo "${{ steps.changed-files.outputs.added_files }}"
+          echo "deleted_files:"
+          echo "${{ steps.changed-files.outputs.deleted_files }}"
+          echo "renamed_files:"
+          echo "${{ steps.changed-files.outputs.renamed_files }}"
+          echo "copied_files:"
+          echo "${{ steps.changed-files.outputs.copied_files }}"
+          
       - name: Generate build matrices
         id: set-matrix
         run: |
