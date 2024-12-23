@@ -41,7 +41,7 @@ jobs:
             **/*
           json: true
           dir_names: false
-          fetch-depth: 0
+          fetch-depth: 1
           
       - name: Debug changed files outputs
         run: |
