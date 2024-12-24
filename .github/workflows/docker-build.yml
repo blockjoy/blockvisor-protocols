@@ -363,7 +363,7 @@ jobs:
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
 
   workflow-status:
-    needs: [build-base, build-clients, build-protocols]
+    needs: [detect-changes, build-base, build-clients, build-protocols]
     runs-on: self-hosted
     steps:
       - name: Check build statuses
