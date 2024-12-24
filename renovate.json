@@ -48,8 +48,8 @@
       "pinDigests": false,
       "separateMinorPatch": false,
       "separateMajorMinor": false,
-      "matchPackageNames": [
-        "/^ghcr.io/blockjoy//"
+      "matchPackagePatterns": [
+        "^ghcr.io/blockjoy/"
       ]
     }
   ],
