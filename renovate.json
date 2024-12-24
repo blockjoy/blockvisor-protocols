@@ -43,7 +43,7 @@
       ],
       "enabled": true,
       "automerge": true,
-      "automergeType": "branch",
+      "automergeType": "pr",
       "groupName": "internal-dependencies",
       "pinDigests": false,
       "separateMinorPatch": false,
