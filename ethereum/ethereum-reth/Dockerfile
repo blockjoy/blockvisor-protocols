@@ -1,6 +1,6 @@
 # 5
-ARG RETH_IMAGE=ghcr.io/blockjoy/reth:v1
-ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v1
+ARG RETH_IMAGE=ghcr.io/blockjoy/reth:v163
+ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v163
 ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v154
 
 FROM ${RETH_IMAGE} AS reth-build
