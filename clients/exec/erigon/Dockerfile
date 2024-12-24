@@ -1,4 +1,4 @@
-# 1
+# 2
 ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v1
 FROM ghcr.io/blockjoy/${BASE_IMAGE} as builder
 
