@@ -181,10 +181,8 @@ jobs:
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
 
   build-clients:
-    needs: [detect-changes, build-base]
-    if: |
-      fromJson(needs.detect-changes.outputs.clients_matrix).include[0] &&
-      (needs.build-base.result == 'success' || needs.build-base.result == 'skipped' || needs.build-base.result == null)
+    needs: [detect-changes]
+    if: fromJson(needs.detect-changes.outputs.clients_matrix).include[0]
     runs-on: self-hosted
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.clients_matrix) }}
@@ -263,7 +261,6 @@ jobs:
             GRAFANA_LOKI_BASICAUTH=${{ secrets.GRAFANA_LOKI_BASICAUTH }}
             GRAFANA_PROM_BASICAUTH=${{ secrets.GRAFANA_PROM_BASICAUTH }}
             CLOUDFLARE_API_KEY=${{ secrets.CLOUDFLARE_API_KEY }}
-            BASE_IMAGE=node-base:${{ steps.version.outputs.sha }}
           build-contexts: ${{ steps.build-contexts.outputs.contexts }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
