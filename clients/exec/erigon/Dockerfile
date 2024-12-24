@@ -1,6 +1,6 @@
 # 2
 ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v1
-FROM ghcr.io/blockjoy/${BASE_IMAGE} as builder
+FROM ${BASE_IMAGE} as builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV ERIGON_VERSION=v2.60.9
@@ -21,5 +21,5 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     cp build/bin/erigon /root/bin/
 
 # Create minimal final image
-FROM ghcr.io/blockjoy/${BASE_IMAGE}
+FROM ${BASE_IMAGE}
 COPY --from=builder /root/bin/erigon /root/bin/erigon
