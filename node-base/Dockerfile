@@ -1,23 +1,22 @@
-# 1
 FROM debian:bookworm-slim@sha256:1537a6a1cbc4b4fd401da800ee9480207e7dc1f23560c21259f681db56768f63
 
-ARG GRAFANA_LOKI_API_KEY
-ARG GRAFANA_PROM_API_KEY
-
 ENV DEBIAN_FRONTEND=noninteractive
-ENV GRAFANA_LOKI_API_KEY=${GRAFANA_LOKI_API_KEY}
-ENV GRAFANA_PROM_API_KEY=${GRAFANA_PROM_API_KEY}
 
 ENV GO_VERSION=1.23.1
 ENV CADVISOR_VERSION=0.49.1
 
-RUN apt-get update && apt-get install -y \
-    wget \
-    curl \
+RUN apt-get update --allow-insecure-repositories \
+    && apt-get install -y --no-install-recommends \
+    ca-certificates \
     gnupg \
     debian-keyring \
     debian-archive-keyring \
     apt-transport-https \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
     software-properties-common \
     vim \
     psmisc \
@@ -25,10 +24,10 @@ RUN apt-get update && apt-get install -y \
     nano \
     git \
     build-essential \
-    ca-certificates \
     libc6 \
     libfontconfig1 \
-    apt-utils
+    apt-utils \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /etc/apt/keyrings/ && \
     wget --inet4-only --no-check-certificate -qO - http://apt.grafana.com/gpg.key | gpg --dearmor -o /etc/apt/keyrings/grafana.gpg && \
@@ -67,8 +66,6 @@ RUN mkdir -p /etc/grafana /var/lib/grafana /usr/share/grafana/conf/provisioning/
 
 COPY config/grafana-datasource.yml /usr/share/grafana/conf/provisioning/datasources/datasource.yml
 COPY config/grafana-dashboard.yml /usr/share/grafana/conf/provisioning/dashboards/dashboard.yml
-
-#COPY config/caddy-dashboard.json /var/lib/grafana/dashboards
 
 RUN apt-get autoremove -y && apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
