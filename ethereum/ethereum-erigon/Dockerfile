@@ -1,6 +1,6 @@
-ARG ERIGON_IMAGE=ghcr.io/blockjoy/erigon:latest
-ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:latest
-ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:latest
+ARG ERIGON_IMAGE=ghcr.io/blockjoy/erigon:v1
+ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v1
+ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v1
 
 FROM ${ERIGON_IMAGE} as erigon-build
 

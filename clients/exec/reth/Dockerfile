@@ -1,5 +1,5 @@
-ARG BASE_IMAGE=node-base:latest
-FROM ghcr.io/blockjoy/${BASE_IMAGE} as builder
+ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v1
+FROM ${BASE_IMAGE} as builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV RETH_VERSION=v1.1.4
@@ -35,5 +35,5 @@ RUN --mount=type=cache,target=/root/.cargo/git \
     cp target/maxperf/reth /root/bin/
 
 # Create minimal final image
-FROM ghcr.io/blockjoy/${BASE_IMAGE}
+FROM ${BASE_IMAGE}
 COPY --from=builder /root/bin/reth /root/bin/reth

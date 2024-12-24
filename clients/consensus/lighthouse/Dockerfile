@@ -1,5 +1,5 @@
-ARG BASE_IMAGE=node-base:latest
-FROM ghcr.io/blockjoy/${BASE_IMAGE}
+ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v1
+FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 
