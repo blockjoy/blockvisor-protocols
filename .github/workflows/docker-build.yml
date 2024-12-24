@@ -129,7 +129,8 @@ jobs:
         id: version
         run: |
           SHA=$(git rev-parse --short HEAD)
-          VERSION=$(git rev-list --count HEAD)
+          git fetch origin main --unshallow || git fetch origin main
+          VERSION=$(git rev-list --count origin/main)
           echo "image_name=node-base" >> $GITHUB_OUTPUT
           echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
           echo "version_tag=v${VERSION}" >> $GITHUB_OUTPUT
@@ -198,7 +199,8 @@ jobs:
         id: version
         run: |
           SHA=$(git rev-parse --short HEAD)
-          VERSION=$(git rev-list --count HEAD)
+          git fetch origin main --unshallow || git fetch origin main
+          VERSION=$(git rev-list --count origin/main)
           CLIENT_NAME=$(basename ${{ matrix.image_path }})
           IMAGE_NAME="${CLIENT_NAME}"
           
@@ -286,7 +288,8 @@ jobs:
         id: version
         run: |
           SHA=$(git rev-parse --short HEAD)
-          VERSION=$(git rev-list --count HEAD)
+          git fetch origin main --unshallow || git fetch origin main
+          VERSION=$(git rev-list --count origin/main)
           if [[ -n "${{ matrix.image_path }}" ]]; then
             # Only try to generate image name if matrix path is not empty
             IMAGE_NAME=$(basename $(dirname "${{ matrix.image_path }}"))"-"$(basename "${{ matrix.image_path }}")
