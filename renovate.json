@@ -19,6 +19,7 @@
         "docker"
       ],
       "matchPackageNames": [
+        "debian",
         "ubuntu"
       ],
       "enabled": false
@@ -39,22 +40,6 @@
       "separateMinorPatch": false,
       "separateMajorMinor": false
     }
-  ],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "fileMatch": [
-        "^.+/Dockerfile$"
-      ],
-      "matchStrings": [
-        "ARG .*_IMAGE=(?<depName>ghcr.io\\/blockjoy\\/[^:]+):(?<currentValue>[^\\s]+)"
-      ],
-      "datasourceTemplate": "docker",
-      "registryUrlTemplate": "https://ghcr.io"
-    }
-  ],
-  "ignoreDeps": [
-    "ubuntu"
   ],
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0
