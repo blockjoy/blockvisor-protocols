@@ -364,6 +364,7 @@ jobs:
 
   workflow-status:
     needs: [detect-changes, build-base, build-clients, build-protocols]
+    if: always()
     runs-on: self-hosted
     steps:
       - name: Check build statuses
