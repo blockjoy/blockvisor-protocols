@@ -129,8 +129,10 @@ jobs:
         id: version
         run: |
           SHA=$(git rev-parse --short HEAD)
+          VERSION=$(git rev-list --count HEAD)
           echo "image_name=node-base" >> $GITHUB_OUTPUT
           echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
+          echo "version_tag=v${VERSION}" >> $GITHUB_OUTPUT
           echo "sha=${SHA}" >> $GITHUB_OUTPUT
       - name: Generate build contexts
         id: build-contexts
@@ -174,7 +176,9 @@ jobs:
           build-contexts: ${{ steps.build-contexts.outputs.contexts }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
+          tags: |
+            ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
+            ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
 
   build-clients:
     needs: [detect-changes, build-base]
@@ -196,6 +200,7 @@ jobs:
         id: version
         run: |
           SHA=$(git rev-parse --short HEAD)
+          VERSION=$(git rev-list --count HEAD)
           CLIENT_NAME=$(basename ${{ matrix.image_path }})
           IMAGE_NAME="${CLIENT_NAME}"
           
@@ -216,6 +221,7 @@ jobs:
           fi
           echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "version_tag=v${VERSION}" >> $GITHUB_OUTPUT
           echo "sha=${SHA}" >> $GITHUB_OUTPUT
       - name: Generate build contexts
         id: build-contexts
@@ -261,7 +267,9 @@ jobs:
           build-contexts: ${{ steps.build-contexts.outputs.contexts }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
+          tags: |
+            ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
+            ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
 
   build-protocols:
     needs: [detect-changes]
@@ -281,6 +289,7 @@ jobs:
         id: version
         run: |
           SHA=$(git rev-parse --short HEAD)
+          VERSION=$(git rev-list --count HEAD)
           if [[ -n "${{ matrix.image_path }}" ]]; then
             # Only try to generate image name if matrix path is not empty
             IMAGE_NAME=$(basename $(dirname "${{ matrix.image_path }}"))"-"$(basename "${{ matrix.image_path }}")
@@ -290,6 +299,7 @@ jobs:
             exit 1
           fi
           echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
+          echo "version_tag=v${VERSION}" >> $GITHUB_OUTPUT
           echo "sha=${SHA}" >> $GITHUB_OUTPUT
       - name: Generate build contexts
         id: build-contexts
@@ -348,4 +358,6 @@ jobs:
           build-contexts: ${{ steps.build-contexts.outputs.contexts }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
+          tags: |
+            ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
+            ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}

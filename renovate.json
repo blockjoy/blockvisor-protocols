@@ -10,7 +10,8 @@
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Dependencies Dashboard",
   "docker": {
-    "enabled": true
+    "enabled": true,
+    "versioning": "regex:^v(?<major>\\d+)$"
   },
   "hostRules": [
     {
