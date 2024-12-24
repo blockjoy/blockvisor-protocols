@@ -1,6 +1,6 @@
-# 3
+# 4
 ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v1
-FROM ${BASE_IMAGE} as builder
+FROM ${BASE_IMAGE} AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV RETH_VERSION=v1.1.4

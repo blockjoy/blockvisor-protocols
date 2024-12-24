@@ -1,4 +1,4 @@
-# 4
+# 5
 ARG RETH_IMAGE=ghcr.io/blockjoy/reth:v1
 ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v1
 ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v1
