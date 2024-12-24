@@ -9,13 +9,18 @@
   ],
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Dependencies Dashboard",
-  "packageRules": [
+  "docker": {
+    "enabled": true
+  },
+  "hostRules": [
     {
-      "matchCategories": [
-        "docker"
-      ],
-      "enabled": true
-    },
+      "hostType": "docker",
+      "matchHost": "ghcr.io",
+      "username": "blockjoy[bot]",
+      "password": "{{ secrets.RENOVATE_TOKEN }}"
+    }
+  ],
+  "packageRules": [
     {
       "description": "Disable updates for Ubuntu base images",
       "matchDatasources": [
@@ -32,16 +37,16 @@
       "matchDatasources": [
         "docker"
       ],
+      "matchPackagePatterns": [
+        "^ghcr.io/blockjoy/"
+      ],
       "enabled": true,
       "automerge": true,
       "automergeType": "branch",
       "groupName": "internal-dependencies",
       "pinDigests": false,
       "separateMinorPatch": false,
-      "separateMajorMinor": false,
-      "matchPackageNames": [
-        "/^ghcr.io/blockjoy//"
-      ]
+      "separateMajorMinor": false
     }
   ],
   "prHourlyLimit": 0,
