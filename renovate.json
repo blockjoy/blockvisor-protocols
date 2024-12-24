@@ -37,9 +37,9 @@
       "automerge": true,
       "automergeType": "branch",
       "groupName": "internal-dependencies",
-      "followTag": "latest",
-      "pinDigests": true,
-      "versioning": "docker"
+      "pinDigests": false,
+      "separateMinorPatch": false,
+      "separateMajorMinor": false
     }
   ],
   "customManagers": [
@@ -49,11 +49,10 @@
         "^.+/Dockerfile$"
       ],
       "matchStrings": [
-        "ARG .*_IMAGE=ghcr.io/blockjoy/(?<depName>[^:]+):(?<currentValue>[^\\s]+)"
+        "ARG .*_IMAGE=(?<depName>ghcr.io\\/blockjoy\\/[^:]+):(?<currentValue>[^\\s]+)"
       ],
       "datasourceTemplate": "docker",
-      "registryUrlTemplate": "https://ghcr.io",
-      "currentValueTemplate": "latest"
+      "registryUrlTemplate": "https://ghcr.io"
     }
   ],
   "ignoreDeps": [
