@@ -3,6 +3,7 @@ ARG ERIGON_IMAGE=ghcr.io/blockjoy/erigon:v176
 ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v176
 ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v176
 
+
 FROM ${ERIGON_IMAGE} as erigon-build
 
 FROM ${LIGHTHOUSE_IMAGE} AS lighthouse-build
