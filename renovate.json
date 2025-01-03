@@ -43,6 +43,7 @@
       ],
       "enabled": true,
       "automerge": true,
+      "platformAutomerge": true,
       "automergeType": "pr",
       "groupName": "internal-dependencies",
       "pinDigests": false,
