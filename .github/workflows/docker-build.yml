@@ -319,7 +319,8 @@ jobs:
           SHA=$(git rev-parse --short HEAD)
           DATE=$(date '+%Y%m%d')
           PROTOCOL_PATH=${{ matrix.image_path }}
-          IMAGE_NAME=$(echo "$PROTOCOL_PATH" | sed 's|/|-|')
+          # Extract just the protocol name without the parent directory
+          IMAGE_NAME=$(basename "$PROTOCOL_PATH")
 
           # Get the current build number for today from the container registry
           LATEST_BUILD=$(gh api \
