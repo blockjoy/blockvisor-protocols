@@ -9,6 +9,12 @@
   ],
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Dependencies Dashboard",
+  "automerge": true,
+  "platformAutomerge": true,
+  "automergeType": "pr",
+  "automergeStrategy": "squash",
+  "ignoreTests": false,
+  "requiredStatusChecks": ["build"],
   "hostRules": [
     {
       "hostType": "docker",
@@ -45,6 +51,7 @@
       "automerge": true,
       "platformAutomerge": true,
       "automergeType": "pr",
+      "automergeStrategy": "squash",
       "groupName": "internal-dependencies",
       "pinDigests": false,
       "separateMinorPatch": false,
