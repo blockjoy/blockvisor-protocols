@@ -218,8 +218,8 @@ jobs:
           CLIENT_NAME=$(basename ${{ matrix.image_path }})
           IMAGE_NAME="${CLIENT_NAME}"
           
-          if [[ "${{ matrix.image_path }}" =~ /exec/ ]]; then
-            # Only extract version for execution clients
+          # Extract version for any client under /clients/
+          if [[ "${{ matrix.image_path }}" =~ ^clients/ ]]; then
             CLIENT_UPPER=$(echo "${CLIENT_NAME}" | tr '[:lower:]' '[:upper:]')
             CLIENT_VERSION=$(grep -E "ENV ${CLIENT_UPPER}_VERSION=[[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
             if [[ ! -z "$CLIENT_VERSION" ]]; then
