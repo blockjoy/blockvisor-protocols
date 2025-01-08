@@ -12,8 +12,12 @@ This repository contains Docker configurations for blockchain protocol nodes and
 │   └── exec/             # Execution client implementations
 │       ├── erigon/       # Erigon client
 │       └── reth/         # Reth client
-├── protocols/            # Protocol-specific implementations
-│   └── ethereum/         # Ethereum protocol configurations
+├── ethereum/             # Ethereum protocol configurations
+│   ├── ethereum-erigon/  # Erigon-based Ethereum node
+│   └── ethereum-reth/    # Reth-based Ethereum node
+├── example-chain/        # Example of a new protocol structure
+│   ├── example-client1/  # First client implementation
+│   └── example-client2/  # Second client implementation
 └── node-base/           # Base image with common utilities and monitoring
 ```
 
@@ -70,11 +74,11 @@ RUN ...
 
 ### Adding a New Protocol
 
-1. Create a new directory under the protocol type:
+1. Create a new directory in the root for your protocol:
 ```bash
-protocols/
+.
 └── your-protocol/
-    └── your-implementation/
+    └── your-protocol-client/
         ├── Dockerfile
         └── ... (additional files)
 ```
@@ -108,7 +112,7 @@ docker build \
 docker build \
   --build-arg CLIENT_IMAGE=blockjoy/your-client:latest \
   -t blockjoy/your-protocol:latest \
-  protocols/your-protocol/your-implementation/
+  your-protocol/your-protocol-client/
 ```
 
 2. **Automated Builds**:
