@@ -397,6 +397,34 @@ jobs:
           tags: |
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
+      - name: Get variants from babel.yaml
+        id: get-variants
+        run: |
+          variants=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml | tr '\n' ' ')
+          echo "variants=$variants" >> $GITHUB_OUTPUT
+
+      - name: Check variants
+        id: check-variants
+        run: |
+          success_variants=()
+          for variant in ${{ steps.get-variants.outputs.variants }}; do
+            if nib image check --variant $variant; then
+              success_variants+=("$variant")
+              echo "✅ Variant $variant check passed"
+            else
+              echo "❌ Variant $variant check failed"
+              exit 1
+            fi
+          done
+          echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
+
+      - name: Push successful variants
+        if: success()
+        run: |
+          for variant in ${{ steps.check-variants.outputs.success_variants }}; do
+            echo "🚀 Pushing variant $variant"
+            nib image push --variant $variant
+          done
 
   workflow-status:
     needs: [detect-changes, build-base, build-clients, build-protocols]
