@@ -95,25 +95,20 @@ COPY . .
 ```bash
 # Build node-base image
 docker build \
-  -t localhost:5000/blockjoy/node-base:latest \
+  -t blockjoy/node-base:latest \
   node-base/
 
 # Build client image using local node-base
 docker build \
-  --build-arg BASE_IMAGE=localhost:5000/blockjoy/node-base:latest \
-  -t localhost:5000/blockjoy/your-client:latest \
+  --build-arg BASE_IMAGE=blockjoy/node-base:latest \
+  -t blockjoy/your-client:latest \
   clients/[consensus|exec]/your-client/
 
 # Build protocol image using local client
 docker build \
-  --build-arg CLIENT_IMAGE=localhost:5000/blockjoy/your-client:latest \
-  -t localhost:5000/blockjoy/your-protocol:latest \
+  --build-arg CLIENT_IMAGE=blockjoy/your-client:latest \
+  -t blockjoy/your-protocol:latest \
   protocols/your-protocol/your-implementation/
-
-# Push images to local registry (if needed)
-docker push localhost:5000/blockjoy/node-base:latest
-docker push localhost:5000/blockjoy/your-client:latest
-docker push localhost:5000/blockjoy/your-protocol:latest
 ```
 
 2. **Automated Builds**:
