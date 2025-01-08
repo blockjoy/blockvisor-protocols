@@ -145,4 +145,4 @@ docker push localhost:5000/blockjoy/your-protocol:latest
 - All images are built from the `node-base` image which provides common utilities and monitoring capabilities
 - Version tags are generated daily with an incremental counter (e.g., `v20250108.1`, `v20250108.2`)
 - Each image also includes the git SHA for traceability
-- Protocol images are named using their base directory name (e.g., `ethereum-erigon`)
+- Protocol images are named using their protocol directory name (e.g., `ethereum-erigon`)
