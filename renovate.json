@@ -25,6 +25,30 @@
   ],
   "packageRules": [
     {
+      "description": "Client version control",
+      "matchPaths": ["clients/**"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Lighthouse version exclusions. Example: use /^5\\.4\\.0-.*/ to ignore version 5.4.0 with any sha",
+      "matchPaths": ["clients/consensus/lighthouse/**"],
+      "matchPackagePatterns": ["LIGHTHOUSE_VERSION"],
+      "ignoreVersions": []
+    },
+    {
+      "description": "Erigon version exclusions. Example: use /^2\\.56\\.0-.*/ to ignore version 2.56.0 with any sha",
+      "matchPaths": ["clients/exec/erigon/**"],
+      "matchPackagePatterns": ["ERIGON_VERSION"],
+      "ignoreVersions": []
+    },
+    {
+      "description": "Reth version exclusions. Example: use /^0\\.1\\.0-alpha\\.14-.*/ to ignore version 0.1.0-alpha.14 with any sha",
+      "matchPaths": ["clients/exec/reth/**"],
+      "matchPackagePatterns": ["RETH_VERSION"],
+      "ignoreVersions": []
+    },
+    {
       "matchCategories": [
         "docker"
       ],
