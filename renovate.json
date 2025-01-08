@@ -5,7 +5,8 @@
   ],
   "enabledManagers": [
     "dockerfile",
-    "github-actions"
+    "github-actions",
+    "regex"
   ],
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Dependencies Dashboard",
@@ -21,6 +22,17 @@
       "matchHost": "ghcr.io",
       "username": "blockjoy[bot]",
       "password": "{{ secrets.RENOVATE_TOKEN }}"
+    }
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": [".*babel\\.yaml$"],
+      "matchStrings": [
+        "container_uri:\\s+(?<depName>[^:]+):(?<currentValue>[^\\s]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "{{{depName}}}",
+      "versioningTemplate": "docker"
     }
   ],
   "packageRules": [

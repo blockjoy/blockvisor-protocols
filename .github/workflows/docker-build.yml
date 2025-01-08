@@ -133,17 +133,21 @@ jobs:
         run: |
           SHA=$(git rev-parse --short HEAD)
           DATE=$(date '+%Y%m%d')
-          # Get the current build number for today from the container registry
+          IMAGE_NAME=$(basename "${{ matrix.image_path }}")
+          
+          # Try to get the current build number, default to 0 if API call fails
           LATEST_BUILD=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            /orgs/blockjoy/packages/container/node-base/versions \
-            --jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
-          # Increment the build number or start at 1 if no builds today
+            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>/dev/null | \
+            jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length" || echo "0")
+          
+          # Increment the build number
           BUILD_NUM=$((LATEST_BUILD + 1))
           # Format: v20250108.1, v20250108.2, etc
           VERSION_TAG="v${DATE}.${BUILD_NUM}"
-          echo "image_name=node-base" >> $GITHUB_OUTPUT
+          
+          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
           echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
           echo "sha=${SHA}" >> $GITHUB_OUTPUT
@@ -234,13 +238,14 @@ jobs:
             IMAGE_TAG="${SHA}"
           fi
 
-          # Get the current build number for today from the container registry
+          # Try to get the current build number, default to 0 if API call fails
           LATEST_BUILD=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            /orgs/blockjoy/packages/container/${IMAGE_NAME}/versions \
-            --jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
-          # Increment the build number or start at 1 if no builds today
+            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>/dev/null | \
+            jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length" || echo "0")
+          
+          # Increment the build number
           BUILD_NUM=$((LATEST_BUILD + 1))
           # Format: v20250108.1, v20250108.2, etc
           VERSION_TAG="v${DATE}.${BUILD_NUM}"
@@ -322,13 +327,14 @@ jobs:
           # Extract just the protocol name without the parent directory
           IMAGE_NAME=$(basename "$PROTOCOL_PATH")
 
-          # Get the current build number for today from the container registry
+          # Try to get the current build number, default to 0 if API call fails
           LATEST_BUILD=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            /orgs/blockjoy/packages/container/${IMAGE_NAME}/versions \
-            --jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
-          # Increment the build number or start at 1 if no builds today
+            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>/dev/null | \
+            jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length" || echo "0")
+          
+          # Increment the build number
           BUILD_NUM=$((LATEST_BUILD + 1))
           # Format: v20250108.1, v20250108.2, etc
           VERSION_TAG="v${DATE}.${BUILD_NUM}"
@@ -397,6 +403,34 @@ jobs:
           tags: |
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
+      - name: Get variants from babel.yaml
+        id: get-variants
+        run: |
+          variants=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml | tr '\n' ' ')
+          echo "variants=$variants" >> $GITHUB_OUTPUT
+
+      - name: Check variants
+        id: check-variants
+        run: |
+          success_variants=()
+          for variant in ${{ steps.get-variants.outputs.variants }}; do
+            if nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml; then
+              success_variants+=("$variant")
+              echo "✅ Variant $variant check passed"
+            else
+              echo "❌ Variant $variant check failed"
+              exit 1
+            fi
+          done
+          echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
+
+      - name: Push successful variants
+        if: success()
+        run: |
+          for variant in ${{ steps.check-variants.outputs.success_variants }}; do
+            echo "🚀 Pushing image"
+            nib image push --path ${{ matrix.image_path }}/babel.yaml
+          done
 
   workflow-status:
     needs: [detect-changes, build-base, build-clients, build-protocols]
