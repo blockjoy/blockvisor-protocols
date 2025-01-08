@@ -414,7 +414,7 @@ jobs:
         run: |
           success_variants=()
           for variant in ${{ steps.get-variants.outputs.variants }}; do
-            if nib image check --variant $variant; then
+            if nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml; then
               success_variants+=("$variant")
               echo "✅ Variant $variant check passed"
             else
@@ -429,7 +429,7 @@ jobs:
         run: |
           for variant in ${{ steps.check-variants.outputs.success_variants }}; do
             echo "🚀 Pushing variant $variant"
-            nib image push --variant $variant
+            nib image push --variant $variant --path ${{ matrix.image_path }}/babel.yaml
           done
 
   workflow-status:
