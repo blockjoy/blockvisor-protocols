@@ -61,10 +61,6 @@
         "docker"
       ],
       "enabled": true,
-      "automerge": true,
-      "platformAutomerge": true,
-      "automergeType": "pr",
-      "automergeStrategy": "squash",
       "groupName": "internal-dependencies",
       "pinDigests": false,
       "separateMinorPatch": false,
