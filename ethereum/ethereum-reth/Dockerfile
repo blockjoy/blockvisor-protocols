@@ -21,7 +21,7 @@ RUN mkdir -p /root/bin
 COPY --from=reth-build /root/bin/reth /root/bin/
 COPY --from=lighthouse-build /root/bin/lighthouse /root/bin/
 
-COPY Caddyfile.template /var/lib/babel/templates/
+COPY templates/Caddyfile.template /var/lib/babel/templates/
+COPY templates/config-alloy.template /var/lib/babel/templates/
 COPY reth.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/
-COPY config-alloy.template /var/lib/babel/templates/config-alloy.template
