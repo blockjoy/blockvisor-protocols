@@ -18,7 +18,7 @@ This repository contains Docker configurations for blockchain protocol nodes and
 ├── example-chain/        # Example of a new protocol structure
 │   ├── example-client1/  # First client implementation
 │   └── example-client2/  # Second client implementation
-└── node-base/           # Base image with common utilities and monitoring
+└── node-base/           # Base image with common utilities and monitor
 ```
 
 ## Automation Features
