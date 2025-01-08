@@ -1,15 +1,15 @@
-name: Docker Build
+name: Build Docker Images
 
 on:
   pull_request:
     branches: [ main ]
     paths-ignore:
       - '**.md'
-      - '.github/**'
-      - '!.github/workflows/docker-build.yml'
       - 'docs/**'
       - '.gitignore'
       - 'LICENSE'
+      - '.github/**'
+      - '!.github/workflows/**'
 
 permissions:
   contents: read
@@ -403,29 +403,23 @@ jobs:
     if: always()
     runs-on: self-hosted
     steps:
-      - name: Check build statuses
+      - name: Check workflow status
         run: |
-          BASE_STATUS="${{ needs.build-base.result }}"
-          CLIENTS_STATUS="${{ needs.build-clients.result }}"
-          PROTOCOLS_STATUS="${{ needs.build-protocols.result }}"
-          
-          # Function to check if a status is successful (success or skipped)
-          check_status() {
-            local status="$1"
-            local job="$2"
-            if [[ "$status" == "skipped" ]]; then
-              echo "Job $job was skipped - marking as success"
-              return 0
-            elif [[ "$status" != "success" ]]; then
-              echo "Job $job failed with status: $status"
-              return 1
-            fi
-            return 0
-          }
-          
-          # Check each job status
-          check_status "$BASE_STATUS" "build-base" || exit 1
-          check_status "$CLIENTS_STATUS" "build-clients" || exit 1
-          check_status "$PROTOCOLS_STATUS" "build-protocols" || exit 1
-          
-          echo "All jobs completed successfully or were skipped"
+          # If no builds were triggered (all skipped), that means no relevant files changed
+          if [[ "${{ needs.build-base.result }}" == "skipped" ]] && \
+             [[ "${{ needs.build-clients.result }}" == "skipped" ]] && \
+             [[ "${{ needs.build-protocols.result }}" == "skipped" ]]; then
+            echo "No relevant files changed - marking as success"
+            exit 0
+          fi
+
+          # Otherwise check if any non-skipped jobs failed
+          if [[ "${{ needs.build-base.result }}" != "skipped" && "${{ needs.build-base.result }}" != "success" ]] || \
+             [[ "${{ needs.build-clients.result }}" != "skipped" && "${{ needs.build-clients.result }}" != "success" ]] || \
+             [[ "${{ needs.build-protocols.result }}" != "skipped" && "${{ needs.build-protocols.result }}" != "success" ]]; then
+            echo "One or more builds failed"
+            exit 1
+          fi
+
+          echo "All triggered builds completed successfully"
+          exit 0

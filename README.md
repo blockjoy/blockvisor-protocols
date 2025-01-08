@@ -12,9 +12,13 @@ This repository contains Docker configurations for blockchain protocol nodes and
 │   └── exec/             # Execution client implementations
 │       ├── erigon/       # Erigon client
 │       └── reth/         # Reth client
-├── protocols/            # Protocol-specific implementations
-│   └── ethereum/         # Ethereum protocol configurations
-└── node-base/           # Base image with common utilities and monitoring
+├── ethereum/             # Ethereum protocol configurations
+│   ├── ethereum-erigon/  # Erigon-based Ethereum node
+│   └── ethereum-reth/    # Reth-based Ethereum node
+├── example-chain/        # Example of a new protocol structure
+│   ├── example-client1/  # First client implementation
+│   └── example-client2/  # Second client implementation
+└── node-base/           # Base image with common utilities and monitor
 ```
 
 ## Automation Features
@@ -70,11 +74,11 @@ RUN ...
 
 ### Adding a New Protocol
 
-1. Create a new directory under the protocol type:
+1. Create a new directory in the root for your protocol:
 ```bash
-protocols/
+.
 └── your-protocol/
-    └── your-implementation/
+    └── your-protocol-client/
         ├── Dockerfile
         └── ... (additional files)
 ```
@@ -95,25 +99,20 @@ COPY . .
 ```bash
 # Build node-base image
 docker build \
-  -t localhost:5000/blockjoy/node-base:latest \
+  -t blockjoy/node-base:latest \
   node-base/
 
 # Build client image using local node-base
 docker build \
-  --build-arg BASE_IMAGE=localhost:5000/blockjoy/node-base:latest \
-  -t localhost:5000/blockjoy/your-client:latest \
+  --build-arg BASE_IMAGE=blockjoy/node-base:latest \
+  -t blockjoy/your-client:latest \
   clients/[consensus|exec]/your-client/
 
 # Build protocol image using local client
 docker build \
-  --build-arg CLIENT_IMAGE=localhost:5000/blockjoy/your-client:latest \
-  -t localhost:5000/blockjoy/your-protocol:latest \
-  protocols/your-protocol/your-implementation/
-
-# Push images to local registry (if needed)
-docker push localhost:5000/blockjoy/node-base:latest
-docker push localhost:5000/blockjoy/your-client:latest
-docker push localhost:5000/blockjoy/your-protocol:latest
+  --build-arg CLIENT_IMAGE=blockjoy/your-client:latest \
+  -t blockjoy/your-protocol:latest \
+  your-protocol/your-protocol-client/
 ```
 
 2. **Automated Builds**:
