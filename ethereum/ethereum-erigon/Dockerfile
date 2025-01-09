@@ -1,12 +1,12 @@
 # 8
-ARG ERIGON_IMAGE=ghcr.io/blockjoy/erigon:v177
-ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v177
-ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v176
+ARG ERIGON_IMAGE=ghcr.io/blockjoy/erigon:v20250109.1
+ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v20250109.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250109.1
 
 
-FROM ${ERIGON_IMAGE} as erigon-build
+FROM ${ERIGON_IMAGE} as erigon
 
-FROM ${LIGHTHOUSE_IMAGE} AS lighthouse-build
+FROM ${LIGHTHOUSE_IMAGE} AS lighthouse
 
 FROM ${BASE_IMAGE}
 
@@ -19,8 +19,8 @@ ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
 ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 
 RUN mkdir -p /root/bin
-COPY --from=erigon-build /root/bin/erigon /root/bin/
-COPY --from=lighthouse-build /root/bin/lighthouse /root/bin/
+COPY --from=erigon /root/bin/erigon /root/bin/
+COPY --from=lighthouse /root/bin/lighthouse /root/bin/
 
 COPY templates/Caddyfile.template /var/lib/babel/templates/Caddyfile.template
 COPY templates/config-alloy.template /var/lib/babel/templates/config-alloy.template
