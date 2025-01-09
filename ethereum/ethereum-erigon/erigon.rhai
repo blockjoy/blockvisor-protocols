@@ -18,6 +18,8 @@ fn base_config(metrics_port, rpc_port, ws_port, caddy_dir) {
                 params: #{
                     rpc_port: `${rpc_port}`,
                     ws_port: `${ws_port}`,
+                    metrics_port: `${metrics_port}`,
+                    metrics_path: "/debug/metrics/prometheus",
                     hostname: node_env().node_name,
                     node_ip: node_env().node_ip,
                     tld: ".n0des.xyz",
