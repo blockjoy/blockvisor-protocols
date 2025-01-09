@@ -1,9 +1,0 @@
-[global]
-    run as user = root
-[web]
-    mode = none
-[db]
-    mode = ram
-    update every = 5
-[health]
-    enabled = no
