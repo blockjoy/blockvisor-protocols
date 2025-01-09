@@ -196,6 +196,18 @@ jobs:
           tags: |
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/blockjoy/blockjoy-protocols
+            org.opencontainers.image.description=BlockJoy Base Image
+            org.opencontainers.image.licenses=MIT
+      - name: Ensure package is public
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          IMAGE_NAME=$(basename "${{ matrix.image_path }}")
+          echo "Ensuring package ${IMAGE_NAME} is public"
+          gh api --method PATCH /orgs/blockjoy/packages/container/${IMAGE_NAME} \
+            -f visibility=public
 
   build-clients:
     needs: [detect-changes]
@@ -300,6 +312,18 @@ jobs:
           tags: |
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/blockjoy/blockjoy-protocols
+            org.opencontainers.image.description=BlockJoy Client Image
+            org.opencontainers.image.licenses=MIT
+      - name: Ensure package is public
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          IMAGE_NAME=$(basename "${{ matrix.image_path }}")
+          echo "Ensuring package ${IMAGE_NAME} is public"
+          gh api --method PATCH /orgs/blockjoy/packages/container/${IMAGE_NAME} \
+            -f visibility=public
 
   build-protocols:
     needs: [detect-changes]
@@ -403,6 +427,18 @@ jobs:
           tags: |
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/blockjoy/blockjoy-protocols
+            org.opencontainers.image.description=BlockJoy Protocol Image
+            org.opencontainers.image.licenses=MIT
+      - name: Ensure package is public
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          IMAGE_NAME=$(basename "${{ matrix.image_path }}")
+          echo "Ensuring package ${IMAGE_NAME} is public"
+          gh api --method PATCH /orgs/blockjoy/packages/container/${IMAGE_NAME} \
+            -f visibility=public
 
       - name: Check version change
         id: check-version
