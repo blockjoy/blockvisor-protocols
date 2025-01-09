@@ -50,13 +50,6 @@
       ]
     },
     {
-      "matchCategories": [
-        "docker"
-      ],
-      "enabled": true,
-      "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$"
-    },
-    {
       "description": "Disable updates for Ubuntu base images",
       "matchDatasources": [
         "docker"
