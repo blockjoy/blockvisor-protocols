@@ -403,6 +403,28 @@ jobs:
           tags: |
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
+
+      - name: Check version change
+        id: check-version
+        run: |
+          # Get the current version from babel.yaml
+          CURRENT_VERSION=$(yq e '.version' ${{ matrix.image_path }}/babel.yaml)
+          echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+          
+          # Get the version from the previous commit
+          git fetch origin ${{ github.event.before }}
+          PREVIOUS_VERSION=$(git show ${{ github.event.before }}:${{ matrix.image_path }}/babel.yaml | yq e '.version' -)
+          echo "previous_version=${PREVIOUS_VERSION}" >> $GITHUB_OUTPUT
+          
+          # Check if version has changed
+          if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+            echo "Version changed from ${PREVIOUS_VERSION} to ${CURRENT_VERSION}"
+          else
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+            echo "Version unchanged: ${CURRENT_VERSION}"
+          fi
+
       - name: Get variants from babel.yaml
         id: get-variants
         run: |
@@ -425,9 +447,9 @@ jobs:
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
 
       - name: Push image
-        if: success()
+        if: steps.check-version.outputs.version_changed == 'true' && success()
         run: |
-          echo "🚀 Pushing image"
+          echo "🚀 Pushing image (version changed from ${{ steps.check-version.outputs.previous_version }} to ${{ steps.check-version.outputs.current_version }})"
           nib image push --path ${{ matrix.image_path }}/babel.yaml
 
   workflow-status:
