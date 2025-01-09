@@ -23,16 +23,36 @@ This repository contains Docker configurations for blockchain protocol nodes and
 
 ## Automation Features
 
-### GitHub Actions Workflow
+### GitHub Actions Workflows
 
-The repository uses a GitHub Actions workflow (`docker-build.yml`) that handles:
+The repository uses GitHub Actions for continuous integration and deployment. The main workflow is `docker-build.yml` which handles:
 
-1. **Change Detection**: Automatically detects changes in client and protocol directories
-2. **Version Management**: 
-   - Generates versioned tags in format `vYYYYMMDD.N` (e.g., `v20250108.1`)
-   - Includes git SHA in image tags for traceability
-3. **Build Matrix**: Dynamically builds affected images based on changes
-4. **Image Publishing**: Publishes images to GitHub Container Registry (ghcr.io)
+1. Building and pushing Docker images for:
+   - Base images
+   - Client images
+   - Protocol images
+
+2. Protocol Image Validation:
+   - Each protocol image is built from its Dockerfile
+   - The workflow checks all variants defined in the protocol's `babel.yaml`
+   - Each variant is validated using `nib image check`
+   - The workflow will fail if any variant check fails
+
+3. Version-Based Deployment:
+   - The workflow tracks the `version` field in each protocol's `babel.yaml`
+   - On every run, it compares the current version with the previous commit
+   - The image is only pushed to the API if:
+     - The version number has changed
+     - AND all variant checks have passed
+   - This ensures that protocol images are only deployed when intentionally versioned
+
+4. Automated Updates:
+   - Renovate bot monitors dependencies in:
+     - Dockerfiles
+     - All `babel.yaml` files (container URIs)
+   - Creates pull requests for available updates
+
+This versioning system ensures that protocol images are only pushed to production when explicitly versioned and validated, preventing accidental deployments.
 
 ### Renovate Bot Integration
 
