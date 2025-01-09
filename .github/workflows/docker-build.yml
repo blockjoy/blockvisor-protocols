@@ -404,8 +404,18 @@ jobs:
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
 
+      - name: Check if babel.yaml changed
+        id: check-babel
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "^${{ matrix.image_path }}/babel\.yaml$"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Check version change
         id: check-version
+        if: steps.check-babel.outputs.changed == 'true'
         run: |
           # Get the current version from babel.yaml
           CURRENT_VERSION=$(yq e '.version' ${{ matrix.image_path }}/babel.yaml)
@@ -425,17 +435,9 @@ jobs:
             echo "Version unchanged: ${CURRENT_VERSION}"
           fi
 
-      - name: Check if babel.yaml changed
-        id: check-babel
-        run: |
-          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "^${{ matrix.image_path }}/babel\.yaml$"; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Get variants from babel.yaml
         id: get-variants
+        if: steps.check-babel.outputs.changed == 'true'
         run: |
           variants=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml | tr '\n' ' ')
           echo "variants=$variants" >> $GITHUB_OUTPUT
