@@ -30,24 +30,14 @@
         ".*babel\\.yaml$"
       ],
       "matchStrings": [
-        "container_uri:\\s+(?<depName>[^:]+):(?<currentValue>[^\\s]+)"
+        "container_uri:\\s+(?<depName>[^:]+):(?<currentValue>v\\d{8}\\.\\d+)"
       ],
       "datasourceTemplate": "docker",
       "depNameTemplate": "{{{depName}}}",
-      "versioningTemplate": "docker"
+      "versioningTemplate": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$"
     }
   ],
   "packageRules": [
-    {
-      "description": "Client version control - disable major updates",
-      "matchFileNames": [
-        "clients/**"
-      ],
-      "matchUpdateTypes": [
-        "major"
-      ],
-      "enabled": false
-    },
     {
       "description": "Client version control. To exclude multiple versions, use pattern: /^(?!2\\.56\\.0-.*|2\\.57\\.0-.*|3\\.0\\.0-.*).*$/ to exclude versions 2.56.0, 2.57.0, and 3.0.0 with any sha",
       "matchFileNames": [
@@ -64,7 +54,7 @@
         "docker"
       ],
       "enabled": true,
-      "versioning": "regex:^v(?<major>\\d+)$"
+      "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$"
     },
     {
       "description": "Disable updates for Ubuntu base images",
