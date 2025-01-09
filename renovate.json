@@ -35,18 +35,6 @@
       "datasourceTemplate": "docker",
       "depNameTemplate": "{{{depName}}}",
       "versioningTemplate": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$"
-    },
-    {
-      "customType": "regex",
-      "fileMatch": [
-        "Dockerfile$"
-      ],
-      "matchStrings": [
-        "ARG\\s+[^=]+=(?<depName>[^:]+):(?<currentValue>v\\d{8}\\.\\d+)"
-      ],
-      "datasourceTemplate": "docker",
-      "depNameTemplate": "{{{depName}}}",
-      "versioningTemplate": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$"
     }
   ],
   "packageRules": [
@@ -71,8 +59,8 @@
       "pinDigests": false,
       "separateMinorPatch": false,
       "separateMajorMinor": false,
-      "matchPackageNames": [
-        "/^ghcr.io\\/blockjoy\\///"
+      "matchPackagePatterns": [
+        "^ghcr.io/blockjoy/"
       ],
       "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$"
     },
