@@ -1,9 +1,9 @@
 # 5
-ARG RETH_IMAGE=ghcr.io/blockjoy/reth:v177
-ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v177
-ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v176
+ARG RETH_IMAGE=ghcr.io/blockjoy/reth:v20250109.1
+ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v20250109.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250109.1
 
-FROM ${RETH_IMAGE} AS reth-build
+FROM ${RETH_IMAGE} as reth
 
 FROM ${LIGHTHOUSE_IMAGE} AS lighthouse-build
 
@@ -18,7 +18,7 @@ ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
 ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 
 RUN mkdir -p /root/bin
-COPY --from=reth-build /root/bin/reth /root/bin/
+COPY --from=reth /root/bin/reth /root/bin/
 COPY --from=lighthouse-build /root/bin/lighthouse /root/bin/
 
 COPY templates/Caddyfile.template /var/lib/babel/templates/
