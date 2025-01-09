@@ -424,13 +424,11 @@ jobs:
           done
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
 
-      - name: Push successful variants
+      - name: Push image
         if: success()
         run: |
-          for variant in ${{ steps.check-variants.outputs.success_variants }}; do
-            echo "🚀 Pushing image"
-            nib image push --path ${{ matrix.image_path }}/babel.yaml
-          done
+          echo "🚀 Pushing image"
+          nib image push --path ${{ matrix.image_path }}/babel.yaml
 
   workflow-status:
     needs: [detect-changes, build-base, build-clients, build-protocols]
