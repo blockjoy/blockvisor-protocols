@@ -52,12 +52,9 @@ ENV PATH="/usr/local/go/bin:${PATH}"
 ENV GOROOT="/usr/local/go"
 
 RUN cd / && \
-    xcaddy build --with github.com/caddy-dns/cloudflare && \
+    xcaddy build --with github.com/caddy-dns/cloudflare --with github.com/blockjoy/request-decompressor && \
     mv ./caddy /usr/bin/ && chmod +x /usr/bin/caddy && \
     mkdir -p /etc/caddy
-
-RUN wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && \
-    sh /tmp/netdata-kickstart.sh --stable-channel --disable-telemetry --non-interactive --dont-start-it --native-only --disable-cloud
 
 RUN mkdir -p /var/lib/babel/templates && \
     mkdir -p /var/lib/babel/plugins
@@ -72,6 +69,6 @@ RUN apt-get autoremove -y && apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY base.rhai /var/lib/babel/plugin/base.rhai
-COPY templates/netdata-conf.template /var/lib/babel/templates/netdata-conf.template
-COPY templates/netdata-stream-conf.template /var/lib/babel/templates/netdata-stream-conf.template
 COPY templates/caddy-dashboard.template /var/lib/babel/templates/caddy-dashboard.template
+COPY templates/Caddyfile.template /var/lib/babel/templates/Caddyfile.template
+COPY templates/config-alloy.template /var/lib/babel/templates/config-alloy.template
