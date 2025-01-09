@@ -5,10 +5,16 @@
   ],
   "enabledManagers": [
     "dockerfile",
-    "github-actions"
+    "github-actions",
+    "custom.regex"
   ],
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Dependencies Dashboard",
+  "automerge": true,
+  "platformAutomerge": true,
+  "automergeType": "pr",
+  "automergeStrategy": "squash",
+  "ignoreTests": false,
   "hostRules": [
     {
       "hostType": "docker",
@@ -29,14 +35,45 @@
       "datasourceTemplate": "docker",
       "depNameTemplate": "{{{depName}}}",
       "versioningTemplate": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "Dockerfile$"
+      ],
+      "matchStrings": [
+        "ARG\\s+[^=]+=(?<depName>[^:]+):(?<currentValue>v\\d{8}\\.\\d+)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "{{{depName}}}",
+      "versioningTemplate": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$"
     }
   ],
   "packageRules": [
     {
-      "matchCategories": [
+      "description": "Client version control. To exclude multiple versions, use pattern: /^(?!2\\.56\\.0-.*|2\\.57\\.0-.*|3\\.0\\.0-.*).*$/ to exclude versions 2.56.0, 2.57.0, and 3.0.0 with any sha",
+      "matchFileNames": [
+        "clients/**"
+      ],
+      "allowedVersions": ".*",
+      "enabled": true,
+      "matchPackageNames": [
+        "/.*_VERSION/"
+      ]
+    },
+    {
+      "description": "Internal image dependencies",
+      "matchDatasources": [
         "docker"
       ],
       "enabled": true,
+      "groupName": "internal-dependencies",
+      "pinDigests": false,
+      "separateMinorPatch": false,
+      "separateMajorMinor": false,
+      "matchPackageNames": [
+        "/^ghcr.io\\/blockjoy\\///"
+      ],
       "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$"
     },
     {
@@ -49,23 +86,6 @@
         "ubuntu"
       ],
       "enabled": false
-    },
-    {
-      "description": "Internal image dependencies",
-      "matchDatasources": [
-        "docker"
-      ],
-      "enabled": true,
-      "automerge": true,
-      "platformAutomerge": true,
-      "automergeType": "pr",
-      "groupName": "internal-dependencies",
-      "pinDigests": false,
-      "separateMinorPatch": false,
-      "separateMajorMinor": false,
-      "matchPackagePatterns": [
-        "^ghcr.io/blockjoy/"
-      ]
     }
   ],
   "prHourlyLimit": 0,
