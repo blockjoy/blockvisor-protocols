@@ -70,5 +70,3 @@ RUN apt-get autoremove -y && apt-get clean && \
 
 COPY base.rhai /var/lib/babel/plugin/base.rhai
 COPY templates/caddy-dashboard.template /var/lib/babel/templates/caddy-dashboard.template
-COPY templates/Caddyfile.template /var/lib/babel/templates/Caddyfile.template
-COPY templates/config-alloy.template /var/lib/babel/templates/config-alloy.template
