@@ -101,10 +101,10 @@ discovery.relabel "logs_default_journal_scrape" {
 
 prometheus.remote_write "default" {
         endpoint {
-                url = "https://prometheus-prod-24-prod-eu-west-2.grafana.net/api/prom/push"
+                url = "https://metrics.blkjy.io/api/v1/write"
 
                 basic_auth {
-                        username = "1234567"
+                        username = "blockjoy"
                         password = "${GRAFANA_PROM_BASICAUTH}"
                 }
         }

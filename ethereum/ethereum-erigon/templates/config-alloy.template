@@ -192,10 +192,10 @@ prometheus.remote_write "default" {
 
 	endpoint {
 		name = "prom-ep"
-		url  = "https://prometheus-prod-24-prod-eu-west-2.grafana.net/api/prom/push"
+		url  = "https://metrics.blkjy.io/api/v1/write"
 
 		basic_auth {
-			username = "1322871"
+			username = "blockjoy"
 			password = "${GRAFANA_PROM_BASICAUTH}"
 		}
 

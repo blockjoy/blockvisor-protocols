@@ -119,7 +119,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "disableTextWrap": false,
           "editorMode": "code",
@@ -195,7 +195,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "disableTextWrap": false,
           "editorMode": "code",
@@ -271,7 +271,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "editorMode": "code",
           "expr": "sum(rate(caddy_http_request_duration_seconds_count{instance=~\"$host\",handler=~\"$handler\"}[5m])) by (handler)",
@@ -345,7 +345,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "editorMode": "code",
           "expr": "sum(caddy_http_request_duration_seconds_count{instance=~\"$host\",handler=~\"$handler\"}) by (code)",
@@ -381,7 +381,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafanacloud-prom"
+        "uid": "victoria-metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -436,7 +436,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "editorMode": "code",
           "expr": "sum(caddy_http_request_errors_total{instance=~\"$host\",handler=~\"$handler\"}) by (handler)",
@@ -485,7 +485,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafanacloud-prom"
+        "uid": "victoria-metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -608,7 +608,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "expr": "avg(rate(caddy_http_requests_total{instance=~\"$host\",handler=~\"$handler\"}[5m])*10) by (handler)",
           "instant": false,
@@ -636,7 +636,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafanacloud-prom"
+        "uid": "victoria-metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -759,7 +759,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "editorMode": "code",
           "expr": "avg(avg_over_time(caddy_http_requests_in_flight{instance=~\"$host\",handler=~\"$handler\"}[1m])) by (handler)",
@@ -788,7 +788,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafanacloud-prom"
+        "uid": "victoria-metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -867,7 +867,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "editorMode": "code",
           "expr": "sum(increase(caddy_http_request_duration_seconds_bucket{instance=~\"$host\", handler=~\"$handler\"}[5m])) by (le)",
@@ -885,7 +885,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafanacloud-prom"
+        "uid": "victoria-metrics"
       },
       "description": "",
       "fieldConfig": {
@@ -969,7 +969,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "expr": "histogram_quantile(0.5, sum by (le) (rate(caddy_http_response_duration_seconds_bucket[5m])))",
           "format": "time_series",
@@ -986,7 +986,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafanacloud-prom"
+        "uid": "victoria-metrics"
       },
       "description": "",
       "fieldConfig": {
@@ -1069,7 +1069,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "expr": "sum(rate(caddy_http_request_duration_seconds_count{instance=~\"$host\",handler=~\"$handler\"}[5m])) by (handler)",
           "interval": "",
@@ -1083,7 +1083,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafanacloud-prom"
+        "uid": "victoria-metrics"
       },
       "description": "",
       "fieldConfig": {
@@ -1167,7 +1167,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "expr": "histogram_quantile(0.5, sum by (le) (rate(caddy_http_response_size_bytes_bucket{instance=~\"$host\"}[5m])))",
           "format": "time_series",
@@ -1185,7 +1185,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafanacloud-prom"
+        "uid": "victoria-metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -1309,7 +1309,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "editorMode": "code",
           "expr": "sum(irate(caddy_http_request_duration_seconds_count{instance=~\"$host\",handler=~\"$handler\"}[1m])) by (code)",
@@ -1338,7 +1338,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafanacloud-prom"
+        "uid": "victoria-metrics"
       },
       "description": "",
       "fieldConfig": {
@@ -1421,7 +1421,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.99, sum(rate(caddy_http_request_duration_seconds_bucket{instance=~\"$host\",handler=~\"$handler\"}[1m])) by (le))",
@@ -1435,7 +1435,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.95, sum(rate(caddy_http_request_duration_seconds_bucket{instance=~\"$host\",handler=~\"$handler\"}[1m])) by (le))",
@@ -1450,7 +1450,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.90, sum(rate(caddy_http_request_duration_seconds_bucket{instance=~\"$host\",handler=~\"$handler\"}[1m])) by (le))",
@@ -1465,7 +1465,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.75, sum(rate(caddy_http_request_duration_seconds_bucket{instance=~\"$host\",handler=~\"$handler\"}[1m])) by (le))",
@@ -1480,7 +1480,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.5, sum(rate(caddy_http_request_duration_seconds_bucket{instance=~\"$host\",handler=~\"$handler\"}[1m])) by (le))",
@@ -1523,7 +1523,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafanacloud-prom"
+        "uid": "victoria-metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -1641,7 +1641,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "editorMode": "code",
           "expr": "sum(caddy_http_request_duration_seconds_count{instance=~\"$host\",handler=~\"$handler\"}) by (code)",
@@ -1659,7 +1659,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafanacloud-prom"
+        "uid": "victoria-metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -1740,7 +1740,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "disableTextWrap": false,
           "editorMode": "builder",
@@ -1781,7 +1781,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafanacloud-prom"
+        "uid": "victoria-metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -1901,7 +1901,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafanacloud-prom"
+            "uid": "victoria-metrics"
           },
           "editorMode": "code",
           "expr": "avg(rate(caddy_http_request_errors_total{instance=~\"$host\",handler=~\"$handler\"}[5m])*10) by (handler)",
@@ -2286,7 +2286,7 @@
       {
         "current": {
           "text": "grafanacloud-blockjoy-prom",
-          "value": "grafanacloud-prom"
+          "value": "victoria-metrics"
         },
         "hide": 2,
         "includeAll": false,

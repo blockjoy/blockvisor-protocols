@@ -6,7 +6,8 @@
 		format json
 		level INFO
 	}
-	acme_dns cloudflare {$CLOUDFLARE_API_KEY}
+	acme_dns cloudflare ${CLOUDFLARE_API_KEY}
+	order request_decompress before reverse_proxy
 	auto_https disable_redirects
 	storage file_system {{ data_dir }}
 	email ops@blockjoy.com
@@ -15,7 +16,12 @@
 	}
 }
 
-http://{{ hostname }}{{ tld }}, https://{{ hostname }}{{ tld }}, *.blkjy.io, http:// {
+http://{{ hostname }}{{ tld }}, https://{{ hostname }}{{ tld }}, http:// {
+	request_decompress
+	tls {
+		dns cloudflare ${CLOUDFLARE_API_KEY}
+		resolvers 1.1.1.1
+	}
 	log {
 		output stdout
 	}
@@ -31,6 +37,12 @@ http://{{ hostname }}{{ tld }}, https://{{ hostname }}{{ tld }}, *.blkjy.io, htt
 	@websockets {
 		header Connection *Upgrade*
 		header Upgrade websocket
+	}
+	route /metrics {
+		rewrite * {{ metrics_path }}
+		reverse_proxy 127.0.0.1:{{ metrics_port }} {
+			header_up Host localhost
+		}
 	}
 	reverse_proxy 127.0.0.1:{{ rpc_port }} {
 		header_up Host localhost
