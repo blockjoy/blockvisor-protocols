@@ -5,16 +5,10 @@
   ],
   "enabledManagers": [
     "dockerfile",
-    "github-actions",
-    "custom.regex"
+    "github-actions"
   ],
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Dependencies Dashboard",
-  "automerge": true,
-  "platformAutomerge": true,
-  "automergeType": "pr",
-  "automergeStrategy": "squash",
-  "ignoreTests": false,
   "hostRules": [
     {
       "hostType": "docker",
@@ -39,15 +33,11 @@
   ],
   "packageRules": [
     {
-      "description": "Client version control. To exclude multiple versions, use pattern: /^(?!2\\.56\\.0-.*|2\\.57\\.0-.*|3\\.0\\.0-.*).*$/ to exclude versions 2.56.0, 2.57.0, and 3.0.0 with any sha",
-      "matchFileNames": [
-        "clients/**"
+      "matchCategories": [
+        "docker"
       ],
-      "allowedVersions": ".*",
       "enabled": true,
-      "matchPackageNames": [
-        "/.*_VERSION/"
-      ]
+      "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$"
     },
     {
       "description": "Disable updates for Ubuntu base images",
@@ -66,12 +56,15 @@
         "docker"
       ],
       "enabled": true,
+      "automerge": true,
+      "platformAutomerge": true,
+      "automergeType": "pr",
       "groupName": "internal-dependencies",
       "pinDigests": false,
       "separateMinorPatch": false,
       "separateMajorMinor": false,
-      "matchPackageNames": [
-        "/^ghcr.io/blockjoy//"
+      "matchPackagePatterns": [
+        "^ghcr.io/blockjoy/"
       ]
     }
   ],
