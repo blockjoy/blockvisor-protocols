@@ -40,10 +40,9 @@ jobs:
         with:
           since_last_remote_commit: true
           fetch_depth: 0
-          files_yaml: |
-            all:
-              - '**'
-              - '!**/babel.yaml'
+          files: |
+            **
+            !**/babel.yaml
 
       - name: List all changed files
         env:
