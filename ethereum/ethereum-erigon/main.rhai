@@ -7,7 +7,7 @@ const WS_PORT = 8546;
 const METRICS_PORT = 6161;
 
 let ERIGON_CONFIG = erigon::base_config(global::METRICS_PORT,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
-// trigger
+
 const BASE_CONFIG  = #{
     config_files: ERIGON_CONFIG.config_files+base::BASE_CONFIG.config_files,
     services: ERIGON_CONFIG.services+base::BASE_CONFIG.services,
