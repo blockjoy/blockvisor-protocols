@@ -483,7 +483,7 @@ jobs:
 
   test-nodes:
     needs: [build-protocols]
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'renovate[bot]'
     runs-on: dev
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
@@ -503,7 +503,7 @@ jobs:
           echo "runner_host=${RUNNER_HOST}" >> $GITHUB_OUTPUT
           
           # Get variants from babel.yaml
-          VARIANTS=$(yq e '.variants[]' ${{ matrix.image_path }}/babel.yaml)
+          VARIANTS=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml)
           
           # Initialize arrays for node info
           declare -a NODE_NAMES=()
@@ -563,7 +563,7 @@ jobs:
 
   cleanup-nodes:
     needs: [workflow-status, test-nodes]
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true && github.event.pull_request.user.login != 'renovate[bot]'
     runs-on: dev
     steps:
       - name: Delete test nodes
