@@ -41,13 +41,9 @@ jobs:
           since_last_remote_commit: true
           fetch_depth: 0
           files_yaml: |
-            protocols:
-              - '**/[!babel.yaml]*'
+            all:
+              - '**'
               - '!**/babel.yaml'
-            clients:
-              - 'clients/**'
-            base:
-              - 'node-base/**'
 
       - name: List all changed files
         env:
