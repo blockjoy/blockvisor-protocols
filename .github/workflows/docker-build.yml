@@ -317,6 +317,11 @@ jobs:
     runs-on: self-hosted
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
+    outputs:
+      matrix: ${{ needs.detect-changes.outputs.protocols_matrix }}
+      version_changed: ${{ steps.check-version.outputs.version_changed }}
+      previous_version: ${{ steps.check-version.outputs.previous_version }}
+      current_version: ${{ steps.check-version.outputs.current_version }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Authenticate GitHub CLI
@@ -462,6 +467,8 @@ jobs:
           success_variants=()
           for variant in ${{ steps.get-variants.outputs.variants }}; do
             echo "Checking variant: $variant"
+            
+            # Run nib image check and capture output
             if nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test; then
               success_variants+=("$variant")
               echo "✅ Variant $variant check passed"
@@ -474,14 +481,103 @@ jobs:
           rm -rf ${{ matrix.image_path }}/babel.yaml-test
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
 
-      - name: Push image
-        if: steps.check-version.outputs.version_changed == 'true' && success()
+  test-nodes:
+    needs: [build-protocols]
+    if: github.event_name == 'pull_request'
+    runs-on: dev
+    strategy:
+      matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
+    outputs:
+      runner_host: ${{ steps.test-nodes.outputs.runner_host }}
+      node_names: ${{ steps.test-nodes.outputs.node_names }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      
+      - name: Test nodes
+        id: test-nodes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Pushing image (version changed from ${{ steps.check-version.outputs.previous_version }} to ${{ steps.check-version.outputs.current_version }})"
+          # Store runner hostname
+          RUNNER_HOST=$(hostname)
+          echo "runner_host=${RUNNER_HOST}" >> $GITHUB_OUTPUT
+          
+          # Get variants from babel.yaml
+          VARIANTS=$(yq e '.variants[]' ${{ matrix.image_path }}/babel.yaml)
+          
+          # Initialize arrays for node info
+          declare -a NODE_NAMES=()
+          declare -a NODE_INFO=()
+          
+          # For each variant, start a node and capture info
+          for variant in $VARIANTS; do
+            echo "Testing variant: $variant"
+            
+            # Run nib image play and capture output
+            OUTPUT=$(nib image play --variant $variant 2>&1)
+            
+            # Extract node name and basic info using sed
+            NODE_NAME=$(echo "$OUTPUT" | grep -o 'name: "[^"]*"' | head -1 | cut -d'"' -f2)
+            NODE_INFO_EXCERPT=$(echo "$OUTPUT" | sed -n '/NodeState {/,/dev_mode:/p')
+            
+            # Store for later use
+            NODE_NAMES+=("$NODE_NAME")
+            NODE_INFO+=("$NODE_INFO_EXCERPT")
+            
+            # Create comment with node info
+            echo "Node \`${NODE_NAME}\` started on runner ${RUNNER_HOST}:" >> node_info.txt
+            echo "\`\`\`" >> node_info.txt
+            echo "$NODE_INFO_EXCERPT" >> node_info.txt
+            echo "\`\`\`" >> node_info.txt
+            echo "" >> node_info.txt
+
+            # Create task for this node
+            if [ -z "$TASK_BODY" ]; then
+              TASK_BODY=""
+            fi
+            TASK_BODY="${TASK_BODY}- [ ] I've checked the node \`${NODE_NAME}\` on ${RUNNER_HOST}"
+          done
+          
+          # Save node names for cleanup
+          echo "node_names=${NODE_NAMES[*]}" >> $GITHUB_OUTPUT
+          
+          # Add comment to PR with all node info
+          gh pr comment ${{ github.event.pull_request.number }} --body-file node_info.txt
+          
+          # Add tasks to PR
+          gh pr edit ${{ github.event.pull_request.number }} --add-reviewer ${{ github.actor }} --body "${TASK_BODY}"
+
+  nib-image-push:
+    needs: [test-nodes, build-protocols]
+    if: github.event.pull_request.merged == true
+    runs-on: self-hosted
+    strategy:
+      matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Push image to nib
+        if: needs.build-protocols.outputs.version_changed == 'true'
+        run: |
+          echo "Pushing image (version changed from ${{ needs.build-protocols.outputs.previous_version }} to ${{ needs.build-protocols.outputs.current_version }})"
           nib image push --path ${{ matrix.image_path }}/babel.yaml
 
+  cleanup-nodes:
+    needs: [workflow-status, test-nodes]
+    if: github.event.pull_request.merged == true
+    runs-on: dev
+    steps:
+      - name: Delete test nodes
+        run: |
+          echo "Cleaning up nodes on runner: ${{ needs.test-nodes.outputs.runner_host }}"
+          
+          IFS=' ' read -ra NODES <<< "${{ needs.test-nodes.outputs.node_names }}"
+          for node in "${NODES[@]}"; do
+            echo "Deleting node: $node"
+            bv n delete "$node"
+          done
+
   workflow-status:
-    needs: [detect-changes, build-base, build-clients, build-protocols]
+    needs: [detect-changes, build-base, build-clients, build-protocols, test-nodes]
     if: always()
     runs-on: self-hosted
     steps:
