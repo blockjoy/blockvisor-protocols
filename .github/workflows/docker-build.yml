@@ -40,6 +40,14 @@ jobs:
         with:
           since_last_remote_commit: true
           fetch_depth: 0
+          files_yaml: |
+            protocols:
+              - '**/[!babel.yaml]*'
+              - '!**/babel.yaml'
+            clients:
+              - 'clients/**'
+            base:
+              - 'node-base/**'
 
       - name: List all changed files
         env:
@@ -86,7 +94,7 @@ jobs:
           # Create matrices using jq, filtering by directory structure
           BASE=$(echo "$CHANGED_DIRS" | grep "^node-base$" || true)
           CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
-          PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^[^/]\+/[^/]\+-[^/]\+$" || true)
+          PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^[^/]\+/[^/]\+$" || true)
           
           echo "Base dirs: $BASE"
           echo "Client dirs: $CLIENTS"
