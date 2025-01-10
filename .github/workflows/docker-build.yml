@@ -451,13 +451,15 @@ jobs:
           success_variants=()
           for variant in ${{ steps.get-variants.outputs.variants }}; do
             echo "Checking variant: $variant"
-            nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml
+            output=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml)
             exit_code=$?
-            if [ $exit_code -eq 0 ]; then
+            if [ $exit_code -eq 0 ] && echo "$output" | grep -q "Ok(())"; then
               success_variants+=("$variant")
               echo "✅ Variant $variant check passed"
             else
-              echo "❌ Variant $variant check failed with exit code $exit_code"
+              echo "❌ Variant $variant check failed"
+              echo "Output: $output"
+              echo "Exit code: $exit_code"
               exit 1
             fi
           done
