@@ -36,7 +36,6 @@ const API_HOST = `http://127.0.0.1:${global::RPC_PORT}`;
 const HOME = node_env().protocol_data_path + "/reth";
 const LIGHTHOUSE_DIR = node_env().protocol_data_path + "/lighthouse";
 const NET = VARIANTS[node_env().node_variant].net;
-const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const CHECKPOINT_URL = VARIANTS[node_env().node_variant].url;
 
 const RETH_EXTRA_ARGS = if node_env().node_variant.ends_with("-full") {

@@ -1,7 +1,7 @@
 import "base" as base;
 import "erigon" as erigon;
 
-const CADDY_DIR = DATA_DRIVE_MOUNT_POINT + "/caddy";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const METRICS_PORT = 6161;
