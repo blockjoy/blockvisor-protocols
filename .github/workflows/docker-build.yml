@@ -406,27 +406,8 @@ jobs:
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
 
-      - name: Check if babel.yaml changed
-        id: check-babel
-        run: |
-          # Fetch the base branch
-          git fetch origin main
-          # Debug output
-          echo "Checking for changes in ${{ matrix.image_path }}/babel.yaml"
-          echo "Changes between origin/main and HEAD:"
-          git diff --name-only origin/main HEAD
-          # Compare with base branch
-          if git diff --name-only origin/main HEAD | grep -q "^${{ matrix.image_path }}/babel\.yaml$"; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "babel.yaml has changed"
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "No changes detected in babel.yaml"
-          fi
-
       - name: Check version change
         id: check-version
-        if: steps.check-babel.outputs.changed == 'true'
         run: |
           # Get the current version from babel.yaml
           CURRENT_VERSION=$(yq e '.version' ${{ matrix.image_path }}/babel.yaml)
@@ -447,23 +428,21 @@ jobs:
 
       - name: Get variants from babel.yaml
         id: get-variants
-        if: steps.check-babel.outputs.changed == 'true'
         run: |
           variants=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml | tr '\n' ' ')
           echo "variants=$variants" >> $GITHUB_OUTPUT
 
       - name: Check variants
         id: check-variants
-        if: steps.check-babel.outputs.changed == 'true'
         run: |
           success_variants=()
           for variant in ${{ steps.get-variants.outputs.variants }}; do
             echo "Checking variant: $variant"
             if nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml; then
               success_variants+=("$variant")
-              echo "Variant $variant check passed"
+              echo "✅ Variant $variant check passed"
             else
-              echo "Variant $variant check failed"
+              echo "❌ Variant $variant check failed"
               exit 1
             fi
           done
