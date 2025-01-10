@@ -1,4 +1,4 @@
-# 10
+# 11
 ARG ERIGON_IMAGE=ghcr.io/blockjoy/erigon:v20250109.2
 ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v20250109.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250109.1

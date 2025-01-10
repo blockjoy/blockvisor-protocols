@@ -30,7 +30,7 @@
         ".*babel\\.yaml$"
       ],
       "matchStrings": [
-        "container_uri:\\s+(?<depName>[^:]+):(?<currentValue>v\\d{8}\\.\\d+)"
+        "container_uri:\\s+docker://(?<depName>[^:]+):(?<currentValue>v\\d{8}\\.\\d+)"
       ],
       "datasourceTemplate": "docker",
       "depNameTemplate": "{{{depName}}}",
