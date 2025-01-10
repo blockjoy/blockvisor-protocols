@@ -478,7 +478,6 @@ jobs:
               exit 1
             fi
           done
-          rm -rf ${{ matrix.image_path }}/babel.yaml-test
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
 
   test-nodes:
@@ -503,7 +502,7 @@ jobs:
           echo "runner_host=${RUNNER_HOST}" >> $GITHUB_OUTPUT
           
           # Get variants from babel.yaml
-          VARIANTS=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml)
+          VARIANTS=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml-test)
           
           # Initialize arrays for node info
           declare -a NODE_NAMES=()
@@ -514,7 +513,7 @@ jobs:
             echo "Testing variant: $variant"
             
             # Run nib image play and capture output
-            OUTPUT=$(nib image play --variant $variant 2>&1)
+            OUTPUT=$(nib image play --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1)
             
             # Extract node name and basic info using sed
             NODE_NAME=$(echo "$OUTPUT" | grep -o 'name: "[^"]*"' | head -1 | cut -d'"' -f2)
@@ -537,7 +536,7 @@ jobs:
             fi
             TASK_BODY="${TASK_BODY}- [ ] I've checked the node \`${NODE_NAME}\` on ${RUNNER_HOST}"
           done
-          
+
           # Save node names for cleanup
           echo "node_names=${NODE_NAMES[*]}" >> $GITHUB_OUTPUT
           
@@ -562,9 +561,11 @@ jobs:
           nib image push --path ${{ matrix.image_path }}/babel.yaml
 
   cleanup-nodes:
-    needs: [workflow-status, test-nodes]
+    needs: [workflow-status, test-nodes, build-protocols]
     if: github.event.pull_request.merged == true && github.event.pull_request.user.login != 'renovate[bot]'
     runs-on: dev
+    strategy:
+      matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
     steps:
       - name: Delete test nodes
         run: |
@@ -575,6 +576,10 @@ jobs:
             echo "Deleting node: $node"
             bv n delete "$node"
           done
+      - name: Cleanup test file
+        if: always()
+        run: |
+          rm -rf ${{ matrix.image_path }}/babel.yaml-test
 
   workflow-status:
     needs: [detect-changes, build-base, build-clients, build-protocols, test-nodes]
