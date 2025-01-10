@@ -322,6 +322,8 @@ jobs:
       version_changed: ${{ steps.check-version.outputs.version_changed }}
       previous_version: ${{ steps.check-version.outputs.previous_version }}
       current_version: ${{ steps.check-version.outputs.current_version }}
+      image_name: ${{ steps.version.outputs.image_name }}
+      image_tag: ${{ steps.version.outputs.image_tag }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Authenticate GitHub CLI
@@ -491,7 +493,14 @@ jobs:
       node_names: ${{ steps.test-nodes.outputs.node_names }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      
+      - name: Create test babel file
+        run: |
+          # Copy babel.yaml to test file
+          cp ${{ matrix.image_path }}/babel.yaml ${{ matrix.image_path }}/babel.yaml-test
+          
+          # Update container_uri with newly built image
+          NEW_URI="docker://ghcr.io/blockjoy/${{ needs.build-protocols.outputs.image_name }}:${{ needs.build-protocols.outputs.image_tag }}"
+          yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
       - name: Test nodes
         id: test-nodes
         env:
