@@ -561,7 +561,10 @@ jobs:
 
   cleanup-nodes:
     needs: [test-nodes]
-    if: always() && github.event_name == 'pull_request' && github.event.pull_request.user.login != 'renovate[bot]'
+    if: |
+      (failure() || github.event.pull_request.merged == true || github.event.action == 'closed') && 
+      github.event.pull_request.user.login != 'renovate[bot]' && 
+      needs.test-nodes.outputs.start_failed != 'true'
     runs-on: dev
     steps:
       - name: Cleanup nodes
@@ -571,16 +574,6 @@ jobs:
           # Get node names from test-nodes job
           IFS=' ' read -r -a NODE_NAMES <<< "${{ needs.test-nodes.outputs.node_names }}"
           RUNNER_HOST="${{ needs.test-nodes.outputs.runner_host }}"
-          
-          # Check if test-nodes job failed
-          if [[ "${{ needs.test-nodes.result }}" == "failure" ]]; then
-            CLEANUP_MESSAGE="⚠️ Workflow failed - Cleaning up nodes"
-          else
-            CLEANUP_MESSAGE="🧹 Cleaning up nodes"
-          fi
-          
-          # Post cleanup start message
-          gh pr comment ${{ github.event.pull_request.number }} --body "${CLEANUP_MESSAGE}"
           
           # Remove each node
           for NODE_NAME in "${NODE_NAMES[@]}"; do
