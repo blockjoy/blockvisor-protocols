@@ -512,6 +512,18 @@ jobs:
           RUNNER_HOST=$(hostname)
           echo "runner_host=${RUNNER_HOST}" >> $GITHUB_OUTPUT
           
+          # Get nodes from previous run using PR comments
+          echo "Finding nodes from previous run..."
+          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("has been deployed on host")) | capture("Node `(?<name>[^`]+)`").name')
+          if [ ! -z "$PREV_NODES" ]; then
+            echo "Found nodes from previous run:"
+            echo "$PREV_NODES" | while read -r node; do
+              echo "Removing node: $node"
+              bv n remove "$node" || true
+            done
+            gh pr comment ${{ github.event.pull_request.number }} --body "🧹 Cleaned up nodes from previous workflow run"
+          fi
+          
           # Get variants from babel.yaml
           VARIANTS=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml-test)
           
@@ -539,7 +551,7 @@ jobs:
               # If start failed, just track it
               START_FAILED=true
             else
-              gh pr comment ${{ github.event.pull_request.number }} --body "Node \`${NODE_NAME}\` has been deployed on host \`${RUNNER_HOST}\`"
+              gh pr comment ${{ github.event.pull_request.number }} --body "Node \`${NODE_NAME}\` with variant \`${variant}\` has been deployed on host \`${RUNNER_HOST}\`"
             fi
             
           done
