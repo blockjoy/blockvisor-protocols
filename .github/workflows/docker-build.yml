@@ -577,7 +577,7 @@ jobs:
   cleanup-nodes:
     needs: [test-nodes]
     if: |
-      (failure() || github.event.pull_request.merged == true || github.event.action == 'closed') && 
+      (failure() || github.event.action == 'closed') && 
       github.event.pull_request.user.login != 'renovate[bot]' && 
       needs.test-nodes.outputs.start_failed != 'true'
     runs-on: dev
@@ -601,6 +601,25 @@ jobs:
             gh pr comment ${{ github.event.pull_request.number }} --body "✅ All nodes have been cleaned up after workflow failure"
           else
             gh pr comment ${{ github.event.pull_request.number }} --body "✅ All nodes have been cleaned up"
+          fi
+
+  cleanup-on-merge:
+    if: github.event.pull_request.merged == true && github.event.pull_request.user.login != 'renovate[bot]'
+    runs-on: dev
+    steps:
+      - name: Cleanup nodes on merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Finding nodes from PR comments..."
+          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("has been deployed on host")) | capture("Node `(?<name>[^`]+)`").name')
+          if [ ! -z "$PREV_NODES" ]; then
+            echo "Found nodes to clean up after merge:"
+            echo "$PREV_NODES" | while read -r node; do
+              echo "Removing node: $node"
+              bv n delete "$node" || true
+            done
+            gh pr comment ${{ github.event.pull_request.number }} --body "✅ All nodes have been cleaned up after merge"
           fi
 
   workflow-status:
