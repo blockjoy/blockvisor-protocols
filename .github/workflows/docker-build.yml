@@ -521,7 +521,7 @@ jobs:
               echo "Removing node: $node"
               bv n delete "$node" || true
             done
-            gh pr comment ${{ github.event.pull_request.number }} --body "🧹 Cleaned up nodes from previous workflow run"
+            gh pr comment ${{ github.event.pull_request.number }} --body " Cleaned up nodes from previous workflow run"
           fi
           
           # Get variants from babel.yaml
