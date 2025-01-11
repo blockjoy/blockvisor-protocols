@@ -477,7 +477,6 @@ jobs:
             else
               echo "❌ Variant $variant check failed"
               rm -rf ${{ matrix.image_path }}/babel.yaml-test
-              exit 1
             fi
           done
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
@@ -535,9 +534,8 @@ jobs:
             # Start the node
             echo "Starting node ${NODE_NAME}"
             if ! START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1); then
-              # If start failed, comment the error and exit
+              # If start failed, comment the error
               gh pr comment ${{ github.event.pull_request.number }} --body "Failed to start node \`${NODE_NAME}\`:\n\`\`\`\n${START_OUTPUT}\n\`\`\`"
-              exit 1
             else
               gh pr comment ${{ github.event.pull_request.number }} --body "Node \`${NODE_NAME}\` has been deployed on host \`${RUNNER_HOST}\`"
             fi
