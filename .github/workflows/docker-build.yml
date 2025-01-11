@@ -534,7 +534,8 @@ jobs:
             
             # Start the node
             echo "Starting node ${NODE_NAME}"
-            if ! START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1); then
+            START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1 || true)
+            if [[ $? -ne 0 ]]; then
               # If start failed, just track it
               START_FAILED=true
             else
