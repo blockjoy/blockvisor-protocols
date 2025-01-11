@@ -517,6 +517,7 @@ jobs:
           
           # Initialize arrays for node info
           declare -a NODE_NAMES=()
+          START_FAILED=false
           
           # For each variant, start a node and capture info
           for variant in $VARIANTS; do
@@ -534,8 +535,8 @@ jobs:
             # Start the node
             echo "Starting node ${NODE_NAME}"
             if ! START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1); then
-              # If start failed, comment the error
-              gh pr comment ${{ github.event.pull_request.number }} --body "Failed to start node \`${NODE_NAME}\`:\n\`\`\`\n${START_OUTPUT}\n\`\`\`"
+              # If start failed, just track it
+              START_FAILED=true
             else
               gh pr comment ${{ github.event.pull_request.number }} --body "Node \`${NODE_NAME}\` has been deployed on host \`${RUNNER_HOST}\`"
             fi
@@ -544,6 +545,7 @@ jobs:
 
           # Save node names for cleanup
           echo "node_names=${NODE_NAMES[*]}" >> $GITHUB_OUTPUT
+          echo "start_failed=${START_FAILED}" >> $GITHUB_OUTPUT
 
   nib-image-push:
     needs: [test-nodes, build-protocols]
