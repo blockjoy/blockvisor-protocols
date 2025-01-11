@@ -518,7 +518,6 @@ jobs:
           
           # Initialize arrays for node info
           declare -a NODE_NAMES=()
-          declare -a NODE_INFO=()
           
           # For each variant, start a node and capture info
           for variant in $VARIANTS; do
@@ -527,36 +526,26 @@ jobs:
             # Run nib image play and capture output
             OUTPUT=$(nib image play --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1)
             
-            # Extract node name and basic info using sed
+            # Extract node name using sed
             NODE_NAME=$(echo "$OUTPUT" | grep -o 'name: "[^"]*"' | head -1 | cut -d'"' -f2)
-            NODE_INFO_EXCERPT=$(echo "$OUTPUT" | sed -n '/NodeState {/,/dev_mode:/p')
             
             # Store for later use
             NODE_NAMES+=("$NODE_NAME")
-            NODE_INFO+=("$NODE_INFO_EXCERPT")
             
-            # Create comment with node info
-            echo "Node \`${NODE_NAME}\` started on runner ${RUNNER_HOST}:" >> node_info.txt
-            echo "\`\`\`" >> node_info.txt
-            echo "$NODE_INFO_EXCERPT" >> node_info.txt
-            echo "\`\`\`" >> node_info.txt
-            echo "" >> node_info.txt
-
-            # Create task for this node
-            if [ -z "$TASK_BODY" ]; then
-              TASK_BODY=""
+            # Start the node
+            echo "Starting node ${NODE_NAME}"
+            if ! START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1); then
+              # If start failed, comment the error and exit
+              gh pr comment ${{ github.event.pull_request.number }} --body "Failed to start node \`${NODE_NAME}\`:\n\`\`\`\n${START_OUTPUT}\n\`\`\`"
+              exit 1
+            else
+              gh pr comment ${{ github.event.pull_request.number }} --body "Node \`${NODE_NAME}\` has been deployed on host \`${RUNNER_HOST}\`"
             fi
-            TASK_BODY="${TASK_BODY}- [ ] I've checked the node \`${NODE_NAME}\` on ${RUNNER_HOST}"
+            
           done
 
           # Save node names for cleanup
           echo "node_names=${NODE_NAMES[*]}" >> $GITHUB_OUTPUT
-          
-          # Add comment to PR with all node info
-          gh pr comment ${{ github.event.pull_request.number }} --body-file node_info.txt
-          
-          # Add tasks to PR
-          gh pr edit ${{ github.event.pull_request.number }} --add-reviewer ${{ github.actor }} --body "${TASK_BODY}"
 
   nib-image-push:
     needs: [test-nodes, build-protocols]
@@ -573,25 +562,40 @@ jobs:
           nib image push --path ${{ matrix.image_path }}/babel.yaml
 
   cleanup-nodes:
-    needs: [workflow-status, test-nodes, build-protocols]
-    if: github.event.pull_request.merged == true && github.event.pull_request.user.login != 'renovate[bot]'
+    needs: [test-nodes]
+    if: always() && github.event_name == 'pull_request' && github.event.pull_request.user.login != 'renovate[bot]'
     runs-on: dev
-    strategy:
-      matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
     steps:
-      - name: Delete test nodes
+      - name: Cleanup nodes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Cleaning up nodes on runner: ${{ needs.test-nodes.outputs.runner_host }}"
+          # Get node names from test-nodes job
+          IFS=' ' read -r -a NODE_NAMES <<< "${{ needs.test-nodes.outputs.node_names }}"
+          RUNNER_HOST="${{ needs.test-nodes.outputs.runner_host }}"
           
-          IFS=' ' read -ra NODES <<< "${{ needs.test-nodes.outputs.node_names }}"
-          for node in "${NODES[@]}"; do
-            echo "Deleting node: $node"
-            bv n delete "$node"
+          # Check if test-nodes job failed
+          if [[ "${{ needs.test-nodes.result }}" == "failure" ]]; then
+            CLEANUP_MESSAGE="⚠️ Workflow failed - Cleaning up nodes"
+          else
+            CLEANUP_MESSAGE="🧹 Cleaning up nodes"
+          fi
+          
+          # Post cleanup start message
+          gh pr comment ${{ github.event.pull_request.number }} --body "${CLEANUP_MESSAGE}"
+          
+          # Remove each node
+          for NODE_NAME in "${NODE_NAMES[@]}"; do
+            echo "Removing node ${NODE_NAME}"
+            nib node remove "$NODE_NAME" || true
           done
-      - name: Cleanup test file
-        if: always()
-        run: |
-          rm -rf ${{ matrix.image_path }}/babel.yaml-test
+          
+          # Post cleanup completion message
+          if [[ "${{ needs.test-nodes.result }}" == "failure" ]]; then
+            gh pr comment ${{ github.event.pull_request.number }} --body "✅ All nodes have been cleaned up after workflow failure"
+          else
+            gh pr comment ${{ github.event.pull_request.number }} --body "✅ All nodes have been cleaned up"
+          fi
 
   workflow-status:
     needs: [detect-changes, build-base, build-clients, build-protocols, test-nodes]
