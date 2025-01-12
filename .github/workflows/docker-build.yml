@@ -10,7 +10,10 @@ on:
       - 'LICENSE'
       - '.github/**'
       - '!.github/workflows/**'
-    types: [opened, synchronize, reopened, closed]
+    types:
+      - opened      # PR is created
+      - synchronize # New commits pushed
+      - reopened    # Closed PR is reopened
   pull_request_target:
     branches: [ main ]
     paths-ignore:
@@ -20,7 +23,8 @@ on:
       - 'LICENSE'
       - '.github/**'
       - '!.github/workflows/**'
-    types: [closed]
+    types:
+      - closed  # PR is merged or closed
 
 permissions:
   contents: read
@@ -34,7 +38,11 @@ concurrency:
 
 jobs:
   detect-changes:
-    runs-on: self-hosted
+    runs-on: dev
+    if: |
+      github.event_name == 'pull_request' && 
+      github.event.pull_request.user.login != 'renovate[bot]' && 
+      github.event.action != 'closed'
     outputs:
       base_matrix: ${{ steps.set-matrix.outputs.base_matrix }}
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
@@ -324,8 +332,12 @@ jobs:
 
   build-protocols:
     needs: [detect-changes]
-    if: fromJson(needs.detect-changes.outputs.protocols_matrix).include[0]
-    runs-on: self-hosted
+    if: |
+      github.event_name == 'pull_request' && 
+      github.event.pull_request.user.login != 'renovate[bot]' && 
+      github.event.action != 'closed' &&
+      fromJson(needs.detect-changes.outputs.protocols_matrix).include[0] != null
+    runs-on: dev
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
     outputs:
@@ -494,7 +506,10 @@ jobs:
 
   get-host:
     needs: [build-protocols]
-    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'renovate[bot]'
+    if: |
+      github.event_name == 'pull_request' && 
+      github.event.pull_request.user.login != 'renovate[bot]' && 
+      github.event.action != 'closed'
     runs-on: dev
     outputs:
       target_host: ${{ steps.get-host.outputs.target_host }}
@@ -515,7 +530,10 @@ jobs:
 
   test-nodes:
     needs: [build-protocols, get-host]
-    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'renovate[bot]'
+    if: |
+      github.event_name == 'pull_request' && 
+      github.event.pull_request.user.login != 'renovate[bot]' && 
+      github.event.action != 'closed'
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
     outputs:
@@ -552,7 +570,7 @@ jobs:
             echo "Found nodes from previous run:"
             echo "$PREV_NODES" | while read -r node; do
               echo "Removing node: $node"
-              bv n delete "$node" || true
+              yes y | bv n delete "$node" || true
             done
             gh pr comment ${{ github.event.pull_request.number }} --body " Cleaned up nodes from previous workflow run"
           fi
@@ -627,8 +645,10 @@ jobs:
 
   nib-image-push:
     needs: [test-nodes, build-protocols]
-    if: github.event.pull_request.merged == true
-    runs-on: self-hosted
+    if: |
+      github.event.pull_request.merged == true && 
+      github.event.action != 'closed'
+    runs-on: dev
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
     steps:
@@ -639,58 +659,88 @@ jobs:
           echo "Pushing image (version changed from ${{ needs.build-protocols.outputs.previous_version }} to ${{ needs.build-protocols.outputs.current_version }})"
           nib image push --path ${{ matrix.image_path }}/babel.yaml
 
-  cleanup-nodes:
+  cleanup:
     needs: [test-nodes]
     if: |
-      (failure() || github.event.action == 'closed') && 
+      (needs.test-nodes.result == 'failure' || github.event.action == 'closed' || github.event.pull_request.merged == true) && 
       github.event.pull_request.user.login != 'renovate[bot]' && 
-      needs.test-nodes.outputs.start_failed != 'true'
+      (needs.test-nodes.outputs.start_failed != 'true' || github.event.action == 'closed')
     runs-on: dev
     steps:
       - name: Cleanup nodes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get node names from test-nodes job
-          IFS=' ' read -r -a NODE_NAMES <<< "${{ needs.test-nodes.outputs.node_names }}"
-          RUNNER_HOST="${{ needs.test-nodes.outputs.runner_host }}"
-          
-          # Remove each node
-          for NODE_NAME in "${NODE_NAMES[@]}"; do
-            echo "Removing node ${NODE_NAME}"
-            nib node remove "$NODE_NAME" || true
-          done
-          
-          # Post cleanup completion message
-          if [[ "${{ needs.test-nodes.result }}" == "failure" ]]; then
-            gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after workflow failure"
-          else
-            gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up"
-          fi
-
-  cleanup-on-merge:
-    if: |
-      github.event_name == 'pull_request_target' && 
-      github.event.pull_request.merged == true && 
-      github.event.pull_request.user.login != 'renovate[bot]' || 
-      github.event_name == 'pull_request' && 
-      github.event.action == 'closed' && 
-      github.event.pull_request.user.login != 'renovate[bot]'
-    runs-on: dev
-    steps:
-      - name: Cleanup nodes on merge
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
+          # Always try to get nodes from PR comments first
           echo "Finding nodes from PR comments..."
           PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("has been deployed on host")) | capture("Node `(?<name>[^`]+)`").name')
+          
+          # If test-nodes job ran, also get those nodes
+          if [[ "${{ needs.test-nodes.result }}" != "skipped" ]]; then
+            IFS=' ' read -r -a TEST_NODES <<< "${{ needs.test-nodes.outputs.node_names }}"
+            if [ ${#TEST_NODES[@]} -gt 0 ]; then
+              for node in "${TEST_NODES[@]}"; do
+                PREV_NODES="${PREV_NODES}"$'\n'"${node}"
+              done
+            fi
+          fi
+          
+          # Clean up all found nodes
           if [ ! -z "$PREV_NODES" ]; then
-            echo "Found nodes to clean up after merge:"
+            echo "Found nodes to clean up:"
+            echo "Raw PREV_NODES value:"
+            echo "$PREV_NODES" | cat -A  # Show special characters
+            
+            # Create a function to handle node deletion with proper confirmation
+            delete_node() {
+              local node=$1
+              echo "Attempting to delete node: '$node'"
+              
+              # Start the delete command
+              bv n delete "$node" > >(tee /tmp/delete_output) 2>&1 &
+              local pid=$!
+              
+              # Wait a bit for the confirmation prompt
+              sleep 2
+              
+              # Send confirmation
+              echo "y" > /proc/$pid/fd/0
+              
+              # Wait for completion
+              wait $pid
+              local status=$?
+              
+              # Show output
+              echo "Delete command output:"
+              cat /tmp/delete_output
+              
+              if [ $status -eq 0 ]; then
+                echo "Successfully deleted node: $node"
+              else
+                echo "Failed to delete node: $node (exit code: $status)"
+              fi
+              return $status
+            }
+            
             echo "$PREV_NODES" | while read -r node; do
-              echo "Removing node: $node"
-              bv n delete "$node" || true
+              if [ -z "$node" ]; then 
+                echo "Skipping empty node name"
+                continue
+              fi
+              echo "Processing node: '$node'"
+              delete_node "$node" || echo "Warning: Failed to delete node '$node'"
             done
-            gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge"
+            
+            # Post appropriate message based on trigger
+            if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge"
+            elif [[ "${{ github.event.action }}" == "closed" ]]; then
+              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR close"
+            elif [[ "${{ needs.test-nodes.result }}" == "failure" ]]; then
+              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after workflow failure"
+            else
+              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up"
+            fi
           fi
 
   workflow-status:
@@ -700,14 +750,22 @@ jobs:
     steps:
       - name: Check workflow status
         run: |
-          # If no builds were triggered (all skipped), that means no relevant files changed
+          echo "Job results:"
+          echo "detect-changes: ${{ needs.detect-changes.result }}"
+          echo "build-base: ${{ needs.build-base.result }}"
+          echo "build-clients: ${{ needs.build-clients.result }}"
+          echo "build-protocols: ${{ needs.build-protocols.result }}"
+          echo "test-nodes: ${{ needs.test-nodes.result }}"
+          
+          # If builds were skipped or only detect-changes ran, that means no relevant files changed
           if [[ "${{ needs.build-base.result }}" == "skipped" ]] && \
              [[ "${{ needs.build-clients.result }}" == "skipped" ]] && \
-             [[ "${{ needs.build-protocols.result }}" == "skipped" ]]; then
+             [[ "${{ needs.build-protocols.result }}" == "skipped" ]] && \
+             [[ "${{ needs.test-nodes.result }}" == "skipped" ]]; then
             echo "No relevant files changed - marking as success"
             exit 0
           fi
-
+          
           # Otherwise check if any non-skipped jobs failed
           if [[ "${{ needs.build-base.result }}" != "skipped" && "${{ needs.build-base.result }}" != "success" ]] || \
              [[ "${{ needs.build-clients.result }}" != "skipped" && "${{ needs.build-clients.result }}" != "success" ]] || \
@@ -715,6 +773,6 @@ jobs:
             echo "One or more builds failed"
             exit 1
           fi
-
+          
           echo "All triggered builds completed successfully"
           exit 0
