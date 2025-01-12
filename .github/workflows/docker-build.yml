@@ -565,7 +565,19 @@ jobs:
           
           # Get nodes from previous run using PR comments
           echo "Finding nodes from previous run..."
-          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("Created node:")) | capture("Created node: (?<name>[^ ]+)").name')
+          echo "Debug: Getting all PR comments..."
+          gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body' > /tmp/comments.txt
+          echo "All comments:"
+          cat /tmp/comments.txt
+          
+          echo "Debug: Finding comments with deployed nodes..."
+          gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed"))' > /tmp/deployed.txt
+          echo "Deployed comments:"
+          cat /tmp/deployed.txt
+          
+          echo "Debug: Extracting node names..."
+          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed")) | split("\n") | map(select(contains(", running variant"))) | map(capture("(?<name>[a-z-]+), running variant").name) | join("\n")')
+          echo "Extracted nodes: '$PREV_NODES'"
           if [ ! -z "$PREV_NODES" ]; then
             echo "Found nodes from previous run:"
             echo "$PREV_NODES" | while read -r node; do
@@ -671,14 +683,21 @@ jobs:
         run: |
           # Always try to get nodes from PR comments first
           echo "Finding nodes from PR comments..."
-          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("have been deployed")) | split("\n") | map(select(contains(", running variant"))) | map(capture("(?<name>[a-z-]+), running variant").name) | join("\n")')
+          echo "Debug: Getting all PR comments..."
+          gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body' > /tmp/comments.txt
+          echo "All comments:"
+          cat /tmp/comments.txt
           
-          # Clean up all found nodes
+          echo "Debug: Finding comments with deployed nodes..."
+          gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed"))' > /tmp/deployed.txt
+          echo "Deployed comments:"
+          cat /tmp/deployed.txt
+          
+          echo "Debug: Extracting node names..."
+          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed")) | split("\n") | map(select(contains(", running variant"))) | map(capture("(?<name>[a-z-]+), running variant").name) | join("\n")')
+          echo "Extracted nodes: '$PREV_NODES'"
           if [ ! -z "$PREV_NODES" ]; then
             echo "Found nodes to clean up:"
-            echo "Raw PREV_NODES value:"
-            echo "$PREV_NODES" | cat -A  # Show special characters
-            
             echo "$PREV_NODES" | while read -r node; do
               if [ -z "$node" ]; then 
                 echo "Skipping empty node name"
