@@ -565,7 +565,7 @@ jobs:
             echo "Found nodes from previous run:"
             echo "$PREV_NODES" | while read -r node; do
               echo "Removing node: $node"
-              bv n delete "$node" || true
+              yes y | bv n delete "$node" || true
             done
             gh pr comment ${{ github.event.pull_request.number }} --body " Cleaned up nodes from previous workflow run"
           fi
@@ -673,7 +673,7 @@ jobs:
           # Remove each node
           for NODE_NAME in "${NODE_NAMES[@]}"; do
             echo "Removing node ${NODE_NAME}"
-            nib node remove "$NODE_NAME" || true
+            yes y | bv n delete "$NODE_NAME" || true
           done
           
           # Post cleanup completion message
@@ -703,7 +703,7 @@ jobs:
             echo "Found nodes to clean up after merge:"
             echo "$PREV_NODES" | while read -r node; do
               echo "Removing node: $node"
-              bv n delete "$node" || true
+              yes y | bv n delete "$node" || true
             done
             gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge"
           fi
