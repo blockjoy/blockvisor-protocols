@@ -570,7 +570,7 @@ jobs:
             echo "Found nodes from previous run:"
             echo "$PREV_NODES" | while read -r node; do
               echo "Removing node: $node"
-              yes y | bv n delete "$node" || true
+              bv n delete -y "$node" || true
             done
             gh pr comment ${{ github.event.pull_request.number }} --body " Cleaned up nodes from previous workflow run"
           fi
@@ -619,14 +619,11 @@ jobs:
             START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1 || true)
             echo "bv n start output:"
             echo "$START_OUTPUT"
-            if [[ $? -ne 0 ]]; then
-              # If start failed, just track it
+            if [[ "$START_OUTPUT" == *"Error:"* ]]; then
               echo "Error: Failed to start node ${NODE_NAME}"
               START_FAILED=true
-            else
-              echo "Successfully started node ${NODE_NAME}"
-              DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
             fi
+            DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
           done
 
           # If any nodes were deployed successfully, create a single comment
@@ -660,11 +657,12 @@ jobs:
           nib image push --path ${{ matrix.image_path }}/babel.yaml
 
   cleanup:
-    needs: [test-nodes]
+    needs: []
     if: |
-      (needs.test-nodes.result == 'failure' || github.event.action == 'closed' || github.event.pull_request.merged == true) && 
       github.event.pull_request.user.login != 'renovate[bot]' && 
-      (needs.test-nodes.outputs.start_failed != 'true' || github.event.action == 'closed')
+      (github.event.pull_request.merged == true || 
+       github.event.action == 'closed' || 
+       github.event.action == 'synchronize')
     runs-on: dev
     steps:
       - name: Cleanup nodes
@@ -675,52 +673,11 @@ jobs:
           echo "Finding nodes from PR comments..."
           PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("has been deployed on host")) | capture("Node `(?<name>[^`]+)`").name')
           
-          # If test-nodes job ran, also get those nodes
-          if [[ "${{ needs.test-nodes.result }}" != "skipped" ]]; then
-            IFS=' ' read -r -a TEST_NODES <<< "${{ needs.test-nodes.outputs.node_names }}"
-            if [ ${#TEST_NODES[@]} -gt 0 ]; then
-              for node in "${TEST_NODES[@]}"; do
-                PREV_NODES="${PREV_NODES}"$'\n'"${node}"
-              done
-            fi
-          fi
-          
           # Clean up all found nodes
           if [ ! -z "$PREV_NODES" ]; then
             echo "Found nodes to clean up:"
             echo "Raw PREV_NODES value:"
             echo "$PREV_NODES" | cat -A  # Show special characters
-            
-            # Create a function to handle node deletion with proper confirmation
-            delete_node() {
-              local node=$1
-              echo "Attempting to delete node: '$node'"
-              
-              # Start the delete command
-              bv n delete "$node" > >(tee /tmp/delete_output) 2>&1 &
-              local pid=$!
-              
-              # Wait a bit for the confirmation prompt
-              sleep 2
-              
-              # Send confirmation
-              echo "y" > /proc/$pid/fd/0
-              
-              # Wait for completion
-              wait $pid
-              local status=$?
-              
-              # Show output
-              echo "Delete command output:"
-              cat /tmp/delete_output
-              
-              if [ $status -eq 0 ]; then
-                echo "Successfully deleted node: $node"
-              else
-                echo "Failed to delete node: $node (exit code: $status)"
-              fi
-              return $status
-            }
             
             echo "$PREV_NODES" | while read -r node; do
               if [ -z "$node" ]; then 
@@ -728,7 +685,7 @@ jobs:
                 continue
               fi
               echo "Processing node: '$node'"
-              delete_node "$node" || echo "Warning: Failed to delete node '$node'"
+              bv n delete -y "$node" || echo "Warning: Failed to delete node '$node'"
             done
             
             # Post appropriate message based on trigger
@@ -736,8 +693,8 @@ jobs:
               gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge"
             elif [[ "${{ github.event.action }}" == "closed" ]]; then
               gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR close"
-            elif [[ "${{ needs.test-nodes.result }}" == "failure" ]]; then
-              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after workflow failure"
+            elif [[ "${{ github.event.action }}" == "synchronize" ]]; then
+              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR update"
             else
               gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up"
             fi
