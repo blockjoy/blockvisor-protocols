@@ -565,7 +565,7 @@ jobs:
           
           # Get nodes from previous run using PR comments
           echo "Finding nodes from previous run..."
-          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("has been deployed on host")) | capture("Node `(?<name>[^`]+)`").name')
+          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("Created node:")) | capture("Created node: (?<name>[^ ]+)").name')
           if [ ! -z "$PREV_NODES" ]; then
             echo "Found nodes from previous run:"
             echo "$PREV_NODES" | while read -r node; do
@@ -671,7 +671,7 @@ jobs:
         run: |
           # Always try to get nodes from PR comments first
           echo "Finding nodes from PR comments..."
-          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("has been deployed on host")) | capture("Node `(?<name>[^`]+)`").name')
+          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("Created node:")) | capture("Created node: (?<name>[^ ]+)").name')
           
           # Clean up all found nodes
           if [ ! -z "$PREV_NODES" ]; then
