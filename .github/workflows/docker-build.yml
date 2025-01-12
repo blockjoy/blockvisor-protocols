@@ -10,6 +10,17 @@ on:
       - 'LICENSE'
       - '.github/**'
       - '!.github/workflows/**'
+    types: [opened, synchronize, reopened, closed]
+  pull_request_target:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
+      - '.github/**'
+      - '!.github/workflows/**'
+    types: [closed]
 
 permissions:
   contents: read
@@ -604,7 +615,13 @@ jobs:
           fi
 
   cleanup-on-merge:
-    if: github.event.pull_request.merged == true && github.event.pull_request.user.login != 'renovate[bot]'
+    if: |
+      github.event_name == 'pull_request_target' && 
+      github.event.pull_request.merged == true && 
+      github.event.pull_request.user.login != 'renovate[bot]' || 
+      github.event_name == 'pull_request' && 
+      github.event.action == 'closed' && 
+      github.event.pull_request.user.login != 'renovate[bot]'
     runs-on: dev
     steps:
       - name: Cleanup nodes on merge
