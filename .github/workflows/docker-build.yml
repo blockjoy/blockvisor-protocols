@@ -266,7 +266,7 @@ jobs:
           BUILD_NUM=$((LATEST_BUILD + 1))
           # Format: v20250108.1, v20250108.2, etc
           VERSION_TAG="v${DATE}.${BUILD_NUM}"
-          
+
           echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
           echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
@@ -492,15 +492,36 @@ jobs:
           done
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
 
-  test-nodes:
+  get-host:
     needs: [build-protocols]
     if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'renovate[bot]'
     runs-on: dev
+    outputs:
+      target_host: ${{ steps.get-host.outputs.target_host }}
+    steps:
+      - name: Get previous host
+        id: get-host
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PREV_HOST=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("has been deployed on host")) | capture("host `(?<host>[^`]+)`").host' | head -n1)
+          if [ -z "$PREV_HOST" ]; then
+            echo "No previous host found, using default"
+            PREV_HOST="dev"
+          else
+            echo "Found previous host: $PREV_HOST"
+          fi
+          echo "target_host=$PREV_HOST" >> $GITHUB_OUTPUT
+
+  test-nodes:
+    needs: [build-protocols, get-host]
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'renovate[bot]'
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
     outputs:
       runner_host: ${{ steps.test-nodes.outputs.runner_host }}
       node_names: ${{ steps.test-nodes.outputs.node_names }}
+    runs-on: ${{ needs.get-host.outputs.target_host }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Authenticate GitHub CLI
@@ -514,6 +535,7 @@ jobs:
           # Update container_uri with newly built image
           NEW_URI="docker://ghcr.io/blockjoy/${{ needs.build-protocols.outputs.image_name }}:${{ needs.build-protocols.outputs.image_tag }}"
           yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
+
       - name: Test nodes
         id: test-nodes
         env:
@@ -540,6 +562,7 @@ jobs:
           
           # Initialize arrays for node info
           declare -a NODE_NAMES=()
+          declare -a DEPLOYED_NODES=()
           START_FAILED=false
           
           # For each variant, start a node and capture info
@@ -562,10 +585,18 @@ jobs:
               # If start failed, just track it
               START_FAILED=true
             else
-              gh pr comment ${{ github.event.pull_request.number }} --body "Node \`${NODE_NAME}\` with variant \`${variant}\` has been deployed on host \`${RUNNER_HOST}\`"
+              DEPLOYED_NODES+=("- \`${NODE_NAME}\`, \`${variant}\`")
             fi
-            
           done
+
+          # If any nodes were deployed successfully, create a single comment
+          if [ ${#DEPLOYED_NODES[@]} -gt 0 ]; then
+            COMMENT="The following nodes have been deployed on \`${RUNNER_HOST}\`:\n"
+            for node in "${DEPLOYED_NODES[@]}"; do
+              COMMENT="${COMMENT}${node}\n"
+            done
+            gh pr comment ${{ github.event.pull_request.number }} --body "$COMMENT"
+          fi
 
           # Save node names for cleanup
           echo "node_names=${NODE_NAMES[*]}" >> $GITHUB_OUTPUT
@@ -609,9 +640,9 @@ jobs:
           
           # Post cleanup completion message
           if [[ "${{ needs.test-nodes.result }}" == "failure" ]]; then
-            gh pr comment ${{ github.event.pull_request.number }} --body "✅ All nodes have been cleaned up after workflow failure"
+            gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after workflow failure"
           else
-            gh pr comment ${{ github.event.pull_request.number }} --body "✅ All nodes have been cleaned up"
+            gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up"
           fi
 
   cleanup-on-merge:
@@ -636,7 +667,7 @@ jobs:
               echo "Removing node: $node"
               bv n delete "$node" || true
             done
-            gh pr comment ${{ github.event.pull_request.number }} --body "✅ All nodes have been cleaned up after merge"
+            gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge"
           fi
 
   workflow-status:
