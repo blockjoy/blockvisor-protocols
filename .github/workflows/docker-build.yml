@@ -34,7 +34,11 @@ concurrency:
 
 jobs:
   detect-changes:
-    runs-on: self-hosted
+    runs-on: dev
+    if: |
+      github.event_name == 'pull_request' && 
+      github.event.pull_request.user.login != 'renovate[bot]' && 
+      github.event.action != 'closed'
     outputs:
       base_matrix: ${{ steps.set-matrix.outputs.base_matrix }}
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
@@ -324,8 +328,11 @@ jobs:
 
   build-protocols:
     needs: [detect-changes]
-    if: fromJson(needs.detect-changes.outputs.protocols_matrix).include[0]
-    runs-on: self-hosted
+    if: |
+      github.event_name == 'pull_request' && 
+      github.event.pull_request.user.login != 'renovate[bot]' && 
+      github.event.action != 'closed'
+    runs-on: dev
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
     outputs:
@@ -494,7 +501,10 @@ jobs:
 
   get-host:
     needs: [build-protocols]
-    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'renovate[bot]'
+    if: |
+      github.event_name == 'pull_request' && 
+      github.event.pull_request.user.login != 'renovate[bot]' && 
+      github.event.action != 'closed'
     runs-on: dev
     outputs:
       target_host: ${{ steps.get-host.outputs.target_host }}
@@ -515,7 +525,10 @@ jobs:
 
   test-nodes:
     needs: [build-protocols, get-host]
-    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'renovate[bot]'
+    if: |
+      github.event_name == 'pull_request' && 
+      github.event.pull_request.user.login != 'renovate[bot]' && 
+      github.event.action != 'closed'
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
     outputs:
@@ -627,8 +640,10 @@ jobs:
 
   nib-image-push:
     needs: [test-nodes, build-protocols]
-    if: github.event.pull_request.merged == true
-    runs-on: self-hosted
+    if: |
+      github.event.pull_request.merged == true && 
+      github.event.action != 'closed'
+    runs-on: dev
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
     steps:
