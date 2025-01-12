@@ -570,7 +570,7 @@ jobs:
             echo "Found nodes from previous run:"
             echo "$PREV_NODES" | while read -r node; do
               echo "Removing node: $node"
-              yes y | bv n delete "$node" || true
+              bv n delete -y "$node" || true
             done
             gh pr comment ${{ github.event.pull_request.number }} --body " Cleaned up nodes from previous workflow run"
           fi
@@ -688,7 +688,7 @@ jobs:
               echo "Attempting to delete node: '$node'"
               
               # Start the delete command
-              bv n delete "$node" > >(tee /tmp/delete_output) 2>&1 &
+              bv n delete -y "$node" > >(tee /tmp/delete_output) 2>&1 &
               local pid=$!
               
               # Wait a bit for the confirmation prompt
