@@ -749,10 +749,18 @@ jobs:
     steps:
       - name: Check workflow status
         run: |
-          # If no builds were triggered (all skipped), that means no relevant files changed
+          echo "Job results:"
+          echo "detect-changes: ${{ needs.detect-changes.result }}"
+          echo "build-base: ${{ needs.build-base.result }}"
+          echo "build-clients: ${{ needs.build-clients.result }}"
+          echo "build-protocols: ${{ needs.build-protocols.result }}"
+          echo "test-nodes: ${{ needs.test-nodes.result }}"
+          
+          # If builds were skipped or only detect-changes ran, that means no relevant files changed
           if [[ "${{ needs.build-base.result }}" == "skipped" ]] && \
              [[ "${{ needs.build-clients.result }}" == "skipped" ]] && \
-             [[ "${{ needs.build-protocols.result }}" == "skipped" ]]; then
+             [[ "${{ needs.build-protocols.result }}" == "skipped" ]] && \
+             [[ "${{ needs.test-nodes.result }}" == "skipped" ]]; then
             echo "No relevant files changed - marking as success"
             exit 0
           fi
