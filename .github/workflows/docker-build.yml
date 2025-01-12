@@ -619,14 +619,11 @@ jobs:
             START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1 || true)
             echo "bv n start output:"
             echo "$START_OUTPUT"
-            if [[ $? -ne 0 ]]; then
-              # If start failed, just track it
+            if [[ "$START_OUTPUT" == *"Error:"* ]]; then
               echo "Error: Failed to start node ${NODE_NAME}"
               START_FAILED=true
-            else
-              echo "Successfully started node ${NODE_NAME}"
-              DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
             fi
+            DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
           done
 
           # If any nodes were deployed successfully, create a single comment
@@ -682,44 +679,13 @@ jobs:
             echo "Raw PREV_NODES value:"
             echo "$PREV_NODES" | cat -A  # Show special characters
             
-            # Create a function to handle node deletion with proper confirmation
-            delete_node() {
-              local node=$1
-              echo "Attempting to delete node: '$node'"
-              
-              # Start the delete command
-              bv n delete -y "$node" > >(tee /tmp/delete_output) 2>&1 &
-              local pid=$!
-              
-              # Wait a bit for the confirmation prompt
-              sleep 2
-              
-              # Send confirmation
-              echo "y" > /proc/$pid/fd/0
-              
-              # Wait for completion
-              wait $pid
-              local status=$?
-              
-              # Show output
-              echo "Delete command output:"
-              cat /tmp/delete_output
-              
-              if [ $status -eq 0 ]; then
-                echo "Successfully deleted node: $node"
-              else
-                echo "Failed to delete node: $node (exit code: $status)"
-              fi
-              return $status
-            }
-            
             echo "$PREV_NODES" | while read -r node; do
               if [ -z "$node" ]; then 
                 echo "Skipping empty node name"
                 continue
               fi
               echo "Processing node: '$node'"
-              delete_node "$node" || echo "Warning: Failed to delete node '$node'"
+              bv n delete -y "$node" || echo "Warning: Failed to delete node '$node'"
             done
             
             # Post appropriate message based on trigger
