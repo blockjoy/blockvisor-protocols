@@ -576,7 +576,7 @@ jobs:
           cat /tmp/deployed.txt
           
           echo "Debug: Extracting node names..."
-          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed")) | split("\n") | map(select(contains(", running variant"))) | map(capture("(?<name>[a-z-]+), running variant").name) | join("\n")')
+          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed")) | split("\n") | map(select(contains("running variant"))) | map(capture("- `(?<n>[a-z-]+)`").name) | join("\n")')
           echo "Extracted nodes: '$PREV_NODES'"
           if [ ! -z "$PREV_NODES" ]; then
             echo "Found nodes from previous run:"
@@ -694,7 +694,7 @@ jobs:
           cat /tmp/deployed.txt
           
           echo "Debug: Extracting node names..."
-          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed")) | split("\n") | map(select(contains(", running variant"))) | map(capture("(?<name>[a-z-]+), running variant").name) | join("\n")')
+          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed")) | split("\n") | map(select(contains("running variant"))) | map(capture("`(?<n>[a-z-]+)`").name) | join("\n")')
           echo "Extracted nodes: '$PREV_NODES'"
           if [ ! -z "$PREV_NODES" ]; then
             echo "Found nodes to clean up:"
