@@ -607,7 +607,7 @@ jobs:
               START_FAILED=true
             else
               echo "Successfully started node ${NODE_NAME}"
-              DEPLOYED_NODES+=("- \`${NODE_NAME}\`, \`${variant}\`")
+              DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
             fi
           done
 
@@ -617,6 +617,7 @@ jobs:
             for node in "${DEPLOYED_NODES[@]}"; do
               COMMENT="${COMMENT}${node}"$'\n'
             done
+            COMMENT="${COMMENT}"$'\n'"These nodes will be cleaned up on PR merge or close and replaced on PR update."
             echo -e "$COMMENT" | gh pr comment ${{ github.event.pull_request.number }} --body-file -
           fi
 
