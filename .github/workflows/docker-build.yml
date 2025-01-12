@@ -660,11 +660,12 @@ jobs:
           nib image push --path ${{ matrix.image_path }}/babel.yaml
 
   cleanup:
-    needs: [test-nodes]
+    needs: []
     if: |
-      (needs.test-nodes.result == 'failure' || github.event.action == 'closed' || github.event.pull_request.merged == true) && 
       github.event.pull_request.user.login != 'renovate[bot]' && 
-      (needs.test-nodes.outputs.start_failed != 'true' || github.event.action == 'closed')
+      (github.event.pull_request.merged == true || 
+       github.event.action == 'closed' || 
+       github.event.action == 'synchronize')
     runs-on: dev
     steps:
       - name: Cleanup nodes
@@ -674,16 +675,6 @@ jobs:
           # Always try to get nodes from PR comments first
           echo "Finding nodes from PR comments..."
           PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("has been deployed on host")) | capture("Node `(?<name>[^`]+)`").name')
-          
-          # If test-nodes job ran, also get those nodes
-          if [[ "${{ needs.test-nodes.result }}" != "skipped" ]]; then
-            IFS=' ' read -r -a TEST_NODES <<< "${{ needs.test-nodes.outputs.node_names }}"
-            if [ ${#TEST_NODES[@]} -gt 0 ]; then
-              for node in "${TEST_NODES[@]}"; do
-                PREV_NODES="${PREV_NODES}"$'\n'"${node}"
-              done
-            fi
-          fi
           
           # Clean up all found nodes
           if [ ! -z "$PREV_NODES" ]; then
@@ -736,8 +727,8 @@ jobs:
               gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge"
             elif [[ "${{ github.event.action }}" == "closed" ]]; then
               gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR close"
-            elif [[ "${{ needs.test-nodes.result }}" == "failure" ]]; then
-              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after workflow failure"
+            elif [[ "${{ github.event.action }}" == "synchronize" ]]; then
+              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR update"
             else
               gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up"
             fi
