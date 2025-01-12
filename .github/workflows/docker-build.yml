@@ -671,7 +671,7 @@ jobs:
         run: |
           # Always try to get nodes from PR comments first
           echo "Finding nodes from PR comments..."
-          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("Created node:")) | capture("Created node: (?<name>[^ ]+)").name')
+          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("have been deployed")) | split("\n") | map(select(contains(", running variant"))) | map(capture("(?<name>[a-z-]+), running variant").name) | join("\n")')
           
           # Clean up all found nodes
           if [ ! -z "$PREV_NODES" ]; then
