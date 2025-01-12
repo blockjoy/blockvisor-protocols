@@ -10,7 +10,10 @@ on:
       - 'LICENSE'
       - '.github/**'
       - '!.github/workflows/**'
-    types: [opened, synchronize, reopened, closed]
+    types:
+      - opened      # PR is created
+      - synchronize # New commits pushed
+      - reopened    # Closed PR is reopened
   pull_request_target:
     branches: [ main ]
     paths-ignore:
@@ -20,7 +23,8 @@ on:
       - 'LICENSE'
       - '.github/**'
       - '!.github/workflows/**'
-    types: [closed]
+    types:
+      - closed  # PR is merged or closed
 
 permissions:
   contents: read
@@ -722,7 +726,7 @@ jobs:
             echo "No relevant files changed - marking as success"
             exit 0
           fi
-
+          
           # Otherwise check if any non-skipped jobs failed
           if [[ "${{ needs.build-base.result }}" != "skipped" && "${{ needs.build-base.result }}" != "success" ]] || \
              [[ "${{ needs.build-clients.result }}" != "skipped" && "${{ needs.build-clients.result }}" != "success" ]] || \
@@ -730,6 +734,6 @@ jobs:
             echo "One or more builds failed"
             exit 1
           fi
-
+          
           echo "All triggered builds completed successfully"
           exit 0
