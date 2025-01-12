@@ -559,6 +559,12 @@ jobs:
           
           # Get variants from babel.yaml
           VARIANTS=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml-test)
+          if [ $? -ne 0 ]; then
+            echo "Error: Failed to get variants from babel.yaml"
+            echo "Content of babel.yaml-test:"
+            cat ${{ matrix.image_path }}/babel.yaml-test
+            exit 1
+          fi
           
           # Initialize arrays for node info
           declare -a NODE_NAMES=()
@@ -570,10 +576,22 @@ jobs:
             echo "Testing variant: $variant"
             
             # Run nib image play and capture output
+            echo "Running: nib image play --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
             OUTPUT=$(nib image play --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1)
+            NIB_EXIT=$?
+            echo "nib image play output:"
+            echo "$OUTPUT"
+            if [ $NIB_EXIT -ne 0 ]; then
+              echo "Error: nib image play failed with exit code $NIB_EXIT"
+              exit 1
+            fi
             
             # Extract node name using sed
             NODE_NAME=$(echo "$OUTPUT" | grep -o 'name: "[^"]*"' | head -1 | cut -d'"' -f2)
+            if [ -z "$NODE_NAME" ]; then
+              echo "Error: Failed to extract node name from output"
+              exit 1
+            fi
             
             # Store for later use
             NODE_NAMES+=("$NODE_NAME")
@@ -581,10 +599,14 @@ jobs:
             # Start the node
             echo "Starting node ${NODE_NAME}"
             START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1 || true)
+            echo "bv n start output:"
+            echo "$START_OUTPUT"
             if [[ $? -ne 0 ]]; then
               # If start failed, just track it
+              echo "Error: Failed to start node ${NODE_NAME}"
               START_FAILED=true
             else
+              echo "Successfully started node ${NODE_NAME}"
               DEPLOYED_NODES+=("- \`${NODE_NAME}\`, \`${variant}\`")
             fi
           done
