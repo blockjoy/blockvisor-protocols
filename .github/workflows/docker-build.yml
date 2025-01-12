@@ -563,23 +563,10 @@ jobs:
           RUNNER_HOST=$(hostname)
           echo "runner_host=${RUNNER_HOST}" >> $GITHUB_OUTPUT
           
-          # Get nodes from previous run using PR comments
-          echo "Finding nodes from previous run..."
-          echo "Debug: Getting all PR comments..."
-          gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body' > /tmp/comments.txt
-          echo "All comments:"
-          cat /tmp/comments.txt
-          
-          echo "Debug: Finding comments with deployed nodes..."
-          gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed"))' > /tmp/deployed.txt
-          echo "Deployed comments:"
-          cat /tmp/deployed.txt
-          
-          echo "Debug: Extracting node names..."
+          # Clean up nodes from previous runs
+          echo "Finding nodes to clean up..."
           PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed")) | split("\n") | map(select(contains("running variant"))) | map(capture("- `(?<n>[a-z-]+-[a-z-]+-[a-z-]+)`, running variant `[^`]+`").n) | join("\n")')
-          echo "Extracted nodes: '$PREV_NODES'"
           if [ ! -z "$PREV_NODES" ]; then
-            echo "Found nodes from previous run:"
             echo "$PREV_NODES" | while read -r node; do
               echo "Removing node: $node"
               bv n delete -y "$node" || true
@@ -681,18 +668,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Always try to get nodes from PR comments first
-          echo "Finding nodes from PR comments..."
-          echo "Debug: Raw JSON output from GitHub API:"
-          gh pr view ${{ github.event.pull_request.number }} --json comments
-          
-          # Get nodes from previous run using PR comments
-          echo "Finding nodes from previous run..."
-          gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed"))' > /tmp/deployed.txt
-          echo "Deployed comments:"
-          cat /tmp/deployed.txt
-          
-          echo "Extracting node names..."
+          echo "Finding nodes to clean up..."
           PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed")) | split("\n") | map(select(contains("running variant"))) | map(capture("- `(?<n>[a-z-]+-[a-z-]+-[a-z-]+)`, running variant `[^`]+`").n) | join("\n")')
           echo "Extracted nodes: '$PREV_NODES'"
           if [ ! -z "$PREV_NODES" ]; then

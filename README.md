@@ -143,6 +143,49 @@ docker build \
   - Tag with version and SHA
   - Push to ghcr.io
 
+## GitHub Workflow
+
+The repository includes a GitHub Actions workflow (`docker-build.yml`) that handles testing and deployment of protocol nodes. Here's how it works:
+
+### Test Nodes Job
+
+The `test-nodes` job automatically deploys test instances of nodes when:
+- A PR is created
+- A PR is updated
+- Changes are pushed to a PR
+
+For each variant in the protocol's `babel.yaml`:
+1. Creates a unique node name using a random adjective-adjective-animal format
+2. Deploys the node on the test environment
+3. Posts a comment on the PR with the deployed node names and their variants
+4. Stores node information for cleanup
+
+Key features:
+- Each PR gets its own set of test nodes
+- Nodes are deployed on the same host for consistent testing
+- If a PR is updated, existing nodes are cleaned up and new ones are deployed
+- Failed node deployments are handled gracefully - the workflow continues even if some variants fail
+
+### Cleanup Job
+
+The `cleanup` job automatically removes test nodes when:
+- A PR is merged
+- A PR is closed
+- A PR is updated (before new nodes are deployed)
+
+The cleanup process:
+1. Extracts node names from PR comments
+2. Deletes each node using the `bv` CLI
+3. Posts a confirmation comment on the PR
+
+### Important Notes
+
+- Node names are tracked through PR comments, ensuring nodes are cleaned up even if the workflow is triggered without running the test-nodes job
+- The workflow ignores Renovate bot PRs to avoid unnecessary deployments
+- Each variant specified in the protocol's `babel.yaml` will be tested
+- The workflow uses GitHub secrets for authentication and access control
+- Node deployment status and errors are reported in PR comments for transparency
+
 ## Version Management
 
 - Client versions are managed in their respective Dockerfiles using `*_VERSION` environment variables
