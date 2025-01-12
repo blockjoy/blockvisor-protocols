@@ -658,58 +658,88 @@ jobs:
           echo "Pushing image (version changed from ${{ needs.build-protocols.outputs.previous_version }} to ${{ needs.build-protocols.outputs.current_version }})"
           nib image push --path ${{ matrix.image_path }}/babel.yaml
 
-  cleanup-nodes:
+  cleanup:
     needs: [test-nodes]
     if: |
-      (failure() || github.event.action == 'closed') && 
+      (needs.test-nodes.result == 'failure' || github.event.action == 'closed' || github.event.pull_request.merged == true) && 
       github.event.pull_request.user.login != 'renovate[bot]' && 
-      needs.test-nodes.outputs.start_failed != 'true'
+      (needs.test-nodes.outputs.start_failed != 'true' || github.event.action == 'closed')
     runs-on: dev
     steps:
       - name: Cleanup nodes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get node names from test-nodes job
-          IFS=' ' read -r -a NODE_NAMES <<< "${{ needs.test-nodes.outputs.node_names }}"
-          RUNNER_HOST="${{ needs.test-nodes.outputs.runner_host }}"
-          
-          # Remove each node
-          for NODE_NAME in "${NODE_NAMES[@]}"; do
-            echo "Removing node ${NODE_NAME}"
-            yes y | bv n delete "$NODE_NAME" || true
-          done
-          
-          # Post cleanup completion message
-          if [[ "${{ needs.test-nodes.result }}" == "failure" ]]; then
-            gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after workflow failure"
-          else
-            gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up"
-          fi
-
-  cleanup-on-merge:
-    if: |
-      github.event_name == 'pull_request_target' && 
-      github.event.pull_request.merged == true && 
-      github.event.pull_request.user.login != 'renovate[bot]' || 
-      github.event_name == 'pull_request' && 
-      github.event.action == 'closed' && 
-      github.event.pull_request.user.login != 'renovate[bot]'
-    runs-on: dev
-    steps:
-      - name: Cleanup nodes on merge
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
+          # Always try to get nodes from PR comments first
           echo "Finding nodes from PR comments..."
           PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("has been deployed on host")) | capture("Node `(?<name>[^`]+)`").name')
+          
+          # If test-nodes job ran, also get those nodes
+          if [[ "${{ needs.test-nodes.result }}" != "skipped" ]]; then
+            IFS=' ' read -r -a TEST_NODES <<< "${{ needs.test-nodes.outputs.node_names }}"
+            if [ ${#TEST_NODES[@]} -gt 0 ]; then
+              for node in "${TEST_NODES[@]}"; do
+                PREV_NODES="${PREV_NODES}"$'\n'"${node}"
+              done
+            fi
+          fi
+          
+          # Clean up all found nodes
           if [ ! -z "$PREV_NODES" ]; then
-            echo "Found nodes to clean up after merge:"
+            echo "Found nodes to clean up:"
+            echo "Raw PREV_NODES value:"
+            echo "$PREV_NODES" | cat -A  # Show special characters
+            
+            # Create a function to handle node deletion with proper confirmation
+            delete_node() {
+              local node=$1
+              echo "Attempting to delete node: '$node'"
+              
+              # Start the delete command
+              bv n delete "$node" > >(tee /tmp/delete_output) 2>&1 &
+              local pid=$!
+              
+              # Wait a bit for the confirmation prompt
+              sleep 2
+              
+              # Send confirmation
+              echo "y" > /proc/$pid/fd/0
+              
+              # Wait for completion
+              wait $pid
+              local status=$?
+              
+              # Show output
+              echo "Delete command output:"
+              cat /tmp/delete_output
+              
+              if [ $status -eq 0 ]; then
+                echo "Successfully deleted node: $node"
+              else
+                echo "Failed to delete node: $node (exit code: $status)"
+              fi
+              return $status
+            }
+            
             echo "$PREV_NODES" | while read -r node; do
-              echo "Removing node: $node"
-              yes y | bv n delete "$node" || true
+              if [ -z "$node" ]; then 
+                echo "Skipping empty node name"
+                continue
+              fi
+              echo "Processing node: '$node'"
+              delete_node "$node" || echo "Warning: Failed to delete node '$node'"
             done
-            gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge"
+            
+            # Post appropriate message based on trigger
+            if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge"
+            elif [[ "${{ github.event.action }}" == "closed" ]]; then
+              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR close"
+            elif [[ "${{ needs.test-nodes.result }}" == "failure" ]]; then
+              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after workflow failure"
+            else
+              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up"
+            fi
           fi
 
   workflow-status:
