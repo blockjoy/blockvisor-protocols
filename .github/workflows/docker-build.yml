@@ -635,7 +635,7 @@ jobs:
               echo "Error: Failed to start node ${NODE_NAME}"
               START_FAILED=true
             fi
-            DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant ${variant}")
+            DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
           done
 
           # If any nodes were deployed successfully, create a single comment
@@ -683,17 +683,16 @@ jobs:
         run: |
           # Always try to get nodes from PR comments first
           echo "Finding nodes from PR comments..."
-          echo "Debug: Getting all PR comments..."
-          gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body' > /tmp/comments.txt
-          echo "All comments:"
-          cat /tmp/comments.txt
+          echo "Debug: Raw JSON output from GitHub API:"
+          gh pr view ${{ github.event.pull_request.number }} --json comments
           
-          echo "Debug: Finding comments with deployed nodes..."
+          # Get nodes from previous run using PR comments
+          echo "Finding nodes from previous run..."
           gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed"))' > /tmp/deployed.txt
           echo "Deployed comments:"
           cat /tmp/deployed.txt
           
-          echo "Debug: Extracting node names..."
+          echo "Extracting node names..."
           PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed")) | split("\n") | map(select(contains("running variant"))) | map(capture("- `(?<n>[a-z-]+-[a-z-]+-[a-z-]+)`, running").name) | join("\n")')
           echo "Extracted nodes: '$PREV_NODES'"
           if [ ! -z "$PREV_NODES" ]; then
