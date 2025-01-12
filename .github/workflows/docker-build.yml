@@ -591,11 +591,11 @@ jobs:
 
           # If any nodes were deployed successfully, create a single comment
           if [ ${#DEPLOYED_NODES[@]} -gt 0 ]; then
-            COMMENT="The following nodes have been deployed on \`${RUNNER_HOST}\`:\n"
+            COMMENT="The following nodes have been deployed on \`${RUNNER_HOST}\`:"$'\n'
             for node in "${DEPLOYED_NODES[@]}"; do
-              COMMENT="${COMMENT}${node}\n"
+              COMMENT="${COMMENT}${node}"$'\n'
             done
-            gh pr comment ${{ github.event.pull_request.number }} --body "$COMMENT"
+            echo -e "$COMMENT" | gh pr comment ${{ github.event.pull_request.number }} --body-file -
           fi
 
           # Save node names for cleanup
