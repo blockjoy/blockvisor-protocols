@@ -519,6 +519,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          echo "Debug: Getting raw comments..."
+          gh pr view ${{ github.event.pull_request.number }} --json comments | jq -r '.'
+          
           PREV_HOST=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
             .comments
             | map(select(.author.login == "github-actions"))
