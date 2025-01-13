@@ -613,13 +613,12 @@ jobs:
             
             # Start the node
             echo "Starting node ${NODE_NAME}"
-            START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1 || true)
-            echo "bv n start output:"
-            echo "$START_OUTPUT"
-            if [[ "$START_OUTPUT" == *"Error:"* ]]; then
-              echo "Error: Failed to start node ${NODE_NAME}"
-              START_FAILED=true
+            if ! START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1); then
+              echo "Error: Failed to start node ${NODE_NAME}:"
+              echo "$START_OUTPUT"
+              exit 1
             fi
+            echo "Successfully started node ${NODE_NAME}"
             DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
           done
 
