@@ -519,7 +519,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PREV_HOST=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("has been deployed on host")) | capture("host `(?<host>[^`]+)`").host' | head -n1)
+          PREV_HOST=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
+            .comments
+            | map(select(.author.login == "github-actions"))
+            | map(select(.body | contains("following nodes have been deployed on")))
+            | sort_by(.createdAt)
+            | last
+            | if . == null then "" else
+              (.body | capture("The following nodes have been deployed on `(?<host>[^`]+)`:\\n").host)
+              end
+          ')
           if [ -z "$PREV_HOST" ]; then
             echo "No previous host found, using default"
             PREV_HOST="dev"
@@ -562,17 +571,6 @@ jobs:
           # Store runner hostname
           RUNNER_HOST=$(hostname)
           echo "runner_host=${RUNNER_HOST}" >> $GITHUB_OUTPUT
-          
-          # Clean up nodes from previous runs
-          echo "Finding nodes to clean up..."
-          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed")) | split("\n") | map(select(contains("running variant"))) | map(capture("- `(?<n>[a-z-]+-[a-z-]+-[a-z-]+)`, running variant `[^`]+`").n) | join("\n")')
-          if [ ! -z "$PREV_NODES" ]; then
-            echo "$PREV_NODES" | while read -r node; do
-              echo "Removing node: $node"
-              bv n delete -y "$node" || true
-            done
-            gh pr comment ${{ github.event.pull_request.number }} --body " Cleaned up nodes from previous workflow run"
-          fi
           
           # Get variants from babel.yaml
           VARIANTS=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml-test)
@@ -659,9 +657,10 @@ jobs:
     needs: []
     if: |
       github.event.pull_request.user.login != 'renovate[bot]' && 
-      (github.event.pull_request.merged == true || 
+      ((github.event.pull_request.merged == true || 
        github.event.action == 'closed' || 
-       github.event.action == 'synchronize')
+       github.event.action == 'synchronize') &&
+       github.event.action != 'opened')
     runs-on: dev
     steps:
       - name: Cleanup nodes
@@ -669,11 +668,23 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Finding nodes to clean up..."
-          PREV_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body | select(contains("following nodes have been deployed")) | split("\n") | map(select(contains("running variant"))) | map(capture("- `(?<n>[a-z-]+-[a-z-]+-[a-z-]+)`, running variant `[^`]+`").n) | join("\n")')
-          echo "Extracted nodes: '$PREV_NODES'"
-          if [ ! -z "$PREV_NODES" ]; then
+          NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
+            .comments
+            | map(select(.author.login == "github-actions"))
+            | map(select(.body | contains("following nodes have been deployed")))
+            | sort_by(.createdAt)
+            | last
+            | if . == null then "" else
+              (.body | split("\n") 
+              | map(select(contains("running variant"))) 
+              | map(capture("- `(?<n>[a-z-]+-[a-z-]+-[a-z-]+)`, running variant `[^`]+`").n)
+              | join("\n"))
+              end
+          ')
+          
+          if [ ! -z "$NODES" ]; then
             echo "Found nodes to clean up:"
-            echo "$PREV_NODES" | while read -r node; do
+            echo "$NODES" | while read -r node; do
               if [ -z "$node" ]; then 
                 echo "Skipping empty node name"
                 continue
