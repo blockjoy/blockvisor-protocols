@@ -522,7 +522,7 @@ jobs:
           PREV_HOST=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
             .comments
             | map(select(.author.login == "github-actions"))
-            | map(select(.body | contains("following nodes have been deployed on")))
+            | map(select(.body | contains("following nodes have been deployed")))
             | sort_by(.createdAt)
             | last
             | if . == null then "" else
@@ -542,7 +542,8 @@ jobs:
     if: |
       github.event_name == 'pull_request' && 
       github.event.pull_request.user.login != 'renovate[bot]' && 
-      github.event.action != 'closed'
+      github.event.action != 'closed' ||
+      contains(github.event.pull_request.labels.*.name, 'tests-fail')
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
     outputs:
@@ -611,31 +612,45 @@ jobs:
             # Store for later use
             NODE_NAMES+=("$NODE_NAME")
             
+            # Add to deployed nodes list before attempting start
+            DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
+            
             # Start the node
             echo "Starting node ${NODE_NAME}"
-            START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1 || true)
-            echo "bv n start output:"
-            echo "$START_OUTPUT"
-            if [[ "$START_OUTPUT" == *"Error:"* ]]; then
-              echo "Error: Failed to start node ${NODE_NAME}"
-              START_FAILED=true
+            if ! START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1); then
+              echo "Error: Failed to start node ${NODE_NAME}:"
+              echo "$START_OUTPUT"
+              # Post comment about deployed nodes before failing
+              if [ ${#DEPLOYED_NODES[@]} -gt 0 ]; then
+                COMMENT="The following nodes have been deployed on \`${RUNNER_HOST}\`:"$'\n'
+                for node in "${DEPLOYED_NODES[@]}"; do
+                  COMMENT="${COMMENT}${node}"$'\n'
+                done
+                COMMENT="${COMMENT}"$'\n'"These nodes will be cleaned up on PR merge or close and replaced on PR update."
+                echo -e "$COMMENT" | gh pr comment ${{ github.event.pull_request.number }} --body-file -
+              fi
+              exit 1
             fi
-            DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
+            echo "Successfully started node ${NODE_NAME}"
           done
-
-          # If any nodes were deployed successfully, create a single comment
-          if [ ${#DEPLOYED_NODES[@]} -gt 0 ]; then
-            COMMENT="The following nodes have been deployed on \`${RUNNER_HOST}\`:"$'\n'
-            for node in "${DEPLOYED_NODES[@]}"; do
-              COMMENT="${COMMENT}${node}"$'\n'
-            done
-            COMMENT="${COMMENT}"$'\n'"These nodes will be cleaned up on PR merge or close and replaced on PR update."
-            echo -e "$COMMENT" | gh pr comment ${{ github.event.pull_request.number }} --body-file -
-          fi
 
           # Save node names for cleanup
           echo "node_names=${NODE_NAMES[*]}" >> $GITHUB_OUTPUT
           echo "start_failed=${START_FAILED}" >> $GITHUB_OUTPUT
+
+      - name: Add tests-fail label
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "tests-fail"
+
+      - name: Remove tests-fail label
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --remove-label "tests-fail"
 
   nib-image-push:
     needs: [test-nodes, build-protocols]
