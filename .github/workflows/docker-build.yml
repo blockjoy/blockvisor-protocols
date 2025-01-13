@@ -572,29 +572,6 @@ jobs:
           RUNNER_HOST=$(hostname)
           echo "runner_host=${RUNNER_HOST}" >> $GITHUB_OUTPUT
           
-          # Clean up nodes from previous runs
-          echo "Finding nodes to clean up..."
-          LATEST_NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
-            .comments
-            | map(select(.author.login == "github-actions"))
-            | map(select(.body | contains("following nodes have been deployed")))
-            | sort_by(.createdAt)
-            | last
-            | if . == null then "" else
-              (.body | split("\n") 
-              | map(select(contains("running variant"))) 
-              | map(capture("- `(?<n>[a-z-]+-[a-z-]+-[a-z-]+)`, running variant `[^`]+`").n)
-              | join("\n"))
-              end
-          ')
-          echo "Latest nodes comment: $LATEST_NODES"
-          if [ ! -z "$LATEST_NODES" ] && [[ "$LATEST_NODES" =~ "running variant" ]]; then
-            echo "Found nodes: $LATEST_NODES"
-            echo "has_nodes=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_nodes=false" >> $GITHUB_OUTPUT
-          fi
-          
           # Get variants from babel.yaml
           VARIANTS=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml-test)
           if [ $? -ne 0 ]; then
