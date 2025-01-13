@@ -525,11 +525,11 @@ jobs:
           PREV_HOST=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
             .comments
             | map(select(.author.login == "github-actions"))
-            | map(select(.body | contains("has been deployed on")))
+            | map(select(.body | contains("following nodes have been deployed on")))
             | sort_by(.createdAt)
             | last
             | if . == null then "" else
-              (.body | capture("deployed on `(?<host>[^`]+)`\\s*:").host)
+              (.body | capture("The following nodes have been deployed on `(?<host>[^`]+)`:\\n").host)
               end
           ')
           if [ -z "$PREV_HOST" ]; then
