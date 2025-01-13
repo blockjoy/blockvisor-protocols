@@ -542,7 +542,8 @@ jobs:
     if: |
       github.event_name == 'pull_request' && 
       github.event.pull_request.user.login != 'renovate[bot]' && 
-      github.event.action != 'closed'
+      github.event.action != 'closed' &&
+      contains(github.event.pull_request.labels.*.name, 'tests-fail')
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
     outputs:
@@ -636,6 +637,20 @@ jobs:
           # Save node names for cleanup
           echo "node_names=${NODE_NAMES[*]}" >> $GITHUB_OUTPUT
           echo "start_failed=${START_FAILED}" >> $GITHUB_OUTPUT
+
+      - name: Add tests-fail label
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "tests-fail"
+
+      - name: Remove tests-fail label
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --remove-label "tests-fail"
 
   nib-image-push:
     needs: [test-nodes, build-protocols]
