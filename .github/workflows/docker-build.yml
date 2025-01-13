@@ -542,7 +542,7 @@ jobs:
     if: |
       github.event_name == 'pull_request' && 
       github.event.pull_request.user.login != 'renovate[bot]' && 
-      github.event.action != 'closed' &&
+      github.event.action != 'closed' ||
       contains(github.event.pull_request.labels.*.name, 'tests-fail')
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
