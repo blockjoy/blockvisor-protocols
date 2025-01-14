@@ -4,7 +4,7 @@ FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV OP-NODE_VERSION=op-node/v1.10.2
+ENV OP_NODE_VERSION=op-node/v1.10.2
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 ENV GO_VERSION=1.23.4
 
@@ -53,7 +53,7 @@ ENV GOROOT="/usr/local/go"
 WORKDIR /root
 RUN . "$HOME/.cargo/env" &&git clone https://github.com/ethereum-optimism/optimism.git && \
     cd optimism && \
-    git checkout ${OP-NODE_VERSION} && \
+    git checkout ${OP_NODE_VERSION} && \
     make op-node && \
     mkdir -p /root/bin && \
     mv op-node/bin/op-node /root/bin/
