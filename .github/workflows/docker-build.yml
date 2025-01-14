@@ -136,6 +136,9 @@ jobs:
     needs: detect-changes
     if: ${{ fromJson(needs.detect-changes.outputs.base_matrix).include[0] }}
     runs-on: self-hosted
+    permissions:
+      contents: read      # Allows reading repository contents
+      packages: write     # Allows pushing/pulling container images
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.base_matrix) }}
     steps:
@@ -395,6 +398,9 @@ jobs:
       github.event.action != 'closed' &&
       fromJson(needs.detect-changes.outputs.protocols_matrix).include[0] != null
     runs-on: dev
+    permissions:
+      contents: read      # Allows reading repository contents
+      packages: write     # Allows pushing/pulling container images
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
     outputs:
@@ -761,6 +767,9 @@ jobs:
       github.event.pull_request.merged == true && 
       github.event.action != 'closed'
     runs-on: dev
+    permissions:
+      contents: read      # Allows reading repository contents
+      packages: write     # Allows pushing/pulling container images
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
     steps:
