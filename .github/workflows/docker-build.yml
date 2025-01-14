@@ -513,6 +513,7 @@ jobs:
             else
               echo "❌ Variant $variant check failed"
               rm -rf ${{ matrix.image_path }}/babel.yaml-test
+              exit 1
             fi
           done
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT

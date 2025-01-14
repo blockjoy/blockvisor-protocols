@@ -5,7 +5,7 @@ org_id: null
 description: Ethereum Reth node 2 
 visibility: public
 protocol_key: ethereum
-variants:
+1111variants:
   - key: reth-mainnet-full
     min_cpu: 8
     min_memory_mb: 16000
