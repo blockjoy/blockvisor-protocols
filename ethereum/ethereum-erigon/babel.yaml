@@ -1,5 +1,5 @@
 version: 0.0.1
-container_uri: docker://ghcr.io/blockjoy/ethereum-erigon:v20250113.16
+container_uri: docker://ghcr.io/blockjoy/ethereum-erigon:v20250114.1
 sku_code: ETH-ERG
 org_id: null
 description: Ethereum Erigon node 3
