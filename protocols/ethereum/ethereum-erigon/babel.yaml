@@ -1,35 +1,35 @@
-version: 0.0.5
-container_uri: docker://ghcr.io/blockjoy/ethereum-reth:v20250110.13
-sku_code: ETH-RETH
+version: 0.0.1
+container_uri: docker://ghcr.io/blockjoy/ethereum-erigon:v20250114.2
+sku_code: ETH-ERG
 org_id: null
-description: Ethereum Reth node 
+description: Ethereum Erigon node 3
 visibility: public
 protocol_key: ethereum
 variants:
-  - key: reth-mainnet-full
-    min_cpu: 8
-    min_memory_mb: 16000
-    min_disk_gb: 1500
+  - key: erigon-mainnet-full
+    min_cpu: 16
+    min_memory_mb: 65536
+    min_disk_gb: 5000
     archive_pointers:
-      - pointer: !store_id ethereum-reth-mainnet-full-v1
-  - key: reth-sepolia-full
+      - pointer: !store_id ethereum-erigon-mainnet-full-v1
+  - key: erigon-sepolia-full
     min_cpu: 4
-    min_memory_mb: 8000
-    min_disk_gb: 400
-    archive_pointers:
-      - pointer: !store_id ethereum-reth-sepolia-full-v1
-  - key: reth-mainnet-archive
-    min_cpu: 8
     min_memory_mb: 16000
-    min_disk_gb: 4000
+    min_disk_gb: 2000
     archive_pointers:
-      - pointer: !store_id ethereum-reth-mainnet-archive-v1
-  - key: reth-sepolia-archive
+      - pointer: !store_id ethereum-erigon-sepolia-full-v1
+  - key: erigon-mainnet-archive
+    min_cpu: 16
+    min_memory_mb: 65536
+    min_disk_gb: 5000
+    archive_pointers:
+      - pointer: !store_id ethereum-erigon-mainnet-archive-v1
+  - key: erigon-sepolia-archive
     min_cpu: 4
-    min_memory_mb: 8000
-    min_disk_gb: 800
+    min_memory_mb: 16000
+    min_disk_gb: 2000
     archive_pointers:
-      - pointer: !store_id ethereum-reth-sepolia-archive-v1
+      - pointer: !store_id ethereum-erigon-sepolia-archive-v1
 firewall_config:
   default_in: deny
   default_out: allow
@@ -59,9 +59,9 @@ firewall_config:
           name: allow all traffic
       ports:
         - port: 30303
-          name: P2P port
-        - port: 9000
-          name: Metrics port
-        - port: 9001
-          name: Metrics port
+          name: P2P port 1
+        - port: 30304
+          name: P2P port 2 
+        - port: 42069
+          name: Torrent port
 properties: []
