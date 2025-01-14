@@ -485,6 +485,14 @@ jobs:
       - name: Check variants
         id: check-variants
         run: |
+          # Debug user context
+          echo "Current user: $(whoami)"
+          echo "User ID: $(id -u)"
+          echo "Group ID: $(id -g)"
+          echo "Groups: $(groups)"
+          echo "Working directory: $(pwd)"
+          ls -la /tmp
+
           # Copy babel.yaml to test file
           cp ${{ matrix.image_path }}/babel.yaml ${{ matrix.image_path }}/babel.yaml-test
           
