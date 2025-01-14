@@ -53,7 +53,7 @@ ENV GOROOT="/usr/local/go"
 WORKDIR /root
 RUN . "$HOME/.cargo/env" &&git clone https://github.com/ethereum-optimism/optimism.git && \
     cd optimism && \
-    git checkout ${OP_NODE_VERSION} && \
+    git checkout ${OP-NODE_VERSION} && \
     make op-node && \
     mkdir -p /root/bin && \
     mv op-node/bin/op-node /root/bin/
