@@ -476,7 +476,11 @@ jobs:
         id: get-variants
         run: |
           variants=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml | tr '\n' ' ')
-          echo "variants=$variants" >> $GITHUB_OUTPUT
+          if [ -z "$variants" ]; then
+            echo "❌ No variants found in ${{ matrix.image_path }}/babel.yaml"
+            exit 1
+          fi
+            echo "variants=$variants" >> $GITHUB_OUTPUT
 
       - name: Check variants
         id: check-variants
@@ -491,6 +495,7 @@ jobs:
           echo "test_file=${{ matrix.image_path }}/babel.yaml-test" >> $GITHUB_OUTPUT
 
           success_variants=()
+          failed_variants=()
           for variant in ${{ steps.get-variants.outputs.variants }}; do
             echo "Checking variant: $variant"
             
@@ -500,9 +505,17 @@ jobs:
               echo "✅ Variant $variant check passed"
             else
               echo "❌ Variant $variant check failed"
-              rm -rf ${{ matrix.image_path }}/babel.yaml-test
+              failed_variants+=("$variant")
             fi
           done
+          
+          rm -rf ${{ matrix.image_path }}/babel.yaml-test
+          
+          if [ ${#failed_variants[@]} -gt 0 ]; then
+            echo "❌ The following variants failed checks: ${failed_variants[*]}"
+            exit 1
+          fi
+          
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
 
   get-host:
@@ -596,7 +609,7 @@ jobs:
             
             # Run nib image play and capture output
             echo "Running: nib image play --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            OUTPUT=$(nib image play --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1)
+            OUTPUT=$(nib image play --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 || true)
             NIB_EXIT=$?
             echo "nib image play output:"
             echo "$OUTPUT"
@@ -641,20 +654,6 @@ jobs:
           echo "node_names=${NODE_NAMES[*]}" >> $GITHUB_OUTPUT
           echo "start_failed=${START_FAILED}" >> $GITHUB_OUTPUT
 
-      - name: Add tests-fail label
-        if: failure()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "tests-fail"
-
-      - name: Remove tests-fail label
-        if: success()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr edit ${{ github.event.pull_request.number }} --remove-label "tests-fail"
-
   nib-image-push:
     needs: [test-nodes, build-protocols]
     if: |
@@ -665,6 +664,34 @@ jobs:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Check protocol key in protocols.yaml
+        id: check-protocol
+        run: |
+          # Get protocol key from babel.yaml
+          PROTOCOL_KEY=$(yq e '.protocol_key' ${{ matrix.image_path }}/babel.yaml)
+          echo "Checking for protocol key: $PROTOCOL_KEY"
+          
+          # Check if key exists in protocols.yaml
+          if ! yq e '.[] | select(.key == "'$PROTOCOL_KEY'")' protocols/protocols.yaml > /dev/null 2>&1; then
+            echo "❌ Protocol key '$PROTOCOL_KEY' not found in protocols/protocols.yaml"
+            exit 1
+          fi
+          
+          # Check if protocols.yaml has changed
+          if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -q "^protocols/protocols.yaml$"; then
+            echo "protocols/protocols.yaml has changed, will push protocol updates"
+            echo "protocols_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "protocols/protocols.yaml unchanged"
+            echo "protocols_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push protocol updates
+        if: steps.check-protocol.outputs.protocols_changed == 'true'
+        run: |
+          echo "Pushing protocol updates"
+          nib protocol push --path protocols/protocols.yaml
+
       - name: Push image to nib
         if: needs.build-protocols.outputs.version_changed == 'true'
         run: |
@@ -729,6 +756,8 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Check workflow status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Job results:"
           echo "detect-changes: ${{ needs.detect-changes.result }}"
@@ -749,8 +778,10 @@ jobs:
           # Otherwise check if any non-skipped jobs failed
           if [[ "${{ needs.build-base.result }}" != "skipped" && "${{ needs.build-base.result }}" != "success" ]] || \
              [[ "${{ needs.build-clients.result }}" != "skipped" && "${{ needs.build-clients.result }}" != "success" ]] || \
-             [[ "${{ needs.build-protocols.result }}" != "skipped" && "${{ needs.build-protocols.result }}" != "success" ]]; then
+             [[ "${{ needs.build-protocols.result }}" != "skipped" && "${{ needs.build-protocols.result }}" != "success" ]] || \
+             [[ "${{ needs.test-nodes.result }}" != "skipped" && "${{ needs.test-nodes.result }}" != "success" ]]; then
             echo "One or more builds failed"
+            gh pr edit ${{ github.event.pull_request.number }} --add-label "tests-fail"
             exit 1
           fi
           
