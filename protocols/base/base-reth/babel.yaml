@@ -1,8 +1,8 @@
 version: 0.0.1
 container_uri: docker://ghcr.io/blockjoy/base-reth:v20250113.1
-sku_code: BASE-RETH
+sku_code: BASE-OP-RETH
 org_id: null
-description: Base Reth node 
+description: Base OP Reth node 
 visibility: public
 protocol_key: ethereum
 variants:
@@ -11,13 +11,13 @@ variants:
     min_memory_mb: 32678
     min_disk_gb: 2000
     archive_pointers:
-      - pointer: !store_id base-reth-mainnet-full-v1
+      - pointer: !store_id base-op-reth-mainnet-full-v1
   - key: base-mainnet-archive
     min_cpu: 32
     min_memory_mb: 32678
     min_disk_gb: 2000
     archive_pointers:
-      - pointer: !store_id base-reth-mainnet-archive-v1
+      - pointer: !store_id base-op-reth-mainnet-archive-v1
 firewall_config:
   default_in: deny
   default_out: allow
