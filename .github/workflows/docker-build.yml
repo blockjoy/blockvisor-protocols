@@ -488,7 +488,11 @@ jobs:
         id: get-variants
         run: |
           variants=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml | tr '\n' ' ')
-          echo "variants=$variants" >> $GITHUB_OUTPUT
+          if [ -z "$variants" ]; then
+            echo "❌ No variants found in ${{ matrix.image_path }}/babel.yaml"
+            exit 1
+          fi
+            echo "variants=$variants" >> $GITHUB_OUTPUT
 
       - name: Check variants
         id: check-variants
