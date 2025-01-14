@@ -107,7 +107,7 @@ jobs:
           # Create matrices using jq, filtering by directory structure
           BASE=$(echo "$CHANGED_DIRS" | grep "^node-base$" || true)
           CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
-          PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^[^/]\+/[^/]\+$" || true)
+          PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^protocols/[^/]\+/[^/]\+$" || true)
           
           echo "Base dirs: $BASE"
           echo "Client dirs: $CLIENTS"
@@ -365,8 +365,9 @@ jobs:
           DATE=$(date '+%Y%m%d')
           PROTOCOL_PATH=${{ matrix.image_path }}
           # Extract just the protocol name without the parent directory
-          IMAGE_NAME=$(basename "$PROTOCOL_PATH")
-
+          PROTOCOL=$(echo "${{ matrix.image_path }}" | cut -d'/' -f2)
+          IMAGE_NAME=$(echo "${{ matrix.image_path }}" | cut -d'/' -f3)
+          
           # Try to get the current build number, default to 0 if API call fails
           LATEST_BUILD=$(gh api \
             -H "Accept: application/vnd.github+json" \
@@ -507,9 +508,11 @@ jobs:
   get-host:
     needs: [build-protocols]
     if: |
-      github.event_name == 'pull_request' && 
       github.event.pull_request.user.login != 'renovate[bot]' && 
-      github.event.action != 'closed'
+      ((github.event.pull_request.merged == true || 
+       github.event.action == 'closed' || 
+       github.event.action == 'synchronize') &&
+       github.event.action != 'opened')
     runs-on: dev
     outputs:
       target_host: ${{ steps.get-host.outputs.target_host }}
@@ -669,14 +672,14 @@ jobs:
           nib image push --path ${{ matrix.image_path }}/babel.yaml
 
   cleanup:
-    needs: []
+    needs: [get-host]
     if: |
       github.event.pull_request.user.login != 'renovate[bot]' && 
       ((github.event.pull_request.merged == true || 
        github.event.action == 'closed' || 
        github.event.action == 'synchronize') &&
        github.event.action != 'opened')
-    runs-on: dev
+    runs-on: ${{ needs.get-host.outputs.target_host }}
     steps:
       - name: Cleanup nodes
         env:
