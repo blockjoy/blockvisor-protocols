@@ -759,6 +759,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # First check if tests-fail label exists
+          if gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name' | grep -q "tests-fail"; then
+            echo "❌ Tests failed (tests-fail label present)"
+            exit 1
+          fi
           echo "Job results:"
           echo "detect-changes: ${{ needs.detect-changes.result }}"
           echo "build-base: ${{ needs.build-base.result }}"
