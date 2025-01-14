@@ -221,12 +221,6 @@ jobs:
           tags: |
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
-      - name: Add tests-fail label on failure
-        if: failure()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "tests-fail"
 
   build-clients:
     needs: [detect-changes]
@@ -335,12 +329,6 @@ jobs:
           tags: |
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
-      - name: Add tests-fail label on failure
-        if: failure()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "tests-fail"
 
   build-protocols:
     needs: [detect-changes]
@@ -516,10 +504,16 @@ jobs:
               echo "✅ Variant $variant check passed"
             else
               echo "❌ Variant $variant check failed"
-              rm -rf ${{ matrix.image_path }}/babel.yaml-test
-              exit 1
             fi
           done
+          
+          rm -rf ${{ matrix.image_path }}/babel.yaml-test
+          
+          if [ ${#success_variants[@]} -eq 0 ]; then
+            echo "❌ No variants passed checks"
+            exit 1
+          fi
+          
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
 
   get-host:
@@ -658,20 +652,6 @@ jobs:
           echo "node_names=${NODE_NAMES[*]}" >> $GITHUB_OUTPUT
           echo "start_failed=${START_FAILED}" >> $GITHUB_OUTPUT
 
-      - name: Add tests-fail label
-        if: failure()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "tests-fail"
-
-      - name: Remove tests-fail label
-        if: success()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr edit ${{ github.event.pull_request.number }} --remove-label "tests-fail"
-
   nib-image-push:
     needs: [test-nodes, build-protocols]
     if: |
@@ -777,13 +757,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # First check if tests-fail label exists
-          LABELS=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name')
-          if echo "$LABELS" | grep -q "tests-fail"; then
-            echo "❌ Tests failed (tests-fail label present)"
-            exit 1
-          fi
-
           echo "Job results:"
           echo "detect-changes: ${{ needs.detect-changes.result }}"
           echo "build-base: ${{ needs.build-base.result }}"
@@ -806,6 +779,7 @@ jobs:
              [[ "${{ needs.build-protocols.result }}" != "skipped" && "${{ needs.build-protocols.result }}" != "success" ]] || \
              [[ "${{ needs.test-nodes.result }}" != "skipped" && "${{ needs.test-nodes.result }}" != "success" ]]; then
             echo "One or more builds failed"
+            gh pr edit ${{ github.event.pull_request.number }} --add-label "tests-fail"
             exit 1
           fi
           
