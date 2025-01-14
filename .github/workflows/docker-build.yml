@@ -152,43 +152,30 @@ jobs:
       - name: Generate version
         id: version
         run: |
-          set -x  # Enable debug mode to see commands being executed
-          set +e
           SHA=$(git rev-parse --short HEAD)
           DATE=$(date '+%Y%m%d')
           IMAGE_NAME=$(basename "${{ matrix.image_path }}")
           
-          echo "Debug: matrix.image_path = ${{ matrix.image_path }}"
-          echo "Debug: IMAGE_NAME = ${IMAGE_NAME}"
-          
           # Try to get the current build number, default to 0 if API call fails
-          echo "Debug: Querying GitHub API for package ${IMAGE_NAME}"
-          
           OUTPUT=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
           API_STATUS=$?
           
-          echo "Debug: Full command output:"
-          echo "$OUTPUT"
-          echo "Debug: API Status: $API_STATUS"
-          echo "Debug: Checking if output contains error message..."
-          
-          # More detailed error checking
           if echo "$OUTPUT" | grep -q "message.*Package not found" || \
              echo "$OUTPUT" | grep -q "status.*404" || \
              [ $API_STATUS -ne 0 ]; then
             echo "Package not found or API error detected"
-            echo "Setting build number to 1"
-            BUILD_NUM=1
+            echo "Setting build number to 0"
+            BUILD_NUM=0
           else
             echo "API call succeeded, parsing response"
             LATEST_BUILD=$(echo "$OUTPUT" | \
               jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
             if [ -z "$LATEST_BUILD" ] || [ "$LATEST_BUILD" = "null" ]; then
-              echo "No existing versions found for today, starting at 1"
-              BUILD_NUM=1
+              echo "No existing versions found for today, starting at 0"
+              BUILD_NUM=0
             else
               echo "Found $LATEST_BUILD existing versions today"
               BUILD_NUM=$((LATEST_BUILD + 1))
@@ -200,12 +187,10 @@ jobs:
           # Format: v20250108.1, v20250108.2, etc
           VERSION_TAG="v${DATE}.${BUILD_NUM}"
           
-          echo "Debug: Version tag: ${VERSION_TAG}"
-          
           # Make sure we have a build number before continuing
           if [ -z "$BUILD_NUM" ]; then
-            echo "Error: Build number is empty, defaulting to 1"
-            BUILD_NUM=1
+            echo "Error: Build number is empty, defaulting to 0"
+            BUILD_NUM=0
             VERSION_TAG="v${DATE}.${BUILD_NUM}"
           fi
           
@@ -270,6 +255,9 @@ jobs:
     needs: [detect-changes]
     if: fromJson(needs.detect-changes.outputs.clients_matrix).include[0]
     runs-on: self-hosted
+    permissions:
+      contents: read      # Allows reading repository contents
+      packages: write     # Allows pushing/pulling container images
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.clients_matrix) }}
     steps:
