@@ -221,6 +221,12 @@ jobs:
           tags: |
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
+      - name: Add tests-fail label on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "tests-fail"
 
   build-clients:
     needs: [detect-changes]
@@ -329,6 +335,12 @@ jobs:
           tags: |
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
+      - name: Add tests-fail label on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "tests-fail"
 
   build-protocols:
     needs: [detect-changes]
@@ -729,7 +741,16 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Check workflow status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # First check if tests-fail label exists
+          LABELS=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name')
+          if echo "$LABELS" | grep -q "tests-fail"; then
+            echo "❌ Tests failed (tests-fail label present)"
+            exit 1
+          fi
+
           echo "Job results:"
           echo "detect-changes: ${{ needs.detect-changes.result }}"
           echo "build-base: ${{ needs.build-base.result }}"
@@ -749,7 +770,8 @@ jobs:
           # Otherwise check if any non-skipped jobs failed
           if [[ "${{ needs.build-base.result }}" != "skipped" && "${{ needs.build-base.result }}" != "success" ]] || \
              [[ "${{ needs.build-clients.result }}" != "skipped" && "${{ needs.build-clients.result }}" != "success" ]] || \
-             [[ "${{ needs.build-protocols.result }}" != "skipped" && "${{ needs.build-protocols.result }}" != "success" ]]; then
+             [[ "${{ needs.build-protocols.result }}" != "skipped" && "${{ needs.build-protocols.result }}" != "success" ]] || \
+             [[ "${{ needs.test-nodes.result }}" != "skipped" && "${{ needs.test-nodes.result }}" != "success" ]]; then
             echo "One or more builds failed"
             exit 1
           fi
