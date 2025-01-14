@@ -153,6 +153,7 @@ jobs:
         id: version
         run: |
           set -x  # Enable debug mode to see commands being executed
+          set +e
           SHA=$(git rev-parse --short HEAD)
           DATE=$(date '+%Y%m%d')
           IMAGE_NAME=$(basename "${{ matrix.image_path }}")
@@ -172,27 +173,49 @@ jobs:
           echo "Debug: Full command output:"
           echo "$OUTPUT"
           echo "Debug: API Status: $API_STATUS"
+          echo "Debug: Checking if output contains error message..."
           
-          # Check for both non-zero exit code and error message
-          if [ $API_STATUS -ne 0 ] || echo "$OUTPUT" | grep -q '"message":"Package not found"'; then
-            echo "API call failed or package not found"
-            echo "Error output: $OUTPUT"
-            echo "Defaulting to build number 1"
+          # More detailed error checking
+          if echo "$OUTPUT" | grep -q "message.*Package not found" || \
+             echo "$OUTPUT" | grep -q "status.*404" || \
+             [ $API_STATUS -ne 0 ]; then
+            echo "Package not found or API error detected"
+            echo "Setting build number to 1"
             BUILD_NUM=1
           else
             echo "API call succeeded, parsing response"
             LATEST_BUILD=$(echo "$OUTPUT" | \
               jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
-            BUILD_NUM=$((LATEST_BUILD + 1))
+            if [ -z "$LATEST_BUILD" ] || [ "$LATEST_BUILD" = "null" ]; then
+              echo "No existing versions found for today, starting at 1"
+              BUILD_NUM=1
+            else
+              echo "Found $LATEST_BUILD existing versions today"
+              BUILD_NUM=$((LATEST_BUILD + 1))
+            fi
           fi
+          
+          echo "Debug: Final build number: ${BUILD_NUM}"
           
           # Format: v20250108.1, v20250108.2, etc
           VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          
+          echo "Debug: Version tag: ${VERSION_TAG}"
+          
+          # Make sure we have a build number before continuing
+          if [ -z "$BUILD_NUM" ]; then
+            echo "Error: Build number is empty, defaulting to 1"
+            BUILD_NUM=1
+            VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          fi
           
           echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
           echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
           echo "sha=${SHA}" >> $GITHUB_OUTPUT
+          
+          # Script should succeed even if API call failed
+          exit 0
       - name: Generate build contexts
         id: build-contexts
         run: |
@@ -264,6 +287,7 @@ jobs:
         id: version
         run: |
           set -x  # Enable debug mode to see commands being executed
+          set +e
           SHA=$(git rev-parse --short HEAD)
           DATE=$(date '+%Y%m%d')
           CLIENT_NAME=$(basename ${{ matrix.image_path }})
@@ -284,22 +308,41 @@ jobs:
           echo "Debug: Full command output:"
           echo "$OUTPUT"
           echo "Debug: API Status: $API_STATUS"
+          echo "Debug: Checking if output contains error message..."
           
-          # Check for both non-zero exit code and error message
-          if [ $API_STATUS -ne 0 ] || echo "$OUTPUT" | grep -q '"message":"Package not found"'; then
-            echo "API call failed or package not found"
-            echo "Error output: $OUTPUT"
-            echo "Defaulting to build number 1"
+          # More detailed error checking
+          if echo "$OUTPUT" | grep -q "message.*Package not found" || \
+             echo "$OUTPUT" | grep -q "status.*404" || \
+             [ $API_STATUS -ne 0 ]; then
+            echo "Package not found or API error detected"
+            echo "Setting build number to 1"
             BUILD_NUM=1
           else
             echo "API call succeeded, parsing response"
             LATEST_BUILD=$(echo "$OUTPUT" | \
               jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
-            BUILD_NUM=$((LATEST_BUILD + 1))
+            if [ -z "$LATEST_BUILD" ] || [ "$LATEST_BUILD" = "null" ]; then
+              echo "No existing versions found for today, starting at 1"
+              BUILD_NUM=1
+            else
+              echo "Found $LATEST_BUILD existing versions today"
+              BUILD_NUM=$((LATEST_BUILD + 1))
+            fi
           fi
+          
+          echo "Debug: Final build number: ${BUILD_NUM}"
           
           # Format: v20250108.1, v20250108.2, etc
           VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          
+          echo "Debug: Version tag: ${VERSION_TAG}"
+          
+          # Make sure we have a build number before continuing
+          if [ -z "$BUILD_NUM" ]; then
+            echo "Error: Build number is empty, defaulting to 1"
+            BUILD_NUM=1
+            VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          fi
           
           echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
@@ -388,6 +431,7 @@ jobs:
         id: version
         run: |
           set -x  # Enable debug mode to see commands being executed
+          set +e
           SHA=$(git rev-parse --short HEAD)
           DATE=$(date '+%Y%m%d')
           PROTOCOL_PATH=${{ matrix.image_path }}
@@ -410,27 +454,49 @@ jobs:
           echo "Debug: Full command output:"
           echo "$OUTPUT"
           echo "Debug: API Status: $API_STATUS"
+          echo "Debug: Checking if output contains error message..."
           
-          # Check for both non-zero exit code and error message
-          if [ $API_STATUS -ne 0 ] || echo "$OUTPUT" | grep -q '"message":"Package not found"'; then
-            echo "API call failed or package not found"
-            echo "Error output: $OUTPUT"
-            echo "Defaulting to build number 1"
+          # More detailed error checking
+          if echo "$OUTPUT" | grep -q "message.*Package not found" || \
+             echo "$OUTPUT" | grep -q "status.*404" || \
+             [ $API_STATUS -ne 0 ]; then
+            echo "Package not found or API error detected"
+            echo "Setting build number to 1"
             BUILD_NUM=1
           else
             echo "API call succeeded, parsing response"
             LATEST_BUILD=$(echo "$OUTPUT" | \
               jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
-            BUILD_NUM=$((LATEST_BUILD + 1))
+            if [ -z "$LATEST_BUILD" ] || [ "$LATEST_BUILD" = "null" ]; then
+              echo "No existing versions found for today, starting at 1"
+              BUILD_NUM=1
+            else
+              echo "Found $LATEST_BUILD existing versions today"
+              BUILD_NUM=$((LATEST_BUILD + 1))
+            fi
           fi
+          
+          echo "Debug: Final build number: ${BUILD_NUM}"
           
           # Format: v20250108.1, v20250108.2, etc
           VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          
+          echo "Debug: Version tag: ${VERSION_TAG}"
+          
+          # Make sure we have a build number before continuing
+          if [ -z "$BUILD_NUM" ]; then
+            echo "Error: Build number is empty, defaulting to 1"
+            BUILD_NUM=1
+            VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          fi
           
           echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
           echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
           echo "sha=${SHA}" >> $GITHUB_OUTPUT
+          
+          # Script should succeed even if API call failed
+          exit 0
       - name: Generate build contexts
         id: build-contexts
         run: |
