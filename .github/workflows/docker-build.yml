@@ -491,7 +491,6 @@ jobs:
           echo "Group ID: $(id -g)"
           echo "Groups: $(groups)"
           echo "Working directory: $(pwd)"
-          ls -la /tmp
 
           # Copy babel.yaml to test file
           cp ${{ matrix.image_path }}/babel.yaml ${{ matrix.image_path }}/babel.yaml-test
