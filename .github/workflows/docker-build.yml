@@ -495,6 +495,7 @@ jobs:
           echo "test_file=${{ matrix.image_path }}/babel.yaml-test" >> $GITHUB_OUTPUT
 
           success_variants=()
+          failed_variants=()
           for variant in ${{ steps.get-variants.outputs.variants }}; do
             echo "Checking variant: $variant"
             
@@ -504,13 +505,14 @@ jobs:
               echo "✅ Variant $variant check passed"
             else
               echo "❌ Variant $variant check failed"
+              failed_variants+=("$variant")
             fi
           done
           
           rm -rf ${{ matrix.image_path }}/babel.yaml-test
           
-          if [ ${#success_variants[@]} -eq 0 ]; then
-            echo "❌ No variants passed checks"
+          if [ ${#failed_variants[@]} -gt 0 ]; then
+            echo "❌ The following variants failed checks: ${failed_variants[*]}"
             exit 1
           fi
           
