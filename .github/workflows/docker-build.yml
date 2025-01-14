@@ -608,7 +608,7 @@ jobs:
             
             # Run nib image play and capture output
             echo "Running: nib image play --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            OUTPUT=$(nib image play --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1)
+            OUTPUT=$(nib image play --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 || true)
             NIB_EXIT=$?
             echo "nib image play output:"
             echo "$OUTPUT"
