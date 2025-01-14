@@ -7,7 +7,7 @@ const WS_PORT = 8546;
 const METRICS_PORT = 6665;
 
 let RETH_CONFIG = reth::base_config(global::METRICS_PORT,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
-// trigger
+
 const BASE_CONFIG  = #{
     config_files: RETH_CONFIG.config_files+base::BASE_CONFIG.config_files,
     services: RETH_CONFIG.services+base::BASE_CONFIG.services,

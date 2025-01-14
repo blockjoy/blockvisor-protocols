@@ -508,9 +508,11 @@ jobs:
   get-host:
     needs: [build-protocols]
     if: |
-      github.event_name == 'pull_request' && 
       github.event.pull_request.user.login != 'renovate[bot]' && 
-      github.event.action != 'closed'
+      ((github.event.pull_request.merged == true || 
+       github.event.action == 'closed' || 
+       github.event.action == 'synchronize') &&
+       github.event.action != 'opened')
     runs-on: dev
     outputs:
       target_host: ${{ steps.get-host.outputs.target_host }}
