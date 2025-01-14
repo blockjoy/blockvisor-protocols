@@ -11,25 +11,25 @@ variants:
     min_memory_mb: 65536
     min_disk_gb: 5000
     archive_pointers:
-      - pointer: !store_id ethereum-erigon-mainnet-full-v1
+      - pointer: !store_key ethereum-erigon-mainnet-full-v1
   - key: erigon-sepolia-full
     min_cpu: 4
     min_memory_mb: 16000
     min_disk_gb: 2000
     archive_pointers:
-      - pointer: !store_id ethereum-erigon-sepolia-full-v1
+      - pointer: !store_key ethereum-erigon-sepolia-full-v1
   - key: erigon-mainnet-archive
     min_cpu: 16
     min_memory_mb: 65536
     min_disk_gb: 5000
     archive_pointers:
-      - pointer: !store_id ethereum-erigon-mainnet-archive-v1
+      - pointer: !store_key ethereum-erigon-mainnet-archive-v1
   - key: erigon-sepolia-archive
     min_cpu: 4
     min_memory_mb: 16000
     min_disk_gb: 2000
     archive_pointers:
-      - pointer: !store_id ethereum-erigon-sepolia-archive-v1
+      - pointer: !store_key ethereum-erigon-sepolia-archive-v1
 firewall_config:
   default_in: deny
   default_out: allow
