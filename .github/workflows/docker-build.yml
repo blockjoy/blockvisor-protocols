@@ -156,15 +156,30 @@ jobs:
           DATE=$(date '+%Y%m%d')
           IMAGE_NAME=$(basename "${{ matrix.image_path }}")
           
+          echo "Debug: matrix.image_path = ${{ matrix.image_path }}"
+          echo "Debug: IMAGE_NAME = ${IMAGE_NAME}"
+          
           # Try to get the current build number, default to 0 if API call fails
-          LATEST_BUILD=$(gh api \
+          echo "Debug: Querying GitHub API for package ${IMAGE_NAME}"
+          API_RESPONSE=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>/dev/null | \
-            jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length" || echo "0")
+            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
+          API_STATUS=$?
           
-          # Increment the build number
-          BUILD_NUM=$((LATEST_BUILD + 1))
+          echo "Debug: API Response:"
+          echo "$API_RESPONSE"
+          echo "Debug: API Status: $API_STATUS"
+          
+          if [ $API_STATUS -ne 0 ]; then
+            echo "API call failed, defaulting to build number 1"
+            BUILD_NUM=1
+          else
+            LATEST_BUILD=$(echo "$API_RESPONSE" | \
+              jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
+            BUILD_NUM=$((LATEST_BUILD + 1))
+          fi
+          
           # Format: v20250108.1, v20250108.2, etc
           VERSION_TAG="v${DATE}.${BUILD_NUM}"
           
@@ -247,36 +262,35 @@ jobs:
           CLIENT_NAME=$(basename ${{ matrix.image_path }})
           IMAGE_NAME="${CLIENT_NAME}"
           
-          # Extract version for any client under /clients/
-          if [[ "${{ matrix.image_path }}" =~ ^clients/ ]]; then
-            CLIENT_UPPER=$(echo "${CLIENT_NAME}" | tr '[:lower:]' '[:upper:]')
-            CLIENT_VERSION=$(grep -E "ENV ${CLIENT_UPPER}_VERSION=[[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
-            if [[ ! -z "$CLIENT_VERSION" ]]; then
-              # Remove 'v' prefix and ensure version is Docker-compatible (only alphanumeric and . - _)
-              CLIENT_VERSION=${CLIENT_VERSION#v}
-              CLIENT_VERSION=$(echo "$CLIENT_VERSION" | tr -cd '[:alnum:].-')
-              IMAGE_TAG="${CLIENT_VERSION}-${SHA}"
-            else
-              IMAGE_TAG="${SHA}"
-            fi
-          else
-            IMAGE_TAG="${SHA}"
-          fi
-
+          echo "Debug: matrix.image_path = ${{ matrix.image_path }}"
+          echo "Debug: IMAGE_NAME = ${IMAGE_NAME}"
+          
           # Try to get the current build number, default to 0 if API call fails
-          LATEST_BUILD=$(gh api \
+          echo "Debug: Querying GitHub API for package ${IMAGE_NAME}"
+          API_RESPONSE=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>/dev/null | \
-            jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length" || echo "0")
+            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
+          API_STATUS=$?
           
-          # Increment the build number
-          BUILD_NUM=$((LATEST_BUILD + 1))
+          echo "Debug: API Response:"
+          echo "$API_RESPONSE"
+          echo "Debug: API Status: $API_STATUS"
+          
+          if [ $API_STATUS -ne 0 ]; then
+            echo "API call failed, defaulting to build number 1"
+            BUILD_NUM=1
+          else
+            LATEST_BUILD=$(echo "$API_RESPONSE" | \
+              jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
+            BUILD_NUM=$((LATEST_BUILD + 1))
+          fi
+          
           # Format: v20250108.1, v20250108.2, etc
           VERSION_TAG="v${DATE}.${BUILD_NUM}"
-
+          
           echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
-          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
           echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
           echo "sha=${SHA}" >> $GITHUB_OUTPUT
       - name: Generate build contexts
@@ -368,18 +382,33 @@ jobs:
           PROTOCOL=$(echo "${{ matrix.image_path }}" | cut -d'/' -f2)
           IMAGE_NAME=$(echo "${{ matrix.image_path }}" | cut -d'/' -f3)
           
+          echo "Debug: matrix.image_path = ${{ matrix.image_path }}"
+          echo "Debug: IMAGE_NAME = ${IMAGE_NAME}"
+          
           # Try to get the current build number, default to 0 if API call fails
-          LATEST_BUILD=$(gh api \
+          echo "Debug: Querying GitHub API for package ${IMAGE_NAME}"
+          API_RESPONSE=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>/dev/null | \
-            jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length" || echo "0")
+            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
+          API_STATUS=$?
           
-          # Increment the build number
-          BUILD_NUM=$((LATEST_BUILD + 1))
+          echo "Debug: API Response:"
+          echo "$API_RESPONSE"
+          echo "Debug: API Status: $API_STATUS"
+          
+          if [ $API_STATUS -ne 0 ]; then
+            echo "API call failed, defaulting to build number 1"
+            BUILD_NUM=1
+          else
+            LATEST_BUILD=$(echo "$API_RESPONSE" | \
+              jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
+            BUILD_NUM=$((LATEST_BUILD + 1))
+          fi
+          
           # Format: v20250108.1, v20250108.2, etc
           VERSION_TAG="v${DATE}.${BUILD_NUM}"
-
+          
           echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
           echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
