@@ -152,6 +152,7 @@ jobs:
       - name: Generate version
         id: version
         run: |
+          set -x  # Enable debug mode to see commands being executed
           SHA=$(git rev-parse --short HEAD)
           DATE=$(date '+%Y%m%d')
           IMAGE_NAME=$(basename "${{ matrix.image_path }}")
@@ -161,21 +162,26 @@ jobs:
           
           # Try to get the current build number, default to 0 if API call fails
           echo "Debug: Querying GitHub API for package ${IMAGE_NAME}"
-          API_RESPONSE=$(gh api \
+          
+          # Capture both stdout and stderr
+          OUTPUT=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
           API_STATUS=$?
           
-          echo "Debug: API Response:"
-          echo "$API_RESPONSE"
+          echo "Debug: Full command output:"
+          echo "$OUTPUT"
           echo "Debug: API Status: $API_STATUS"
           
           if [ $API_STATUS -ne 0 ]; then
-            echo "API call failed, defaulting to build number 1"
+            echo "API call failed with status $API_STATUS"
+            echo "Error output: $OUTPUT"
+            echo "Defaulting to build number 1"
             BUILD_NUM=1
           else
-            LATEST_BUILD=$(echo "$API_RESPONSE" | \
+            echo "API call succeeded, parsing response"
+            LATEST_BUILD=$(echo "$OUTPUT" | \
               jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
             BUILD_NUM=$((LATEST_BUILD + 1))
           fi
@@ -257,6 +263,7 @@ jobs:
       - name: Generate version
         id: version
         run: |
+          set -x  # Enable debug mode to see commands being executed
           SHA=$(git rev-parse --short HEAD)
           DATE=$(date '+%Y%m%d')
           CLIENT_NAME=$(basename ${{ matrix.image_path }})
@@ -267,21 +274,26 @@ jobs:
           
           # Try to get the current build number, default to 0 if API call fails
           echo "Debug: Querying GitHub API for package ${IMAGE_NAME}"
-          API_RESPONSE=$(gh api \
+          
+          # Capture both stdout and stderr
+          OUTPUT=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
           API_STATUS=$?
           
-          echo "Debug: API Response:"
-          echo "$API_RESPONSE"
+          echo "Debug: Full command output:"
+          echo "$OUTPUT"
           echo "Debug: API Status: $API_STATUS"
           
           if [ $API_STATUS -ne 0 ]; then
-            echo "API call failed, defaulting to build number 1"
+            echo "API call failed with status $API_STATUS"
+            echo "Error output: $OUTPUT"
+            echo "Defaulting to build number 1"
             BUILD_NUM=1
           else
-            LATEST_BUILD=$(echo "$API_RESPONSE" | \
+            echo "API call succeeded, parsing response"
+            LATEST_BUILD=$(echo "$OUTPUT" | \
               jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
             BUILD_NUM=$((LATEST_BUILD + 1))
           fi
@@ -375,6 +387,7 @@ jobs:
       - name: Generate version
         id: version
         run: |
+          set -x  # Enable debug mode to see commands being executed
           SHA=$(git rev-parse --short HEAD)
           DATE=$(date '+%Y%m%d')
           PROTOCOL_PATH=${{ matrix.image_path }}
@@ -387,21 +400,26 @@ jobs:
           
           # Try to get the current build number, default to 0 if API call fails
           echo "Debug: Querying GitHub API for package ${IMAGE_NAME}"
-          API_RESPONSE=$(gh api \
+          
+          # Capture both stdout and stderr
+          OUTPUT=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
           API_STATUS=$?
           
-          echo "Debug: API Response:"
-          echo "$API_RESPONSE"
+          echo "Debug: Full command output:"
+          echo "$OUTPUT"
           echo "Debug: API Status: $API_STATUS"
           
           if [ $API_STATUS -ne 0 ]; then
-            echo "API call failed, defaulting to build number 1"
+            echo "API call failed with status $API_STATUS"
+            echo "Error output: $OUTPUT"
+            echo "Defaulting to build number 1"
             BUILD_NUM=1
           else
-            LATEST_BUILD=$(echo "$API_RESPONSE" | \
+            echo "API call succeeded, parsing response"
+            LATEST_BUILD=$(echo "$OUTPUT" | \
               jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
             BUILD_NUM=$((LATEST_BUILD + 1))
           fi
