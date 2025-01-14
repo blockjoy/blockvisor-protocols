@@ -32,7 +32,7 @@ RUN --mount=type=cache,target=/root/.cargo/git \
     --mount=type=cache,target=/root/.cargo/registry \
     --mount=type=cache,target=/root/reth/target \
     . "$HOME/.cargo/env" && \
-    PROFILE=maxperf FEATURES="jemalloc asm-keccak" make install-op && \
+    PROFILE=maxperf FEATURES="jemalloc asm-keccak" make build-op && \
     mkdir -p /root/bin && \
     cp target/maxperf/op-reth /root/bin/
 
