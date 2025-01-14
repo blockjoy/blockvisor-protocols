@@ -174,8 +174,9 @@ jobs:
           echo "$OUTPUT"
           echo "Debug: API Status: $API_STATUS"
           
-          if [ $API_STATUS -ne 0 ]; then
-            echo "API call failed with status $API_STATUS"
+          # Check for both non-zero exit code and 404 in response
+          if [ $API_STATUS -ne 0 ] || echo "$OUTPUT" | grep -q '"status":"404"'; then
+            echo "API call failed or package not found"
             echo "Error output: $OUTPUT"
             echo "Defaulting to build number 1"
             BUILD_NUM=1
@@ -286,8 +287,9 @@ jobs:
           echo "$OUTPUT"
           echo "Debug: API Status: $API_STATUS"
           
-          if [ $API_STATUS -ne 0 ]; then
-            echo "API call failed with status $API_STATUS"
+          # Check for both non-zero exit code and 404 in response
+          if [ $API_STATUS -ne 0 ] || echo "$OUTPUT" | grep -q '"status":"404"'; then
+            echo "API call failed or package not found"
             echo "Error output: $OUTPUT"
             echo "Defaulting to build number 1"
             BUILD_NUM=1
@@ -412,8 +414,9 @@ jobs:
           echo "$OUTPUT"
           echo "Debug: API Status: $API_STATUS"
           
-          if [ $API_STATUS -ne 0 ]; then
-            echo "API call failed with status $API_STATUS"
+          # Check for both non-zero exit code and 404 in response
+          if [ $API_STATUS -ne 0 ] || echo "$OUTPUT" | grep -q '"status":"404"'; then
+            echo "API call failed or package not found"
             echo "Error output: $OUTPUT"
             echo "Defaulting to build number 1"
             BUILD_NUM=1
