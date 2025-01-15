@@ -144,7 +144,7 @@ jobs:
         run: |
           labels=("build-base-failed" "build-clients-failed" "build-protocols-failed" "test-nodes-failed")
           for label in "${labels[@]}"; do
-            gh label list | grep -q "^$label" || gh label create "$label" --color "D93F0B" --description "Workflow failure indicator"
+            gh label list --repo ${{ github.repository }} | grep -q "^$label" || gh label create "$label" --repo ${{ github.repository }} --color "D93F0B" --description "Workflow failure indicator"
           done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
