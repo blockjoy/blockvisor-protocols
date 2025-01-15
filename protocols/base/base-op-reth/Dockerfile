@@ -1,6 +1,6 @@
 # 2
-ARG OP_RETH_IMAGE=ghcr.io/blockjoy/op-reth:v20250113.1
-ARG OP_NODE_IMAGE=ghcr.io/blockjoy/op-node:v20250113.1
+ARG OP_RETH_IMAGE=ghcr.io/blockjoy/op-reth:v20250115.1
+ARG OP_NODE_IMAGE=ghcr.io/blockjoy/op-node:v20250114.2
 ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250109.3
 
 FROM ${OP_RETH_IMAGE} AS op_reth
