@@ -59,9 +59,6 @@ jobs:
         with:
           base_sha: ${{ github.event.pull_request.base.sha }}
           fetch_depth: 0
-          files: |
-            **
-            !**/babel.yaml
 
       - name: List all changed files
         env:
