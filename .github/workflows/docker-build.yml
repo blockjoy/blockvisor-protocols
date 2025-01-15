@@ -504,7 +504,7 @@ jobs:
             echo "Checking variant: $variant"
             
             # Run nib image check and capture output
-            if nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test; then
+            if bash -c "nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"; then
               success_variants+=("$variant")
               echo "✅ Variant $variant check passed"
             else
