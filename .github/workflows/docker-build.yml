@@ -859,21 +859,22 @@ jobs:
                echo "⚠️ Re-adding ${label_name} label as job was skipped"
                gh pr edit ${{ github.event.pull_request.number }} --add-label "$label_name"
              fi
-           
-           echo "Job results:"
-           echo "detect-changes: ${{ needs.detect-changes.result }}"
-           echo "build-base: ${{ needs.build-base.result }}"
-           echo "build-clients: ${{ needs.build-clients.result }}"
-           echo "build-protocols: ${{ needs.build-protocols.result }}"
-           echo "test-nodes: ${{ needs.test-nodes.result }}"
-           
-           # Handle each job's result
-           handle_job_result "build-base" "${{ needs.build-base.result }}"
-           handle_job_result "build-clients" "${{ needs.build-clients.result }}"
-           handle_job_result "build-protocols" "${{ needs.build-protocols.result }}"
-           handle_job_result "test-nodes" "${{ needs.test-nodes.result }}"
-           
-           # Get updated PR labels after handling jobs
+           }
+            
+            echo "Job results:"
+            echo "detect-changes: ${{ needs.detect-changes.result }}"
+            echo "build-base: ${{ needs.build-base.result }}"
+            echo "build-clients: ${{ needs.build-clients.result }}"
+            echo "build-protocols: ${{ needs.build-protocols.result }}"
+            echo "test-nodes: ${{ needs.test-nodes.result }}"
+            
+            # Handle each job's result
+            handle_job_result "build-base" "${{ needs.build-base.result }}"
+            handle_job_result "build-clients" "${{ needs.build-clients.result }}"
+            handle_job_result "build-protocols" "${{ needs.build-protocols.result }}"
+            handle_job_result "test-nodes" "${{ needs.test-nodes.result }}"
+            
+            # Get updated PR labels after handling jobs
           updated_labels=$(gh pr view ${{ github.event.pull_request.number }} --json labels -q '.labels[].name')
           
           # Check for any failed labels
