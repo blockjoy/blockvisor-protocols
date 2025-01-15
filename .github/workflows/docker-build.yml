@@ -712,7 +712,6 @@ jobs:
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
 
   get-host:
-    needs: [build-protocols]
     if: |
         github.event.pull_request.user.login != 'renovate[bot]' &&
         (github.event.pull_request.merged == true || 
@@ -748,12 +747,7 @@ jobs:
 
   cleanup:
     needs: [get-host]
-    if: |
-      github.event.pull_request.user.login != 'renovate[bot]' && 
-      ((github.event.pull_request.merged == true || 
-       github.event.action == 'closed' || 
-       github.event.action == 'synchronize') &&
-       github.event.action != 'opened')
+    if: github.event.pull_request.user.login != 'renovate[bot]'
     runs-on: ${{ needs.get-host.outputs.target_host }}
     steps:
       - name: Cleanup nodes
@@ -804,6 +798,8 @@ jobs:
                 gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up"
               fi
             fi
+          else
+            echo "No nodes found to clean up, exiting cleanly"
           fi
 
   test-nodes:
