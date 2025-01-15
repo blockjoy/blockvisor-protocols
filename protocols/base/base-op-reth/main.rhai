@@ -1,5 +1,5 @@
 import "base" as base;
-import "base-op-reth" as base-op-reth;
+import "base-op-reth" as base_op_reth;
 
 const CADDY_DIR = node_env().data_mount_point + "caddy";
 const RPC_PORT = 8545;
@@ -10,7 +10,6 @@ const METRICS_PORT = 6665;
 const METRICS_PATH = "/debug/metrics/prometheus";
 
 let BASE_OP_RETH_CONFIG = base_op_reth::base_config(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::AUTHRPC_PORT,global::OP_RPC_PORT,global::CADDY_DIR);
-// trigger
 const BASE_CONFIG  = #{
     config_files: BASE_OP_RETH_CONFIG.config_files+base::BASE_CONFIG.config_files,
     services: BASE_OP_RETH_CONFIG.services+base::BASE_CONFIG.services,
