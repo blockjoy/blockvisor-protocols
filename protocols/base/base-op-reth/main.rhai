@@ -36,6 +36,7 @@ const VARIANTS = #{
 const API_HOST = `http://127.0.0.1:${global::RPC_PORT}`;
 const HOME = node_env().protocol_data_path + "/base";
 const NET = VARIANTS[node_env().node_variant].net;
+const CHAIN = VARIANTS[node_env().node_variant].chain;
 const SEQUENCER_URL = VARIANTS[node_env().node_variant].sequencer_url;
 const L1_URL = "https://eth-l1.blkjy.io";
 const L1_BEACON_URL = "https://lighthouse.blkjy.io";
