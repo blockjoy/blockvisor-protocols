@@ -144,7 +144,11 @@ jobs:
         run: |
           labels=("build-base-failed" "build-clients-failed" "build-protocols-failed" "test-nodes-failed")
           for label in "${labels[@]}"; do
-            gh label list --repo ${{ github.repository }} | grep -q "^$label" || gh label create "$label" --repo ${{ github.repository }} --color "D93F0B" --description "Workflow failure indicator"
+            # Check if label exists
+            if ! gh api repos/${{ github.repository }}/labels | jq -e ".[] | select(.name == \"$label\")" > /dev/null; then
+              # Create label if it doesn't exist
+              gh api repos/${{ github.repository }}/labels -X POST -f name="$label" -f color="D93F0B" -f description="Workflow failure indicator"
+            fi
           done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
