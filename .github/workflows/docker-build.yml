@@ -14,7 +14,6 @@ on:
       - opened      # PR is created
       - synchronize # New commits pushed
       - reopened    # Closed PR is reopened
-      - closed     # PR is merged or closed
   pull_request_target:
     branches: [ main ]
     paths-ignore:
@@ -640,13 +639,68 @@ jobs:
           fi
           echo "target_host=$PREV_HOST" >> $GITHUB_OUTPUT
 
-  test-nodes:
-    needs: [build-protocols, get-host, manage-labels]
+  cleanup:
+    needs: [get-host]
     if: |
-      (github.event_name == 'pull_request' && 
-       github.event.pull_request.user.login != 'renovate[bot]' && 
-       github.event.action != 'closed') ||
-      contains(github.event.pull_request.labels.*.name, 'test-nodes-failed')
+      github.event.pull_request.user.login != 'renovate[bot]' && 
+      ((github.event.pull_request.merged == true || 
+       github.event.action == 'closed' || 
+       github.event.action == 'synchronize') &&
+       github.event.action != 'opened')
+    runs-on: ${{ needs.get-host.outputs.target_host }}
+    steps:
+      - name: Cleanup nodes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Finding nodes to clean up..."
+          # Get list of nodes from PR comments
+          NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
+            .comments
+            | map(select(.author.login == "github-actions"))
+            | map(select(.body | contains("following nodes have been deployed")))
+            | sort_by(.createdAt)
+            | last
+            | if . == null then "" else
+              (.body | split("\n") 
+              | map(select(contains("running variant"))) 
+              | map(capture("- `(?<n>[a-z-]+-[a-z-]+-[a-z-]+)`, running variant `[^`]+`").n)
+              | join("\n"))
+              end
+          ')
+          
+          if [ ! -z "$NODES" ]; then
+            echo "Found nodes to clean up:"
+            echo "$NODES" | while read -r node; do
+              if [ -z "$node" ]; then 
+                echo "Skipping empty node name"
+                continue
+              fi
+              echo "Processing node: '$node'"
+              bv n delete -y "$node" || echo "Warning: Failed to delete node '$node'"
+            done
+            
+            # Post appropriate message based on trigger
+            if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge"
+            elif [[ "${{ github.event.action }}" == "closed" ]]; then
+              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR close"
+            elif [[ "${{ github.event.action }}" == "synchronize" ]]; then
+              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR update"
+            else
+              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up"
+            fi
+          fi
+
+  test-nodes:
+    needs: [build-protocols, get-host, manage-labels, cleanup]
+    if: |
+      github.event_name == 'pull_request' && 
+      github.event.pull_request.user.login != 'renovate[bot]' && 
+      github.event.pull_request.state != 'closed' &&
+      (github.event.action == 'opened' ||
+       github.event.action == 'synchronize' ||
+       contains(github.event.pull_request.labels.*.name, 'test-nodes-failed'))
     runs-on: ${{ needs.get-host.outputs.target_host }}
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
@@ -794,58 +848,6 @@ jobs:
         run: |
           echo "Pushing image (version changed from ${{ needs.build-protocols.outputs.previous_version }} to ${{ needs.build-protocols.outputs.current_version }})"
           nib image push --path ${{ matrix.image_path }}/babel.yaml
-
-  cleanup:
-    needs: [get-host]
-    if: |
-      github.event.pull_request.user.login != 'renovate[bot]' && 
-      ((github.event.pull_request.merged == true || 
-       github.event.action == 'closed' || 
-       github.event.action == 'synchronize') &&
-       github.event.action != 'opened')
-    runs-on: ${{ needs.get-host.outputs.target_host }}
-    steps:
-      - name: Cleanup nodes
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Finding nodes to clean up..."
-          NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
-            .comments
-            | map(select(.author.login == "github-actions"))
-            | map(select(.body | contains("following nodes have been deployed")))
-            | sort_by(.createdAt)
-            | last
-            | if . == null then "" else
-              (.body | split("\n") 
-              | map(select(contains("running variant"))) 
-              | map(capture("- `(?<n>[a-z-]+-[a-z-]+-[a-z-]+)`, running variant `[^`]+`").n)
-              | join("\n"))
-              end
-          ')
-          
-          if [ ! -z "$NODES" ]; then
-            echo "Found nodes to clean up:"
-            echo "$NODES" | while read -r node; do
-              if [ -z "$node" ]; then 
-                echo "Skipping empty node name"
-                continue
-              fi
-              echo "Processing node: '$node'"
-              bv n delete -y "$node" || echo "Warning: Failed to delete node '$node'"
-            done
-            
-            # Post appropriate message based on trigger
-            if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
-              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge"
-            elif [[ "${{ github.event.action }}" == "closed" ]]; then
-              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR close"
-            elif [[ "${{ github.event.action }}" == "synchronize" ]]; then
-              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR update"
-            else
-              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up"
-            fi
-          fi
 
   workflow-status:
     needs: [detect-changes, build-base, build-clients, build-protocols, test-nodes]
