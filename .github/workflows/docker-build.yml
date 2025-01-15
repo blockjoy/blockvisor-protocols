@@ -57,7 +57,7 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@d6e91a2266cdb9d62096cebf1e8546899c6aa18f # v45
         with:
-          since_last_remote_commit: true
+          base_sha: ${{ github.event.pull_request.base.sha }}
           fetch_depth: 0
           files: |
             **
@@ -190,8 +190,11 @@ jobs:
     needs: [detect-changes, manage-labels]
     if: |
       fromJson(needs.detect-changes.outputs.base_matrix).include[0] ||
-      contains(github.event.pull_request.labels.*.name, 'build-base-failed')
+      needs.manage-labels.outputs.should-run-base == 'true'
     runs-on: self-hosted
+    permissions:
+      contents: read      # Allows reading repository contents
+      packages: write     # Allows pushing/pulling container images
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.base_matrix) }}
     steps:
@@ -213,21 +216,50 @@ jobs:
           IMAGE_NAME=$(basename "${{ matrix.image_path }}")
           
           # Try to get the current build number, default to 0 if API call fails
-          LATEST_BUILD=$(gh api \
+          OUTPUT=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>/dev/null | \
-            jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length" || echo "0")
+            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
+          API_STATUS=$?
           
-          # Increment the build number
-          BUILD_NUM=$((LATEST_BUILD + 1))
+          if echo "$OUTPUT" | grep -q "message.*Package not found" || \
+             echo "$OUTPUT" | grep -q "status.*404" || \
+             [ $API_STATUS -ne 0 ]; then
+            echo "Package not found or API error detected"
+            echo "Setting build number to 0"
+            BUILD_NUM=0
+          else
+            echo "API call succeeded, parsing response"
+            LATEST_BUILD=$(echo "$OUTPUT" | \
+              jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
+            if [ -z "$LATEST_BUILD" ] || [ "$LATEST_BUILD" = "null" ]; then
+              echo "No existing versions found for today, starting at 0"
+              BUILD_NUM=0
+            else
+              echo "Found $LATEST_BUILD existing versions today"
+              BUILD_NUM=$((LATEST_BUILD + 1))
+            fi
+          fi
+          
+          echo "Debug: Final build number: ${BUILD_NUM}"
+          
           # Format: v20250108.1, v20250108.2, etc
           VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          
+          # Make sure we have a build number before continuing
+          if [ -z "$BUILD_NUM" ]; then
+            echo "Error: Build number is empty, defaulting to 0"
+            BUILD_NUM=0
+            VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          fi
           
           echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
           echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
           echo "sha=${SHA}" >> $GITHUB_OUTPUT
+          
+          # Script should succeed even if API call failed
+          exit 0
       - name: Generate build contexts
         id: build-contexts
         run: |
@@ -282,8 +314,11 @@ jobs:
     needs: [detect-changes, manage-labels]
     if: |
       fromJson(needs.detect-changes.outputs.clients_matrix).include[0] ||
-      contains(github.event.pull_request.labels.*.name, 'build-clients-failed')
+      needs.manage-labels.outputs.should-run-clients == 'true'
     runs-on: self-hosted
+    permissions:
+      contents: read      # Allows reading repository contents
+      packages: write     # Allows pushing/pulling container images
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.clients_matrix) }}
     steps:
@@ -300,41 +335,66 @@ jobs:
       - name: Generate version
         id: version
         run: |
+          set -x  # Enable debug mode to see commands being executed
+          set +e
           SHA=$(git rev-parse --short HEAD)
           DATE=$(date '+%Y%m%d')
           CLIENT_NAME=$(basename ${{ matrix.image_path }})
           IMAGE_NAME="${CLIENT_NAME}"
           
-          # Extract version for any client under /clients/
-          if [[ "${{ matrix.image_path }}" =~ ^clients/ ]]; then
-            CLIENT_UPPER=$(echo "${CLIENT_NAME}" | tr '[:lower:]' '[:upper:]')
-            CLIENT_VERSION=$(grep -E "ENV ${CLIENT_UPPER}_VERSION=[[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
-            if [[ ! -z "$CLIENT_VERSION" ]]; then
-              # Remove 'v' prefix and ensure version is Docker-compatible (only alphanumeric and . - _)
-              CLIENT_VERSION=${CLIENT_VERSION#v}
-              CLIENT_VERSION=$(echo "$CLIENT_VERSION" | tr -cd '[:alnum:].-')
-              IMAGE_TAG="${CLIENT_VERSION}-${SHA}"
-            else
-              IMAGE_TAG="${SHA}"
-            fi
-          else
-            IMAGE_TAG="${SHA}"
-          fi
-
+          echo "Debug: matrix.image_path = ${{ matrix.image_path }}"
+          echo "Debug: IMAGE_NAME = ${IMAGE_NAME}"
+          
           # Try to get the current build number, default to 0 if API call fails
-          LATEST_BUILD=$(gh api \
+          echo "Debug: Querying GitHub API for package ${IMAGE_NAME}"
+          
+          OUTPUT=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>/dev/null | \
-            jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length" || echo "0")
+            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
+          API_STATUS=$?
           
-          # Increment the build number
-          BUILD_NUM=$((LATEST_BUILD + 1))
+          echo "Debug: Full command output:"
+          echo "$OUTPUT"
+          echo "Debug: API Status: $API_STATUS"
+          echo "Debug: Checking if output contains error message..."
+          
+          # More detailed error checking
+          if echo "$OUTPUT" | grep -q "message.*Package not found" || \
+             echo "$OUTPUT" | grep -q "status.*404" || \
+             [ $API_STATUS -ne 0 ]; then
+            echo "Package not found or API error detected"
+            echo "Setting build number to 1"
+            BUILD_NUM=1
+          else
+            echo "API call succeeded, parsing response"
+            LATEST_BUILD=$(echo "$OUTPUT" | \
+              jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
+            if [ -z "$LATEST_BUILD" ] || [ "$LATEST_BUILD" = "null" ]; then
+              echo "No existing versions found for today, starting at 1"
+              BUILD_NUM=1
+            else
+              echo "Found $LATEST_BUILD existing versions today"
+              BUILD_NUM=$((LATEST_BUILD + 1))
+            fi
+          fi
+          
+          echo "Debug: Final build number: ${BUILD_NUM}"
+          
           # Format: v20250108.1, v20250108.2, etc
           VERSION_TAG="v${DATE}.${BUILD_NUM}"
-
+          
+          echo "Debug: Version tag: ${VERSION_TAG}"
+          
+          # Make sure we have a build number before continuing
+          if [ -z "$BUILD_NUM" ]; then
+            echo "Error: Build number is empty, defaulting to 1"
+            BUILD_NUM=1
+            VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          fi
+          
           echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
-          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
           echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
           echo "sha=${SHA}" >> $GITHUB_OUTPUT
       - name: Generate build contexts
@@ -392,10 +452,13 @@ jobs:
     needs: [detect-changes, manage-labels]
     if: |
       (fromJson(needs.detect-changes.outputs.protocols_matrix).include[0] ||
-       contains(github.event.pull_request.labels.*.name, 'build-protocols-failed')) &&
+       needs.manage-labels.outputs.should-run-protocols == 'true') &&
       github.event.pull_request.user.login != 'renovate[bot]' && 
       github.event.action != 'closed'
     runs-on: dev
+    permissions:
+      contents: read      # Allows reading repository contents
+      packages: write     # Allows pushing/pulling container images
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
     outputs:
@@ -419,6 +482,8 @@ jobs:
       - name: Generate version
         id: version
         run: |
+          set -x  # Enable debug mode to see commands being executed
+          set +e
           SHA=$(git rev-parse --short HEAD)
           DATE=$(date '+%Y%m%d')
           PROTOCOL_PATH=${{ matrix.image_path }}
@@ -426,22 +491,64 @@ jobs:
           PROTOCOL=$(echo "${{ matrix.image_path }}" | cut -d'/' -f2)
           IMAGE_NAME=$(echo "${{ matrix.image_path }}" | cut -d'/' -f3)
           
+          echo "Debug: matrix.image_path = ${{ matrix.image_path }}"
+          echo "Debug: IMAGE_NAME = ${IMAGE_NAME}"
+          
           # Try to get the current build number, default to 0 if API call fails
-          LATEST_BUILD=$(gh api \
+          echo "Debug: Querying GitHub API for package ${IMAGE_NAME}"
+          
+          OUTPUT=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>/dev/null | \
-            jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length" || echo "0")
+            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
+          API_STATUS=$?
           
-          # Increment the build number
-          BUILD_NUM=$((LATEST_BUILD + 1))
+          echo "Debug: Full command output:"
+          echo "$OUTPUT"
+          echo "Debug: API Status: $API_STATUS"
+          echo "Debug: Checking if output contains error message..."
+          
+          # More detailed error checking
+          if echo "$OUTPUT" | grep -q "message.*Package not found" || \
+             echo "$OUTPUT" | grep -q "status.*404" || \
+             [ $API_STATUS -ne 0 ]; then
+            echo "Package not found or API error detected"
+            echo "Setting build number to 1"
+            BUILD_NUM=1
+          else
+            echo "API call succeeded, parsing response"
+            LATEST_BUILD=$(echo "$OUTPUT" | \
+              jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
+            if [ -z "$LATEST_BUILD" ] || [ "$LATEST_BUILD" = "null" ]; then
+              echo "No existing versions found for today, starting at 1"
+              BUILD_NUM=1
+            else
+              echo "Found $LATEST_BUILD existing versions today"
+              BUILD_NUM=$((LATEST_BUILD + 1))
+            fi
+          fi
+          
+          echo "Debug: Final build number: ${BUILD_NUM}"
+          
           # Format: v20250108.1, v20250108.2, etc
           VERSION_TAG="v${DATE}.${BUILD_NUM}"
-
+          
+          echo "Debug: Version tag: ${VERSION_TAG}"
+          
+          # Make sure we have a build number before continuing
+          if [ -z "$BUILD_NUM" ]; then
+            echo "Error: Build number is empty, defaulting to 1"
+            BUILD_NUM=1
+            VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          fi
+          
           echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
           echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
           echo "sha=${SHA}" >> $GITHUB_OUTPUT
+          
+          # Script should succeed even if API call failed
+          exit 0
       - name: Generate build contexts
         id: build-contexts
         run: |
@@ -543,25 +650,10 @@ jobs:
       - name: Check variants
         id: check-variants
         run: |
-          echo "=== User Context ==="
-          echo "Current user: $(whoami)"
-          echo "User ID: $(id -u)"
-          echo "Group ID: $(id -g)"
-          echo "Groups: $(groups)"
-          echo "Home directory: $HOME"
-          echo "Working directory: $(pwd)"
-          
-          echo "=== Environment Variables ==="
-          echo "PATH: $PATH"
-          env | grep -i "APPTAINER" || true
-          env | grep -i "SINGULARITY" || true
-          
           echo "=== Temporary Directory Setup ==="
           mkdir -p ~/temp
           chmod 700 ~/temp
           echo "APPTAINER_TMPDIR=~/temp" >> $GITHUB_ENV
-          echo "Created temp dir: $(ls -la ~/temp)"
-          echo "Temp dir permissions: $(stat -c '%A %a %n' ~/temp)"
 
           # Copy babel.yaml to test file
           cp ${{ matrix.image_path }}/babel.yaml ${{ matrix.image_path }}/babel.yaml-test
@@ -577,19 +669,11 @@ jobs:
           for variant in ${{ steps.get-variants.outputs.variants }}; do
             echo "Checking variant: $variant"
             
-            echo "=== Before nib command ==="
-            echo "Current directory: $(pwd)"
-            echo "File permissions: $(ls -la ${{ matrix.image_path }}/babel.yaml-test)"
-            echo "Which nib: $(which nib)"
-            
             # Run nib image check and capture output
             if nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test; then
               success_variants+=("$variant")
               echo "✅ Variant $variant check passed"
             else
-              echo "=== Command failed, showing more debug info ==="
-              echo "Apptainer version: $(apptainer version)"
-              echo "Temporary files in APPTAINER_TMPDIR: $(ls -la $APPTAINER_TMPDIR)"
               echo "❌ Variant $variant check failed"
               failed_variants+=("$variant")
             fi
@@ -665,24 +749,31 @@ jobs:
           
           if [ ! -z "$NODES" ]; then
             echo "Found nodes to clean up:"
-            echo "$NODES" | while read -r node; do
+            CLEANED_NODES=0
+            while read -r node; do
               if [ -z "$node" ]; then 
                 echo "Skipping empty node name"
                 continue
               fi
               echo "Processing node: '$node'"
-              bv n delete -y "$node" || echo "Warning: Failed to delete node '$node'"
-            done
+              if bv n delete -y "$node"; then
+                CLEANED_NODES=$((CLEANED_NODES + 1))
+              else
+                echo "Warning: Failed to delete node '$node'"
+              fi
+            done <<< "$NODES"
             
-            # Post appropriate message based on trigger
-            if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
-              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge"
-            elif [[ "${{ github.event.action }}" == "closed" ]]; then
-              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR close"
-            elif [[ "${{ github.event.action }}" == "synchronize" ]]; then
-              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR update"
-            else
-              gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up"
+            # Only post message if we actually cleaned up nodes
+            if [ $CLEANED_NODES -gt 0 ]; then
+              if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge"
+              elif [[ "${{ github.event.action }}" == "closed" ]]; then
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR close"
+              elif [[ "${{ github.event.action }}" == "synchronize" ]]; then
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR update"
+              else
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up"
+              fi
             fi
           else
             echo "No nodes found to clean up, exiting cleanly"
@@ -696,7 +787,7 @@ jobs:
       github.event.pull_request.state != 'closed' &&
       (github.event.action == 'opened' ||
        github.event.action == 'synchronize' ||
-       contains(github.event.pull_request.labels.*.name, 'test-nodes-failed'))
+       needs.manage-labels.outputs.should-run-tests == 'true')
     runs-on: ${{ needs.get-host.outputs.target_host }}
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
@@ -807,6 +898,9 @@ jobs:
       github.event.pull_request.merged == true && 
       github.event.action != 'closed'
     runs-on: dev
+    permissions:
+      contents: read      # Allows reading repository contents
+      packages: write     # Allows pushing/pulling container images
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
     steps:
