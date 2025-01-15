@@ -495,8 +495,8 @@ jobs:
           
           echo "=== Environment Variables ==="
           echo "PATH: $PATH"
-          env | grep -i "APPTAINER"
-          env | grep -i "SINGULARITY"
+          env | grep -i "APPTAINER" || true
+          env | grep -i "SINGULARITY" || true
           
           echo "=== Temporary Directory Setup ==="
           mkdir -p ~/temp
