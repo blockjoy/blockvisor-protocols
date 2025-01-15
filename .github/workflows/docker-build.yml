@@ -132,9 +132,57 @@ jobs:
             echo 'protocols_matrix={"include":[]}' >> $GITHUB_OUTPUT
           fi
 
+  manage-labels:
+    runs-on: self-hosted
+    outputs:
+      should-run-base: ${{ steps.check-labels.outputs.should-run-base }}
+      should-run-clients: ${{ steps.check-labels.outputs.should-run-clients }}
+      should-run-protocols: ${{ steps.check-labels.outputs.should-run-protocols }}
+      should-run-tests: ${{ steps.check-labels.outputs.should-run-tests }}
+    steps:
+      - name: Create required labels
+        run: |
+          labels=("build-base-failed" "build-clients-failed" "build-protocols-failed" "test-nodes-failed")
+          for label in "${labels[@]}"; do
+            gh label list | grep -q "^$label" || gh label create "$label" --color "D93F0B" --description "Workflow failure indicator"
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check PR labels and set outputs
+        id: check-labels
+        run: |
+          pr_labels=$(gh pr view ${{ github.event.pull_request.number }} --json labels -q '.labels[].name')
+          
+          # Function to handle job labels and outputs
+          handle_job_label() {
+            local job_name=$1
+            local label_name="${job_name}-failed"
+            local output_name="should-run-${job_name#build-}"  # Converts 'build-base' to 'should-run-base'
+            
+            if echo "$pr_labels" | grep -q "$label_name"; then
+              echo "${output_name}=true" >> $GITHUB_OUTPUT
+              gh pr edit ${{ github.event.pull_request.number }} --remove-label "$label_name"
+              echo "✅ Removed ${label_name} label and set ${output_name}=true"
+            else
+              echo "${output_name}=false" >> $GITHUB_OUTPUT
+              echo "ℹ️ No ${label_name} label found, set ${output_name}=false"
+            fi
+          }
+          
+          # Handle each job
+          handle_job_label "build-base"
+          handle_job_label "build-clients"
+          handle_job_label "build-protocols"
+          handle_job_label "test-nodes"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   build-base:
-    needs: detect-changes
-    if: ${{ fromJson(needs.detect-changes.outputs.base_matrix).include[0] }}
+    needs: [detect-changes, manage-labels]
+    if: |
+      fromJson(needs.detect-changes.outputs.base_matrix).include[0] ||
+      contains(github.event.pull_request.labels.*.name, 'build-base-failed')
     runs-on: self-hosted
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.base_matrix) }}
@@ -223,8 +271,10 @@ jobs:
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
 
   build-clients:
-    needs: [detect-changes]
-    if: fromJson(needs.detect-changes.outputs.clients_matrix).include[0]
+    needs: [detect-changes, manage-labels]
+    if: |
+      fromJson(needs.detect-changes.outputs.clients_matrix).include[0] ||
+      contains(github.event.pull_request.labels.*.name, 'build-clients-failed')
     runs-on: self-hosted
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.clients_matrix) }}
@@ -331,12 +381,12 @@ jobs:
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
 
   build-protocols:
-    needs: [detect-changes]
+    needs: [detect-changes, manage-labels]
     if: |
-      github.event_name == 'pull_request' && 
+      (fromJson(needs.detect-changes.outputs.protocols_matrix).include[0] ||
+       contains(github.event.pull_request.labels.*.name, 'build-protocols-failed')) &&
       github.event.pull_request.user.login != 'renovate[bot]' && 
-      github.event.action != 'closed' &&
-      fromJson(needs.detect-changes.outputs.protocols_matrix).include[0] != null
+      github.event.action != 'closed'
     runs-on: dev
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
@@ -582,18 +632,18 @@ jobs:
           echo "target_host=$PREV_HOST" >> $GITHUB_OUTPUT
 
   test-nodes:
-    needs: [build-protocols, get-host]
+    needs: [build-protocols, get-host, manage-labels]
     if: |
-      github.event_name == 'pull_request' && 
-      github.event.pull_request.user.login != 'renovate[bot]' && 
-      github.event.action != 'closed' ||
-      contains(github.event.pull_request.labels.*.name, 'tests-fail')
+      (github.event_name == 'pull_request' && 
+       github.event.pull_request.user.login != 'renovate[bot]' && 
+       github.event.action != 'closed') ||
+      contains(github.event.pull_request.labels.*.name, 'test-nodes-failed')
+    runs-on: ${{ needs.get-host.outputs.target_host }}
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
     outputs:
       runner_host: ${{ steps.test-nodes.outputs.runner_host }}
       node_names: ${{ steps.test-nodes.outputs.node_names }}
-    runs-on: ${{ needs.get-host.outputs.target_host }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Authenticate GitHub CLI
@@ -787,36 +837,71 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # First check if tests-fail label exists
-          if gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name' | grep -q "tests-fail"; then
-            echo "❌ Tests failed (tests-fail label present)"
-            exit 1
-          fi
-          echo "Job results:"
-          echo "detect-changes: ${{ needs.detect-changes.result }}"
-          echo "build-base: ${{ needs.build-base.result }}"
-          echo "build-clients: ${{ needs.build-clients.result }}"
-          echo "build-protocols: ${{ needs.build-protocols.result }}"
-          echo "test-nodes: ${{ needs.test-nodes.result }}"
+          # Get current PR labels
+          pr_labels=$(gh pr view ${{ github.event.pull_request.number }} --json labels -q '.labels[].name')
           
-          # If builds were skipped or only detect-changes ran, that means no relevant files changed
-          if [[ "${{ needs.build-base.result }}" == "skipped" ]] && \
-             [[ "${{ needs.build-clients.result }}" == "skipped" ]] && \
-             [[ "${{ needs.build-protocols.result }}" == "skipped" ]] && \
-             [[ "${{ needs.test-nodes.result }}" == "skipped" ]]; then
-            echo "No relevant files changed - marking as success"
-            exit 0
-          fi
+           # Function to handle job result and its label
+           handle_job_result() {
+             local job_name=$1
+             local job_result=$2
+             local label_name="${job_name}-failed"
+             
+             if [[ "$job_result" == "success" ]]; then
+               # Only remove label if it exists
+               if echo "$pr_labels" | grep -q "^${label_name}$"; then
+                 echo "✅ Removing ${label_name} label as job succeeded"
+                 gh pr edit ${{ github.event.pull_request.number }} --remove-label "$label_name"
+               fi
+             elif [[ "$job_result" == "failure" ]]; then
+               echo "❌ Adding ${label_name} label as job failed"
+               gh pr edit ${{ github.event.pull_request.number }} --add-label "$label_name"
+             elif [[ "$job_result" == "skipped" ]] && echo "$pr_labels" | grep -q "^${label_name}$"; then
+               echo "⚠️ Re-adding ${label_name} label as job was skipped"
+               gh pr edit ${{ github.event.pull_request.number }} --add-label "$label_name"
+             fi
+           
+           echo "Job results:"
+           echo "detect-changes: ${{ needs.detect-changes.result }}"
+           echo "build-base: ${{ needs.build-base.result }}"
+           echo "build-clients: ${{ needs.build-clients.result }}"
+           echo "build-protocols: ${{ needs.build-protocols.result }}"
+           echo "test-nodes: ${{ needs.test-nodes.result }}"
+           
+           # Handle each job's result
+           handle_job_result "build-base" "${{ needs.build-base.result }}"
+           handle_job_result "build-clients" "${{ needs.build-clients.result }}"
+           handle_job_result "build-protocols" "${{ needs.build-protocols.result }}"
+           handle_job_result "test-nodes" "${{ needs.test-nodes.result }}"
+           
+           # Get updated PR labels after handling jobs
+          updated_labels=$(gh pr view ${{ github.event.pull_request.number }} --json labels -q '.labels[].name')
           
-          # Otherwise check if any non-skipped jobs failed
-          if [[ "${{ needs.build-base.result }}" != "skipped" && "${{ needs.build-base.result }}" != "success" ]] || \
-             [[ "${{ needs.build-clients.result }}" != "skipped" && "${{ needs.build-clients.result }}" != "success" ]] || \
-             [[ "${{ needs.build-protocols.result }}" != "skipped" && "${{ needs.build-protocols.result }}" != "success" ]] || \
-             [[ "${{ needs.test-nodes.result }}" != "skipped" && "${{ needs.test-nodes.result }}" != "success" ]]; then
-            echo "One or more builds failed"
-            gh pr edit ${{ github.event.pull_request.number }} --add-label "tests-fail"
-            exit 1
-          fi
+          # Check for any failed labels
+          failed_labels=("build-base-failed" "build-clients-failed" "build-protocols-failed" "test-nodes-failed")
+          for label in "${failed_labels[@]}"; do
+            if echo "$updated_labels" | grep -q "^${label}$"; then
+              echo "❌ Found failure label: ${label}"
+              exit 1
+            fi
+          done
           
-          echo "All triggered builds completed successfully"
-          exit 0
+           # If builds were skipped or only detect-changes ran, that means no relevant files changed
+           if [[ "${{ needs.build-base.result }}" == "skipped" ]] && \
+              [[ "${{ needs.build-clients.result }}" == "skipped" ]] && \
+              [[ "${{ needs.build-protocols.result }}" == "skipped" ]] && \
+              [[ "${{ needs.test-nodes.result }}" == "skipped" ]]; then
+             echo "No relevant files changed - marking as success"
+             exit 0
+           fi
+           
+           # Otherwise check if any non-skipped jobs failed
+           if [[ "${{ needs.build-base.result }}" != "skipped" && "${{ needs.build-base.result }}" != "success" ]] || \
+              [[ "${{ needs.build-clients.result }}" != "skipped" && "${{ needs.build-clients.result }}" != "success" ]] || \
+              [[ "${{ needs.build-protocols.result }}" != "skipped" && "${{ needs.build-protocols.result }}" != "success" ]] || \
+              [[ "${{ needs.test-nodes.result }}" != "skipped" && "${{ needs.test-nodes.result }}" != "success" ]]; then
+             echo "One or more builds failed"
+             exit 1
+           fi
+           
+           echo "All triggered builds completed successfully"
+           exit 0
