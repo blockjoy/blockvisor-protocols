@@ -71,7 +71,7 @@ const PLUGIN_CONFIG = #{
         },
         #{
             name: "op-node",
-            run_sh: `export HOME=/root && /root/bin/op-node --network=${global::OPNET} --rpc.addr=127.0.0.1 --rpc.port=${global::OP_RPC_PORT} --l1=${global::L1_URL} --l1.beacon=${global::L1_BEACON_URL} --l1.trustrpc --l2.enginekind=reth --l2=http://127.0.0.1:${global::AUTHRPC_PORT} --l2.jwt-secret=${global::HOME}/jwt.txt --syncmode=execution-layer`,
+            run_sh: `export HOME=/root && /root/bin/op-node --network=${global::NET} --rpc.addr=127.0.0.1 --rpc.port=${global::OP_RPC_PORT} --l1=${global::L1_URL} --l1.beacon=${global::L1_BEACON_URL} --l1.trustrpc --l2.enginekind=reth --l2=http://127.0.0.1:${global::AUTHRPC_PORT} --l2.jwt-secret=${global::HOME}/jwt.txt --syncmode=execution-layer`,
             shutdown_timeout_secs: 120,
             use_blockchain_data: true,
             log_timestamp: false,
