@@ -41,8 +41,7 @@ jobs:
     runs-on: dev
     if: |
       github.event_name == 'pull_request' && 
-      github.event.pull_request.user.login != 'renovate[bot]' && 
-      github.event.action != 'closed'
+      github.event.pull_request.user.login != 'renovate[bot]'
     outputs:
       base_matrix: ${{ steps.set-matrix.outputs.base_matrix }}
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
