@@ -779,7 +779,7 @@ jobs:
           if [ ! -z "$NODES" ]; then
             echo "Found nodes to clean up:"
             CLEANED_NODES=0
-            echo "$NODES" | while read -r node; do
+            while read -r node; do
               if [ -z "$node" ]; then 
                 echo "Skipping empty node name"
                 continue
@@ -790,7 +790,7 @@ jobs:
               else
                 echo "Warning: Failed to delete node '$node'"
               fi
-            done
+            done <<< "$NODES"
             
             # Only post message if we actually cleaned up nodes
             if [ $CLEANED_NODES -gt 0 ]; then
