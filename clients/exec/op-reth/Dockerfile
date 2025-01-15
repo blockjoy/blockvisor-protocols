@@ -1,4 +1,4 @@
-# 4
+# 5
 ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250109.3
 
 FROM ${BASE_IMAGE} AS builder
