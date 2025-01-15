@@ -14,6 +14,7 @@ on:
       - opened      # PR is created
       - synchronize # New commits pushed
       - reopened    # Closed PR is reopened
+      - closed     # PR is merged or closed
   pull_request_target:
     branches: [ main ]
     paths-ignore:
@@ -134,6 +135,10 @@ jobs:
 
   manage-labels:
     runs-on: self-hosted
+    if: |
+      github.event_name == 'pull_request' && 
+      github.event.pull_request.merged != true &&
+      github.event.pull_request.state != 'closed'
     outputs:
       should-run-base: ${{ steps.check-labels.outputs.should-run-base }}
       should-run-clients: ${{ steps.check-labels.outputs.should-run-clients }}
@@ -603,11 +608,11 @@ jobs:
   get-host:
     needs: [build-protocols]
     if: |
-      github.event.pull_request.user.login != 'renovate[bot]' && 
-      (github.event.pull_request.merged == true || 
-       github.event.action == 'closed' || 
-      github.event.action == 'opened' ||
-       github.event.action == 'synchronize')
+        github.event.pull_request.user.login != 'renovate[bot]' &&
+        ((github.event.pull_request.merged == true || 
+          github.event.action == 'closed' || 
+          github.event.action == 'synchronize') &&
+          github.event.action != 'opened')
     runs-on: dev
     outputs:
       target_host: ${{ steps.get-host.outputs.target_host }}
