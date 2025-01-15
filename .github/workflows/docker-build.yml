@@ -709,20 +709,19 @@ jobs:
             # Add to deployed nodes list before attempting start
             DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
             
+            # Post comment about deployed nodes after successful deployment
+            COMMENT="The following nodes have been deployed on \`${RUNNER_HOST}\`:"$'\n'
+            for node in "${DEPLOYED_NODES[@]}"; do
+              COMMENT="${COMMENT}${node}"$'\n'
+            done
+            COMMENT="${COMMENT}"$'\n'"These nodes will be cleaned up on PR merge or close and replaced on PR update."
+            echo -e "$COMMENT" | gh pr comment ${{ github.event.pull_request.number }} --body-file -
+            
             # Start the node
             echo "Starting node ${NODE_NAME}"
             if ! START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1); then
               echo "Error: Failed to start node ${NODE_NAME}:"
               echo "$START_OUTPUT"
-              # Post comment about deployed nodes before failing
-              if [ ${#DEPLOYED_NODES[@]} -gt 0 ]; then
-                COMMENT="The following nodes have been deployed on \`${RUNNER_HOST}\`:"$'\n'
-                for node in "${DEPLOYED_NODES[@]}"; do
-                  COMMENT="${COMMENT}${node}"$'\n'
-                done
-                COMMENT="${COMMENT}"$'\n'"These nodes will be cleaned up on PR merge or close and replaced on PR update."
-                echo -e "$COMMENT" | gh pr comment ${{ github.event.pull_request.number }} --body-file -
-              fi
               exit 1
             fi
             echo "Successfully started node ${NODE_NAME}"
