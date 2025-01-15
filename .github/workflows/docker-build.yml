@@ -190,7 +190,7 @@ jobs:
     needs: [detect-changes, manage-labels]
     if: |
       fromJson(needs.detect-changes.outputs.base_matrix).include[0] ||
-      contains(github.event.pull_request.labels.*.name, 'build-base-failed')
+      needs.manage-labels.outputs.should-run-base == 'true'
     runs-on: self-hosted
     permissions:
       contents: read      # Allows reading repository contents
@@ -314,7 +314,7 @@ jobs:
     needs: [detect-changes, manage-labels]
     if: |
       fromJson(needs.detect-changes.outputs.clients_matrix).include[0] ||
-      contains(github.event.pull_request.labels.*.name, 'build-clients-failed')
+      needs.manage-labels.outputs.should-run-clients == 'true'
     runs-on: self-hosted
     permissions:
       contents: read      # Allows reading repository contents
@@ -452,7 +452,7 @@ jobs:
     needs: [detect-changes, manage-labels]
     if: |
       (fromJson(needs.detect-changes.outputs.protocols_matrix).include[0] ||
-       contains(github.event.pull_request.labels.*.name, 'build-protocols-failed')) &&
+       needs.manage-labels.outputs.should-run-protocols == 'true') &&
       github.event.pull_request.user.login != 'renovate[bot]' && 
       github.event.action != 'closed'
     runs-on: dev
@@ -787,7 +787,7 @@ jobs:
       github.event.pull_request.state != 'closed' &&
       (github.event.action == 'opened' ||
        github.event.action == 'synchronize' ||
-       contains(github.event.pull_request.labels.*.name, 'test-nodes-failed'))
+       needs.manage-labels.outputs.should-run-tests == 'true')
     runs-on: ${{ needs.get-host.outputs.target_host }}
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
