@@ -2,7 +2,7 @@ version: 0.0.1
 container_uri: docker://ghcr.io/blockjoy/base-reth:v20250113.1
 sku_code: BASE-OP-RETH
 org_id: null
-description: Base OP Reth node 1
+description: Base OP Reth node
 visibility: public
 protocol_key: base
 variants:
