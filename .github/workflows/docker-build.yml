@@ -890,14 +890,13 @@ jobs:
           echo "start_failed=${START_FAILED}" >> $GITHUB_OUTPUT
 
   nib-image-push:
-    needs: [test-nodes, build-protocols]
     if: |
       github.event.pull_request.merged == true && 
       github.event.action != 'closed'
     runs-on: dev
     permissions:
-      contents: read      # Allows reading repository contents
-      packages: write     # Allows pushing/pulling container images
+      contents: read
+      packages: write
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
     steps:
