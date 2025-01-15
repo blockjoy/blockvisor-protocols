@@ -605,7 +605,6 @@ jobs:
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
 
   get-host:
-    needs: [build-protocols]
     if: |
         github.event.pull_request.user.login != 'renovate[bot]' &&
         (github.event.pull_request.merged == true || 
