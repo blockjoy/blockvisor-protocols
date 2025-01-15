@@ -1,0 +1,6 @@
+- key: ethereum
+  name: Ethereum protocol
+  org_id: null
+  ticker: null
+  description: Ethereum is a network of computers all over the world that follow a set of rules called the Ethereum protocol. The Ethereum network acts as the foundation for communities, applications, organizations and digital assets that anyone can build and use.
+  visibility: public

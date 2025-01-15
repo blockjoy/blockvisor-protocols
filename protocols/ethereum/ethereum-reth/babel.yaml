@@ -2,7 +2,7 @@ version: 0.0.5
 container_uri: docker://ghcr.io/blockjoy/ethereum-reth:v20250115.7
 sku_code: ETH-RETH
 org_id: null
-description: Ethereum Reth node 
+description: Ethereum Reth node 2 
 visibility: public
 protocol_key: ethereum
 variants:
@@ -11,25 +11,25 @@ variants:
     min_memory_mb: 16000
     min_disk_gb: 1500
     archive_pointers:
-      - pointer: !store_id ethereum-reth-mainnet-full-v1
+      - pointer: !store_key ethereum-reth-mainnet-full-v1
   - key: reth-sepolia-full
     min_cpu: 4
     min_memory_mb: 8000
     min_disk_gb: 400
     archive_pointers:
-      - pointer: !store_id ethereum-reth-sepolia-full-v1
+      - pointer: !store_key ethereum-reth-sepolia-full-v1
   - key: reth-mainnet-archive
     min_cpu: 8
     min_memory_mb: 16000
     min_disk_gb: 4000
     archive_pointers:
-      - pointer: !store_id ethereum-reth-mainnet-archive-v1
+      - pointer: !store_key ethereum-reth-mainnet-archive-v1
   - key: reth-sepolia-archive
     min_cpu: 4
     min_memory_mb: 8000
     min_disk_gb: 800
     archive_pointers:
-      - pointer: !store_id ethereum-reth-sepolia-archive-v1
+      - pointer: !store_key ethereum-reth-sepolia-archive-v1
 firewall_config:
   default_in: deny
   default_out: allow
