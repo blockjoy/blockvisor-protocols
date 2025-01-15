@@ -485,9 +485,25 @@ jobs:
       - name: Check variants
         id: check-variants
         run: |
+          echo "=== User Context ==="
+          echo "Current user: $(whoami)"
+          echo "User ID: $(id -u)"
+          echo "Group ID: $(id -g)"
+          echo "Groups: $(groups)"
+          echo "Home directory: $HOME"
+          echo "Working directory: $(pwd)"
+          
+          echo "=== Environment Variables ==="
+          echo "PATH: $PATH"
+          env | grep -i "APPTAINER"
+          env | grep -i "SINGULARITY"
+          
+          echo "=== Temporary Directory Setup ==="
           mkdir -p ~/temp
           chmod 700 ~/temp
           echo "APPTAINER_TMPDIR=~/temp" >> $GITHUB_ENV
+          echo "Created temp dir: $(ls -la ~/temp)"
+          echo "Temp dir permissions: $(stat -c '%A %a %n' ~/temp)"
 
           # Copy babel.yaml to test file
           cp ${{ matrix.image_path }}/babel.yaml ${{ matrix.image_path }}/babel.yaml-test
@@ -503,11 +519,19 @@ jobs:
           for variant in ${{ steps.get-variants.outputs.variants }}; do
             echo "Checking variant: $variant"
             
+            echo "=== Before nib command ==="
+            echo "Current directory: $(pwd)"
+            echo "File permissions: $(ls -la ${{ matrix.image_path }}/babel.yaml-test)"
+            echo "Which nib: $(which nib)"
+            
             # Run nib image check and capture output
             if nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test; then
               success_variants+=("$variant")
               echo "✅ Variant $variant check passed"
             else
+              echo "=== Command failed, showing more debug info ==="
+              echo "Apptainer version: $(apptainer version)"
+              echo "Temporary files in APPTAINER_TMPDIR: $(ls -la $APPTAINER_TMPDIR)"
               echo "❌ Variant $variant check failed"
               failed_variants+=("$variant")
             fi
