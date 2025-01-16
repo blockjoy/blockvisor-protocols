@@ -4,6 +4,11 @@ on:
   pull_request:
     types: [closed]
 
+# Queue workflows from the same PR to run sequentially
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.head_ref || github.ref }}
+  cancel-in-progress: false
+
 jobs:
   detect-changes:
     runs-on: self-hosted
