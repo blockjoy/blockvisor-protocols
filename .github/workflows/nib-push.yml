@@ -135,7 +135,7 @@ jobs:
       contents: read
       packages: write
     strategy:
-      matrix: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
+      matrix: ${{ fromJson(needs.detect-changes.outputs.content_changes) }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
