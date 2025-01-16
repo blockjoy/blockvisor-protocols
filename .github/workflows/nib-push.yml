@@ -34,21 +34,24 @@ jobs:
           declare -a VERSION_CHANGES=()
 
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            echo "Processing $file"
-            DIR=$(dirname "$file")
-            PROTOCOL=$(basename "$DIR")
-            
-            # Get current and previous versions
-            CURRENT_VERSION=$(yq e '.version' "$file")
-            PREV_VERSION=$(git show ${{ github.event.pull_request.base.sha }}:"$file" | yq e '.version' -)
-            
-            CHANGED_PATHS+=("{\"image_path\":\"$DIR\",\"protocol\":\"$PROTOCOL\"}")
-            
-            if [ "$CURRENT_VERSION" != "$PREV_VERSION" ]; then
-              echo "Version changed in $file: $PREV_VERSION -> $CURRENT_VERSION"
-              VERSION_CHANGES+=("{\"image_path\":\"$DIR\",\"protocol\":\"$PROTOCOL\",\"version\":\"$CURRENT_VERSION\"}")
-            else
-              echo "No version change in $file, only content changes"
+            if [[ "$file" == *"babel.yaml" ]]; then
+              echo "Processing $file"
+              DIR=$(dirname "$file")
+              PROTOCOL=$(basename "$DIR")
+              
+              # Add to changed paths for dev environment
+              CHANGED_PATHS+=("{\"image_path\":\"$DIR\",\"protocol\":\"$PROTOCOL\"}")
+              
+              # Get current and previous versions for staging/prod
+              CURRENT_VERSION=$(yq e '.version' "$file")
+              PREV_VERSION=$(git show ${{ github.event.pull_request.base.sha }}:"$file" | yq e '.version' -)
+              
+              if [ "$CURRENT_VERSION" != "$PREV_VERSION" ]; then
+                echo "Version changed in $file: $PREV_VERSION -> $CURRENT_VERSION"
+                VERSION_CHANGES+=("{\"image_path\":\"$DIR\",\"protocol\":\"$PROTOCOL\",\"version\":\"$CURRENT_VERSION\"}")
+              else
+                echo "No version change in $file, only content changes"
+              fi
             fi
           done
           
