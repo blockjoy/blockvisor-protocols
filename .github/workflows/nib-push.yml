@@ -1,0 +1,89 @@
+name: NIB Push
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  detect-changes:
+    runs-on: dev
+    if: github.event.pull_request.merged == true
+    outputs:
+      babel_changed: ${{ steps.check-versions.outputs.babel_changed }}
+      babel_matrix: ${{ steps.check-versions.outputs.babel_matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@d6e91a2266cdb9d62096cebf1e8546899c6aa18f # v45
+        with:
+          base_sha: ${{ github.event.pull_request.base.sha }}
+          fetch_depth: 0
+
+      - name: Check version changes
+        id: check-versions
+        run: |
+          # Get all changed babel.yaml files
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} | grep "babel.yaml$" || true)
+          
+          if [ ! -z "$CHANGED_FILES" ]; then
+            echo "Found changed babel.yaml files:"
+            echo "$CHANGED_FILES"
+            echo "babel_changed=true" >> $GITHUB_OUTPUT
+            
+            # Create matrix of directories containing changed babel.yaml files
+            BABEL_DIRS=$(echo "$CHANGED_FILES" | xargs -I {} dirname {} | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')
+            echo "babel_matrix=$BABEL_DIRS" >> $GITHUB_OUTPUT
+          else
+            echo "No babel.yaml files changed"
+            echo "babel_changed=false" >> $GITHUB_OUTPUT
+            echo 'babel_matrix={"include":[]}' >> $GITHUB_OUTPUT
+          fi
+
+  nib-image-push:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.babel_changed == 'true'
+    runs-on: dev
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.babel_matrix) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Check protocol key in protocols.yaml
+        id: check-protocol
+        run: |
+          # Get protocol key from babel.yaml
+          PROTOCOL_KEY=$(yq e '.protocol_key' ${{ matrix.image_path }}/babel.yaml)
+          echo "Checking for protocol key: $PROTOCOL_KEY"
+          
+          # Check if key exists in protocols.yaml
+          if ! yq e '.[] | select(.key == "'$PROTOCOL_KEY'")' protocols/protocols.yaml > /dev/null 2>&1; then
+            echo " Protocol key '$PROTOCOL_KEY' not found in protocols/protocols.yaml"
+            exit 1
+          fi
+          
+          # Check if protocols.yaml has changed
+          if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -q "^protocols/protocols.yaml$"; then
+            echo "protocols/protocols.yaml has changed, will push protocol updates"
+            echo "protocols_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "protocols/protocols.yaml unchanged"
+            echo "protocols_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push protocol updates
+        if: steps.check-protocol.outputs.protocols_changed == 'true'
+        run: |
+          echo "Pushing protocol updates"
+          nib protocol push --path protocols/protocols.yaml
+
+      - name: Push image to nib
+        run: |
+          echo "Pushing image due to babel.yaml changes in ${{ matrix.image_path }}"
+          nib image push --path ${{ matrix.image_path }}/babel.yaml

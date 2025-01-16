@@ -40,11 +40,8 @@ jobs:
   detect-changes:
     runs-on: dev
     if: |
-      github.event.pull_request.user.login != 'renovate[bot]' &&
-      (github.event.pull_request.merged == true || 
-        github.event.action == 'closed' || 
-        github.event.action == 'synchronize' ||
-        github.event.action == 'opened')
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed'
     outputs:
       base_matrix: ${{ steps.set-matrix.outputs.base_matrix }}
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
@@ -131,66 +128,13 @@ jobs:
             echo 'protocols_matrix={"include":[]}' >> $GITHUB_OUTPUT
           fi
 
-  manage-labels:
-    runs-on: self-hosted
-    if: |
-      github.event_name == 'pull_request' && 
-      github.event.pull_request.merged != true &&
-      github.event.pull_request.state != 'closed'
-    outputs:
-      should-run-base: ${{ steps.check-labels.outputs.should-run-base }}
-      should-run-clients: ${{ steps.check-labels.outputs.should-run-clients }}
-      should-run-protocols: ${{ steps.check-labels.outputs.should-run-protocols }}
-      should-run-tests: ${{ steps.check-labels.outputs.should-run-tests }}
-    steps:
-      - name: Create required labels
-        run: |
-          labels=("build-base-failed" "build-clients-failed" "build-protocols-failed" "test-nodes-failed")
-          for label in "${labels[@]}"; do
-            # Check if label exists
-            if ! gh api repos/${{ github.repository }}/labels | jq -e ".[] | select(.name == \"$label\")" > /dev/null; then
-              # Create label if it doesn't exist
-              gh api repos/${{ github.repository }}/labels -X POST -f name="$label" -f color="D93F0B" -f description="Workflow failure indicator"
-            fi
-          done
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check PR labels and set outputs
-        id: check-labels
-        run: |
-          pr_labels=$(gh pr view ${{ github.event.pull_request.number }} --json labels -q '.labels[].name')
-          
-          # Function to handle job labels and outputs
-          handle_job_label() {
-            local job_name=$1
-            local label_name="${job_name}-failed"
-            local output_name="should-run-${job_name#build-}"  # Converts 'build-base' to 'should-run-base'
-            
-            if echo "$pr_labels" | grep -q "$label_name"; then
-              echo "${output_name}=true" >> $GITHUB_OUTPUT
-              gh pr edit ${{ github.event.pull_request.number }} --remove-label "$label_name"
-              echo "✅ Removed ${label_name} label and set ${output_name}=true"
-            else
-              echo "${output_name}=false" >> $GITHUB_OUTPUT
-              echo "ℹ️ No ${label_name} label found, set ${output_name}=false"
-            fi
-          }
-          
-          # Handle each job
-          handle_job_label "build-base"
-          handle_job_label "build-clients"
-          handle_job_label "build-protocols"
-          handle_job_label "test-nodes"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   build-base:
-    needs: [detect-changes, manage-labels]
+    needs: [detect-changes]
     if: |
-      fromJson(needs.detect-changes.outputs.base_matrix).include[0] ||
-      needs.manage-labels.outputs.should-run-base == 'true'
-    runs-on: self-hosted
+      github.event_name == 'pull_request' &&
+      fromJson(needs.detect-changes.outputs.base_matrix).include[0] &&
+      github.event.action != 'closed'
+    runs-on: dev
     permissions:
       contents: read      # Allows reading repository contents
       packages: write     # Allows pushing/pulling container images
@@ -310,11 +254,12 @@ jobs:
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
 
   build-clients:
-    needs: [detect-changes, manage-labels]
+    needs: [detect-changes]
     if: |
-      fromJson(needs.detect-changes.outputs.clients_matrix).include[0] ||
-      needs.manage-labels.outputs.should-run-clients == 'true'
-    runs-on: self-hosted
+      github.event_name == 'pull_request' &&
+      fromJson(needs.detect-changes.outputs.clients_matrix).include[0] &&
+      github.event.action != 'closed'
+    runs-on: dev
     permissions:
       contents: read      # Allows reading repository contents
       packages: write     # Allows pushing/pulling container images
@@ -448,12 +393,10 @@ jobs:
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
 
   build-protocols:
-    needs: [detect-changes, manage-labels]
+    needs: [detect-changes]
     if: |
-      (fromJson(needs.detect-changes.outputs.protocols_matrix).include[0] ||
-       needs.manage-labels.outputs.should-run-protocols == 'true' ||
-       github.event.pull_request.merged == true) &&
-      github.event.pull_request.user.login != 'renovate[bot]' &&
+      github.event_name == 'pull_request' &&
+      fromJson(needs.detect-changes.outputs.protocols_matrix).include[0] &&
       github.event.action != 'closed'
     runs-on: dev
     permissions:
@@ -757,14 +700,11 @@ jobs:
           fi
 
   test-nodes:
-    needs: [build-protocols, get-host, manage-labels, cleanup]
+    needs: [build-protocols, get-host, cleanup]
     if: |
-      github.event_name == 'pull_request' && 
-      github.event.pull_request.user.login != 'renovate[bot]' && 
-      github.event.pull_request.state != 'closed' &&
-      (github.event.action == 'opened' ||
-       github.event.action == 'synchronize' ||
-       needs.manage-labels.outputs.should-run-tests == 'true')
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.user.login != 'renovate[bot]' &&
+      github.event.action != 'closed'
     runs-on: ${{ needs.get-host.outputs.target_host }}
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
@@ -868,128 +808,3 @@ jobs:
           # Save node names for cleanup
           echo "node_names=${NODE_NAMES[*]}" >> $GITHUB_OUTPUT
           echo "start_failed=${START_FAILED}" >> $GITHUB_OUTPUT
-
-  nib-image-push:
-    needs: [build-protocols, detect-changes]
-    if: |
-      github.event.pull_request.merged == true && 
-      github.event.action != 'closed'
-    runs-on: dev
-    permissions:
-      contents: read
-      packages: write
-    strategy:
-      matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - name: Check protocol key in protocols.yaml
-        id: check-protocol
-        run: |
-          # Get protocol key from babel.yaml
-          PROTOCOL_KEY=$(yq e '.protocol_key' ${{ matrix.image_path }}/babel.yaml)
-          echo "Checking for protocol key: $PROTOCOL_KEY"
-          
-          # Check if key exists in protocols.yaml
-          if ! yq e '.[] | select(.key == "'$PROTOCOL_KEY'")' protocols/protocols.yaml > /dev/null 2>&1; then
-            echo "❌ Protocol key '$PROTOCOL_KEY' not found in protocols/protocols.yaml"
-            exit 1
-          fi
-          
-          # Check if protocols.yaml has changed
-          if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -q "^protocols/protocols.yaml$"; then
-            echo "protocols/protocols.yaml has changed, will push protocol updates"
-            echo "protocols_changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "protocols/protocols.yaml unchanged"
-            echo "protocols_changed=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Push protocol updates
-        if: steps.check-protocol.outputs.protocols_changed == 'true'
-        run: |
-          echo "Pushing protocol updates"
-          nib protocol push --path protocols/protocols.yaml
-
-      - name: Push image to nib
-        run: |
-          echo "Pushing image for ${{ matrix.image_path }}"
-          nib image push --path ${{ matrix.image_path }}/babel.yaml
-
-  workflow-status:
-    needs: [detect-changes, build-base, build-clients, build-protocols, test-nodes]
-    if: always()
-    runs-on: self-hosted
-    steps:
-      - name: Check workflow status
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Get current PR labels
-          pr_labels=$(gh pr view ${{ github.event.pull_request.number }} --json labels -q '.labels[].name')
-          
-           # Function to handle job result and its label
-           handle_job_result() {
-             local job_name=$1
-             local job_result=$2
-             local label_name="${job_name}-failed"
-             
-             if [[ "$job_result" == "success" ]]; then
-               # Only remove label if it exists
-               if echo "$pr_labels" | grep -q "^${label_name}$"; then
-                 echo "✅ Removing ${label_name} label as job succeeded"
-                 gh pr edit ${{ github.event.pull_request.number }} --remove-label "$label_name"
-               fi
-             elif [[ "$job_result" == "failure" ]]; then
-               echo "❌ Adding ${label_name} label as job failed"
-               gh pr edit ${{ github.event.pull_request.number }} --add-label "$label_name"
-             elif [[ "$job_result" == "skipped" ]] && echo "$pr_labels" | grep -q "^${label_name}$"; then
-               echo "⚠️ Re-adding ${label_name} label as job was skipped"
-               gh pr edit ${{ github.event.pull_request.number }} --add-label "$label_name"
-             fi
-           }
-            
-            echo "Job results:"
-            echo "detect-changes: ${{ needs.detect-changes.result }}"
-            echo "build-base: ${{ needs.build-base.result }}"
-            echo "build-clients: ${{ needs.build-clients.result }}"
-            echo "build-protocols: ${{ needs.build-protocols.result }}"
-            echo "test-nodes: ${{ needs.test-nodes.result }}"
-            
-            # Handle each job's result
-            handle_job_result "build-base" "${{ needs.build-base.result }}"
-            handle_job_result "build-clients" "${{ needs.build-clients.result }}"
-            handle_job_result "build-protocols" "${{ needs.build-protocols.result }}"
-            handle_job_result "test-nodes" "${{ needs.test-nodes.result }}"
-            
-            # Get updated PR labels after handling jobs
-          updated_labels=$(gh pr view ${{ github.event.pull_request.number }} --json labels -q '.labels[].name')
-          
-          # Check for any failed labels
-          failed_labels=("build-base-failed" "build-clients-failed" "build-protocols-failed" "test-nodes-failed")
-          for label in "${failed_labels[@]}"; do
-            if echo "$updated_labels" | grep -q "^${label}$"; then
-              echo "❌ Found failure label: ${label}"
-              exit 1
-            fi
-          done
-          
-           # If builds were skipped or only detect-changes ran, that means no relevant files changed
-           if [[ "${{ needs.build-base.result }}" == "skipped" ]] && \
-              [[ "${{ needs.build-clients.result }}" == "skipped" ]] && \
-              [[ "${{ needs.build-protocols.result }}" == "skipped" ]] && \
-              [[ "${{ needs.test-nodes.result }}" == "skipped" ]]; then
-             echo "No relevant files changed - marking as success"
-             exit 0
-           fi
-           
-           # Otherwise check if any non-skipped jobs failed
-           if [[ "${{ needs.build-base.result }}" != "skipped" && "${{ needs.build-base.result }}" != "success" ]] || \
-              [[ "${{ needs.build-clients.result }}" != "skipped" && "${{ needs.build-clients.result }}" != "success" ]] || \
-              [[ "${{ needs.build-protocols.result }}" != "skipped" && "${{ needs.build-protocols.result }}" != "success" ]] || \
-              [[ "${{ needs.test-nodes.result }}" != "skipped" && "${{ needs.test-nodes.result }}" != "success" ]]; then
-             echo "One or more builds failed"
-             exit 1
-           fi
-           
-           echo "All triggered builds completed successfully"
-           exit 0
