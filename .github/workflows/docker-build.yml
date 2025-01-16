@@ -601,7 +601,7 @@ jobs:
           echo "=== Updating container URI ==="
           NEW_URI="docker://ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}"
           echo "New URI: $NEW_URI"
-          yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
+          TMPDIR=~/temp yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
 
           echo "test_file=${{ matrix.image_path }}/babel.yaml-test" >> $GITHUB_OUTPUT
 
@@ -752,7 +752,7 @@ jobs:
           
           # Update container_uri with newly built image
           NEW_URI="docker://ghcr.io/blockjoy/${{ needs.build-protocols.outputs.image_name }}:${{ needs.build-protocols.outputs.image_tag }}"
-          yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
+          TMPDIR=~/temp yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
 
       - name: Test nodes
         id: test-nodes
