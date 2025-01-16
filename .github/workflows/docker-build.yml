@@ -576,7 +576,7 @@ jobs:
         run: |
           echo "=== Temporary Directory Setup ==="
           mkdir -p ~/temp
-          chmod 700 ~/temp
+          chmod 777 ~/temp
           export TMPDIR=~/temp
           echo "TMPDIR=~/temp" >> $GITHUB_ENV
           echo "APPTAINER_TMPDIR=~/temp" >> $GITHUB_ENV
