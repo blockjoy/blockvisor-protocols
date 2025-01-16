@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   detect-changes:
-    runs-on: self-hosted
+    runs-on: dev
     if: github.event.pull_request.merged == true
     outputs:
       version_changes: ${{ steps.check-versions.outputs.version_changes }}
@@ -91,7 +91,7 @@ jobs:
 
   check-protocols:
     needs: [detect-changes]
-    runs-on: self-hosted
+    runs-on: dev
     outputs:
       protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
     permissions:
@@ -129,7 +129,7 @@ jobs:
     environment: Dev
     needs: [detect-changes, check-protocols]
     if: fromJson(needs.detect-changes.outputs.content_changes)[0]
-    runs-on: self-hosted
+    runs-on: dev
     permissions:
       contents: read
       packages: write
@@ -161,7 +161,7 @@ jobs:
     environment: Staging
     needs: [detect-changes, push-dev, check-protocols]
     if: fromJson(needs.detect-changes.outputs.version_changes)[0]
-    runs-on: self-hosted
+    runs-on: dev
     strategy:
       matrix:
         include: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
@@ -196,7 +196,7 @@ jobs:
     environment: Prod
     needs: [detect-changes, push-staging, check-protocols]
     if: fromJson(needs.detect-changes.outputs.version_changes)[0]
-    runs-on: self-hosted
+    runs-on: dev
     strategy:
       matrix:
         include: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
@@ -223,7 +223,7 @@ jobs:
 
   create-release:
     needs: [detect-changes, push-prod]
-    runs-on: self-hosted
+    runs-on: dev
     if: success()
     permissions:
       contents: write
