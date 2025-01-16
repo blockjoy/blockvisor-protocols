@@ -813,3 +813,5 @@ jobs:
           # Save node names for cleanup
           echo "node_names=${NODE_NAMES[*]}" >> $GITHUB_OUTPUT
           echo "start_failed=${START_FAILED}" >> $GITHUB_OUTPUT
+          echo "status=success" >> $GITHUB_OUTPUT
+          exit 0
