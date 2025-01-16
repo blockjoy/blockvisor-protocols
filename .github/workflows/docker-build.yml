@@ -574,11 +574,6 @@ jobs:
       - name: Check variants
         id: check-variants
         run: |
-          echo "=== Temporary Directory Setup ==="
-          mkdir -p ~/temp
-          chmod 700 ~/temp
-          echo "APPTAINER_TMPDIR=~/temp" >> $GITHUB_ENV
-
           # Copy babel.yaml to test file
           cp ${{ matrix.image_path }}/babel.yaml ${{ matrix.image_path }}/babel.yaml-test
           
