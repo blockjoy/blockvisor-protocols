@@ -4,13 +4,18 @@ on:
   pull_request:
     types: [closed]
 
+# Queue workflows from the same PR to run sequentially
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.head_ref || github.ref }}
+  cancel-in-progress: false
+
 jobs:
   detect-changes:
     runs-on: self-hosted
     if: github.event.pull_request.merged == true
     outputs:
-      babel_matrix: ${{ steps.check-versions.outputs.babel_matrix }}
       version_changes: ${{ steps.check-versions.outputs.version_changes }}
+      content_changes: ${{ steps.check-content.outputs.content_changes }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -26,43 +31,58 @@ jobs:
           files: |
             protocols/**/babel.yaml
 
-      - name: Check version changes
-        id: check-versions
+      - name: Check content changes
+        id: check-content
         run: |
-          # Initialize arrays for different types of changes
-          declare -a CHANGED_PATHS=()
-          declare -a VERSION_CHANGES=()
-
+          declare -a CONTENT_CHANGES=()
+          
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             if [[ "$file" == *"babel.yaml" ]]; then
-              echo "Processing $file"
+              echo "Processing $file for content changes"
               DIR=$(dirname "$file")
               PROTOCOL=$(basename "$DIR")
               
-              # Add to changed paths for dev environment
-              CHANGED_PATHS+=("{\"image_path\":\"$DIR\",\"protocol\":\"$PROTOCOL\"}")
-              
-              # Get current and previous versions for staging/prod
-              CURRENT_VERSION=$(yq e '.version' "$file")
-              PREV_VERSION=$(git show ${{ github.event.pull_request.base.sha }}:"$file" | yq e '.version' -)
-              
-              if [ "$CURRENT_VERSION" != "$PREV_VERSION" ]; then
-                echo "Version changed in $file: $PREV_VERSION -> $CURRENT_VERSION"
-                VERSION_CHANGES+=("{\"image_path\":\"$DIR\",\"protocol\":\"$PROTOCOL\",\"version\":\"$CURRENT_VERSION\"}")
-              else
-                echo "No version change in $file, only content changes"
+              # Check if file content has changed
+              if ! git diff --quiet ${{ github.event.pull_request.base.sha }} HEAD -- "$file"; then
+                echo "Content changed in $file"
+                CONTENT_CHANGES+=("{\"image_path\":\"$DIR\",\"protocol\":\"$PROTOCOL\"}")
               fi
             fi
           done
           
-          # Create JSON arrays
-          if [ ${#CHANGED_PATHS[@]} -gt 0 ]; then
-            BABEL_MATRIX=$(printf "%s," "${CHANGED_PATHS[@]}" | sed 's/,$//' | jq -c "{include: [$(echo)]}")
-            echo "babel_matrix=$BABEL_MATRIX" >> $GITHUB_OUTPUT
+          # Create content changes array
+          if [ ${#CONTENT_CHANGES[@]} -gt 0 ]; then
+            CONTENT_ARRAY=$(printf "%s," "${CONTENT_CHANGES[@]}" | sed 's/,$//' | jq -c "[$(echo)]")
+            echo "content_changes=$CONTENT_ARRAY" >> $GITHUB_OUTPUT
           else
-            echo 'babel_matrix={"include":[]}' >> $GITHUB_OUTPUT
+            echo "content_changes=[]" >> $GITHUB_OUTPUT
           fi
+
+      - name: Check version changes
+        id: check-versions
+        run: |
+          # Get changed files from previous step
+          CHANGED_FILES="${{ steps.changed-files.outputs.all_changed_files }}"
           
+          # Initialize array for version changes
+          declare -a VERSION_CHANGES=()
+          
+          # Process each file
+          for file in $CHANGED_FILES; do
+            DIR=$(dirname "$file")
+            PROTOCOL=$(basename "$DIR")
+            
+            # Compare version key between current and base
+            CURRENT_VERSION=$(yq e '.version' "$file")
+            PREV_VERSION=$(git show ${{ github.event.pull_request.base.sha }}:"$file" | yq e '.version' -)
+            
+            if [ "$CURRENT_VERSION" != "$PREV_VERSION" ]; then
+              echo "Version changed in $file: $PREV_VERSION -> $CURRENT_VERSION"
+              VERSION_CHANGES+=("{\"image_path\":\"$DIR\",\"protocol\":\"$PROTOCOL\",\"version\":\"$CURRENT_VERSION\"}")
+            fi
+          done
+          
+          # Create version changes array using jq for proper JSON handling
           if [ ${#VERSION_CHANGES[@]} -gt 0 ]; then
             VERSION_ARRAY=$(printf "%s," "${VERSION_CHANGES[@]}" | sed 's/,$//' | jq -c "[$(echo)]")
             echo "version_changes=$VERSION_ARRAY" >> $GITHUB_OUTPUT
@@ -72,7 +92,7 @@ jobs:
 
   check-protocols:
     needs: [detect-changes]
-    if: fromJson(needs.detect-changes.outputs.babel_matrix).include[0]
+    if: fromJson(needs.detect-changes.outputs.version_changes)[0]
     runs-on: self-hosted
     outputs:
       protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
@@ -80,7 +100,7 @@ jobs:
       contents: read
       packages: write
     strategy:
-      matrix: ${{ fromJson(needs.detect-changes.outputs.babel_matrix) }}
+      matrix: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
@@ -109,13 +129,13 @@ jobs:
   push-dev:
     environment: Dev
     needs: [detect-changes, check-protocols]
-    if: fromJson(needs.detect-changes.outputs.babel_matrix).include[0]
+    if: fromJson(needs.detect-changes.outputs.content_changes)[0]
     runs-on: self-hosted
     permissions:
       contents: read
       packages: write
     strategy:
-      matrix: ${{ fromJson(needs.detect-changes.outputs.babel_matrix) }}
+      matrix: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
