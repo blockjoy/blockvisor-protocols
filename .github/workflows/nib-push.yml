@@ -1,0 +1,225 @@
+name: NIB Push
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  detect-changes:
+    runs-on: self-hosted
+    if: github.event.pull_request.merged == true
+    outputs:
+      babel_matrix: ${{ steps.check-versions.outputs.babel_matrix }}
+      version_changes: ${{ steps.check-versions.outputs.version_changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@d6e91a2266cdb9d62096cebf1e8546899c6aa18f # v45
+        with:
+          base_sha: ${{ github.event.pull_request.base.sha }}
+          fetch_depth: 0
+          files: |
+            protocols/**/babel.yaml
+
+      - name: Check version changes
+        id: check-versions
+        run: |
+          # Initialize arrays for different types of changes
+          declare -a CHANGED_PATHS=()
+          declare -a VERSION_CHANGES=()
+
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "Processing $file"
+            DIR=$(dirname "$file")
+            PROTOCOL=$(basename "$DIR")
+            
+            # Get current and previous versions
+            CURRENT_VERSION=$(yq e '.version' "$file")
+            PREV_VERSION=$(git show ${{ github.event.pull_request.base.sha }}:"$file" | yq e '.version' -)
+            
+            CHANGED_PATHS+=("{\"image_path\":\"$DIR\",\"protocol\":\"$PROTOCOL\"}")
+            
+            if [ "$CURRENT_VERSION" != "$PREV_VERSION" ]; then
+              echo "Version changed in $file: $PREV_VERSION -> $CURRENT_VERSION"
+              VERSION_CHANGES+=("{\"image_path\":\"$DIR\",\"protocol\":\"$PROTOCOL\",\"version\":\"$CURRENT_VERSION\"}")
+            else
+              echo "No version change in $file, only content changes"
+            fi
+          done
+          
+          # Create JSON arrays
+          if [ ${#CHANGED_PATHS[@]} -gt 0 ]; then
+            BABEL_MATRIX=$(printf "%s," "${CHANGED_PATHS[@]}" | sed 's/,$//' | jq -c "{include: [$(echo)]}")
+            echo "babel_matrix=$BABEL_MATRIX" >> $GITHUB_OUTPUT
+          else
+            echo 'babel_matrix={"include":[]}' >> $GITHUB_OUTPUT
+          fi
+          
+          if [ ${#VERSION_CHANGES[@]} -gt 0 ]; then
+            VERSION_ARRAY=$(printf "%s," "${VERSION_CHANGES[@]}" | sed 's/,$//' | jq -c "[$(echo)]")
+            echo "version_changes=$VERSION_ARRAY" >> $GITHUB_OUTPUT
+          else
+            echo "version_changes=[]" >> $GITHUB_OUTPUT
+          fi
+
+  check-protocols:
+    needs: [detect-changes]
+    if: fromJson(needs.detect-changes.outputs.babel_matrix).include[0]
+    runs-on: self-hosted
+    outputs:
+      protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.babel_matrix) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Check protocol key in protocols.yaml
+        id: check-protocol
+        run: |
+          # Get protocol key from babel.yaml
+          PROTOCOL_KEY=$(yq e '.protocol_key' ${{ matrix.image_path }}/babel.yaml)
+          echo "Checking for protocol key: $PROTOCOL_KEY"
+          
+          # Check if key exists in protocols.yaml
+          if ! yq e '.[] | select(.key == "'$PROTOCOL_KEY'")' protocols/protocols.yaml > /dev/null 2>&1; then
+            echo " Protocol key '$PROTOCOL_KEY' not found in protocols/protocols.yaml"
+            exit 1
+          fi
+          
+          # Check if protocols.yaml has changed
+          if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -q "^protocols/protocols.yaml$"; then
+            echo "protocols/protocols.yaml has changed, will push protocol updates"
+            echo "protocols_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "protocols/protocols.yaml unchanged"
+            echo "protocols_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+  push-dev:
+    environment: Dev
+    needs: [detect-changes, check-protocols]
+    if: fromJson(needs.detect-changes.outputs.babel_matrix).include[0]
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.babel_matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup NIB auth
+        run: |
+          echo '${{ secrets.NIB_AUTH }}' > ~/.nib.json
+
+      - name: Push protocols to dev
+        if: needs.check-protocols.outputs.protocols_changed == 'true'
+        run: |
+          echo "Pushing protocol updates to dev"
+          nib protocol push --path protocols/protocols.yaml
+
+      - name: Push to dev environment
+        run: |
+          echo "Pushing ${{ matrix.protocol }} to dev environment"
+          nib image push --path ${{ matrix.image_path }}/babel.yaml
+
+  push-staging:
+    environment: Staging
+    needs: [detect-changes, push-dev, check-protocols]
+    if: fromJson(needs.detect-changes.outputs.version_changes)[0]
+    runs-on: self-hosted
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup NIB auth
+        run: |
+          echo '${{ secrets.NIB_AUTH }}' > ~/.nib.json
+
+      - name: Push protocols to staging
+        if: needs.check-protocols.outputs.protocols_changed == 'true'
+        run: |
+          echo "Pushing protocol updates to staging"
+          nib protocol push --path protocols/protocols.yaml
+
+      - name: Create version tag
+        run: |
+          TAG="${{ matrix.protocol }}/v${{ matrix.version }}"
+          echo "Creating tag $TAG"
+          git tag $TAG
+          git push origin $TAG
+
+      - name: Push to staging environment
+        run: |
+          echo "Pushing ${{ matrix.protocol }} to staging environment"
+          nib image push --path ${{ matrix.image_path }}/babel.yaml
+
+  push-prod:
+    environment: Prod
+    needs: [detect-changes, push-staging, check-protocols]
+    if: fromJson(needs.detect-changes.outputs.version_changes)[0]
+    runs-on: self-hosted
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup NIB auth
+        run: |
+          echo '${{ secrets.NIB_AUTH }}' > ~/.nib.json
+
+      - name: Push protocols to prod
+        if: needs.check-protocols.outputs.protocols_changed == 'true'
+        run: |
+          echo "Pushing protocol updates to prod"
+          nib protocol push --path protocols/protocols.yaml
+
+      - name: Push to production environment
+        run: |
+          echo "Pushing ${{ matrix.protocol }} to production environment"
+          nib image push --path ${{ matrix.image_path }}/babel.yaml
+
+  create-release:
+    needs: [detect-changes, push-prod]
+    runs-on: self-hosted
+    if: success()
+    permissions:
+      contents: write
+    steps:
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Parse version_changes JSON array
+          VERSION_CHANGES='${{ needs.detect-changes.outputs.version_changes }}'
+          
+          echo "Creating releases for changes: $VERSION_CHANGES"
+          
+          # Process each protocol version
+          echo "$VERSION_CHANGES" | jq -c '.[]' | while read -r change; do
+            PROTOCOL=$(echo $change | jq -r '.protocol')
+            VERSION=$(echo $change | jq -r '.version')
+            TAG="$PROTOCOL/v$VERSION"
+            
+            echo "Creating release for $TAG"
+            gh release create "$TAG" \
+              --title "$PROTOCOL version $VERSION" \
+              --notes "Release of $PROTOCOL version $VERSION" \
+              --target ${{ github.event.pull_request.merge_commit_sha }}
