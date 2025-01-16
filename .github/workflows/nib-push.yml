@@ -110,6 +110,7 @@ jobs:
           nib protocol push --path protocols/protocols.yaml
 
   push-dev:
+    environment: Dev
     needs: [detect-changes, check-protocols]
     if: fromJson(needs.detect-changes.outputs.babel_matrix).include[0]
     runs-on: self-hosted
@@ -127,10 +128,11 @@ jobs:
       - name: Push to dev environment
         run: |
           echo "Pushing ${{ matrix.protocol }} to dev environment"
-          # Will add nib command with dev path later
+          nib image push --path ${{ matrix.image_path }}/babel.yaml
 
   push-staging:
-    needs: [detect-changes]
+    environment: Staging
+    needs: [detect-changes, push-dev]
     if: fromJson(needs.detect-changes.outputs.version_changes)[0]
     runs-on: self-hosted
     strategy:
@@ -146,9 +148,10 @@ jobs:
       - name: Push to staging environment
         run: |
           echo "Pushing ${{ matrix.protocol }} to staging environment"
-          # Will add nib command with staging path later
+          nib image push --path ${{ matrix.image_path }}/babel.yaml
 
   push-prod:
+    environment: Prod
     needs: [detect-changes, push-staging]
     if: fromJson(needs.detect-changes.outputs.version_changes)[0]
     runs-on: self-hosted
@@ -158,4 +161,32 @@ jobs:
       - name: Push to production environment
         run: |
           echo "Pushing ${{ matrix.protocol }} to production environment"
-          # Will add nib command with prod path later
+          nib image push --path ${{ matrix.image_path }}/babel.yaml
+
+  create-release:
+    needs: [push-prod]
+    runs-on: self-hosted
+    if: success()
+    permissions:
+      contents: write
+    steps:
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Parse version_changes JSON array
+          VERSION_CHANGES='${{ needs.detect-changes.outputs.version_changes }}'
+          
+          echo "Creating releases for changes: $VERSION_CHANGES"
+          
+          # Process each protocol version
+          echo "$VERSION_CHANGES" | jq -c '.[]' | while read -r change; do
+            PROTOCOL=$(echo $change | jq -r '.protocol')
+            VERSION=$(echo $change | jq -r '.version')
+            TAG="$PROTOCOL/v$VERSION"
+            
+            echo "Creating release for $TAG"
+            gh release create "$TAG" \
+              --title "$PROTOCOL version $VERSION" \
+              --notes "Release of $PROTOCOL version $VERSION" \
+              --target ${{ github.event.pull_request.merge_commit_sha }}
