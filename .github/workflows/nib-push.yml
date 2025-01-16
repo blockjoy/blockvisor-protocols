@@ -6,11 +6,11 @@ on:
 
 jobs:
   detect-changes:
-    runs-on: dev
+    runs-on: self-hosted
     if: github.event.pull_request.merged == true
     outputs:
-      babel_changed: ${{ steps.check-versions.outputs.babel_changed }}
       babel_matrix: ${{ steps.check-versions.outputs.babel_matrix }}
+      version_changes: ${{ steps.check-versions.outputs.version_changes }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -23,31 +23,56 @@ jobs:
         with:
           base_sha: ${{ github.event.pull_request.base.sha }}
           fetch_depth: 0
+          files: |
+            protocols/**/babel.yaml
 
       - name: Check version changes
         id: check-versions
         run: |
-          # Get all changed babel.yaml files
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} | grep "babel.yaml$" || true)
-          
-          if [ ! -z "$CHANGED_FILES" ]; then
-            echo "Found changed babel.yaml files:"
-            echo "$CHANGED_FILES"
-            echo "babel_changed=true" >> $GITHUB_OUTPUT
+          # Initialize arrays for different types of changes
+          declare -a CHANGED_PATHS=()
+          declare -a VERSION_CHANGES=()
+
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "Processing $file"
+            DIR=$(dirname "$file")
+            PROTOCOL=$(basename "$DIR")
             
-            # Create matrix of directories containing changed babel.yaml files
-            BABEL_DIRS=$(echo "$CHANGED_FILES" | xargs -I {} dirname {} | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')
-            echo "babel_matrix=$BABEL_DIRS" >> $GITHUB_OUTPUT
+            # Get current and previous versions
+            CURRENT_VERSION=$(yq e '.version' "$file")
+            PREV_VERSION=$(git show ${{ github.event.pull_request.base.sha }}:"$file" | yq e '.version' -)
+            
+            CHANGED_PATHS+=("{\"image_path\":\"$DIR\",\"protocol\":\"$PROTOCOL\"}")
+            
+            if [ "$CURRENT_VERSION" != "$PREV_VERSION" ]; then
+              echo "Version changed in $file: $PREV_VERSION -> $CURRENT_VERSION"
+              VERSION_CHANGES+=("{\"image_path\":\"$DIR\",\"protocol\":\"$PROTOCOL\",\"version\":\"$CURRENT_VERSION\"}")
+            else
+              echo "No version change in $file, only content changes"
+            fi
+          done
+          
+          # Create JSON arrays
+          if [ ${#CHANGED_PATHS[@]} -gt 0 ]; then
+            BABEL_MATRIX=$(printf "%s," "${CHANGED_PATHS[@]}" | sed 's/,$//' | jq -c "{include: [$(echo)]}")
+            echo "babel_matrix=$BABEL_MATRIX" >> $GITHUB_OUTPUT
           else
-            echo "No babel.yaml files changed"
-            echo "babel_changed=false" >> $GITHUB_OUTPUT
             echo 'babel_matrix={"include":[]}' >> $GITHUB_OUTPUT
           fi
+          
+          if [ ${#VERSION_CHANGES[@]} -gt 0 ]; then
+            VERSION_ARRAY=$(printf "%s," "${VERSION_CHANGES[@]}" | sed 's/,$//' | jq -c "[$(echo)]")
+            echo "version_changes=$VERSION_ARRAY" >> $GITHUB_OUTPUT
+          else
+            echo "version_changes=[]" >> $GITHUB_OUTPUT
+          fi
 
-  nib-image-push:
+  check-protocols:
     needs: [detect-changes]
-    if: needs.detect-changes.outputs.babel_changed == 'true'
-    runs-on: dev
+    if: fromJson(needs.detect-changes.outputs.babel_matrix).include[0]
+    runs-on: self-hosted
+    outputs:
+      protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
     permissions:
       contents: read
       packages: write
@@ -55,6 +80,7 @@ jobs:
       matrix: ${{ fromJson(needs.detect-changes.outputs.babel_matrix) }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
       - name: Check protocol key in protocols.yaml
         id: check-protocol
         run: |
@@ -83,7 +109,53 @@ jobs:
           echo "Pushing protocol updates"
           nib protocol push --path protocols/protocols.yaml
 
-      - name: Push image to nib
+  push-dev:
+    needs: [detect-changes, check-protocols]
+    if: fromJson(needs.detect-changes.outputs.babel_matrix).include[0]
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.babel_matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to dev environment
         run: |
-          echo "Pushing image due to babel.yaml changes in ${{ matrix.image_path }}"
-          nib image push --path ${{ matrix.image_path }}/babel.yaml
+          echo "Pushing ${{ matrix.protocol }} to dev environment"
+          # Will add nib command with dev path later
+
+  push-staging:
+    needs: [detect-changes]
+    if: fromJson(needs.detect-changes.outputs.version_changes)[0]
+    runs-on: self-hosted
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
+    steps:
+      - name: Create version tag
+        run: |
+          TAG="${{ matrix.protocol }}/${{ matrix.version }}"
+          echo "Creating tag $TAG"
+          git tag $TAG
+          git push origin $TAG
+
+      - name: Push to staging environment
+        run: |
+          echo "Pushing ${{ matrix.protocol }} to staging environment"
+          # Will add nib command with staging path later
+
+  push-prod:
+    needs: [detect-changes, push-staging]
+    if: fromJson(needs.detect-changes.outputs.version_changes)[0]
+    runs-on: self-hosted
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
+    steps:
+      - name: Push to production environment
+        run: |
+          echo "Pushing ${{ matrix.protocol }} to production environment"
+          # Will add nib command with prod path later
