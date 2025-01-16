@@ -32,6 +32,9 @@ permissions:
   id-token: write
   pull-requests: write
 
+env:
+  HOME: /home/github-runner
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -708,7 +711,6 @@ jobs:
     needs: [build-protocols, get-host, cleanup]
     if: |
       github.event_name == 'pull_request' &&
-      github.event.pull_request.user.login != 'renovate[bot]' &&
       github.event.action != 'closed'
     runs-on: ${{ needs.get-host.outputs.target_host }}
     environment: Dev
