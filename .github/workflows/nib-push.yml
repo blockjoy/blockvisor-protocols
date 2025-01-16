@@ -50,10 +50,9 @@ jobs:
             fi
           done
           
-          # Create content changes array
+          # Create content changes array using jq for proper JSON handling
           if [ ${#CONTENT_CHANGES[@]} -gt 0 ]; then
-            CONTENT_ARRAY=$(printf "%s," "${CONTENT_CHANGES[@]}" | sed 's/,$//' | jq -c "[$(echo)]")
-            echo "content_changes=$CONTENT_ARRAY" >> $GITHUB_OUTPUT
+            echo "content_changes=$(printf '%s\n' "${CONTENT_CHANGES[@]}" | jq -sc '.')" >> $GITHUB_OUTPUT
           else
             echo "content_changes=[]" >> $GITHUB_OUTPUT
           fi
@@ -99,7 +98,8 @@ jobs:
       contents: read
       packages: write
     strategy:
-      matrix: ${{ fromJson(needs.detect-changes.outputs.content_changes) }}
+      matrix:
+        include: ${{ fromJson(needs.detect-changes.outputs.content_changes) }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
@@ -134,7 +134,8 @@ jobs:
       contents: read
       packages: write
     strategy:
-      matrix: ${{ fromJson(needs.detect-changes.outputs.content_changes) }}
+      matrix:
+        include: ${{ fromJson(needs.detect-changes.outputs.content_changes) }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -162,7 +163,8 @@ jobs:
     if: fromJson(needs.detect-changes.outputs.version_changes)[0]
     runs-on: self-hosted
     strategy:
-      matrix: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
+      matrix:
+        include: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
@@ -196,7 +198,8 @@ jobs:
     if: fromJson(needs.detect-changes.outputs.version_changes)[0]
     runs-on: self-hosted
     strategy:
-      matrix: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
+      matrix:
+        include: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
