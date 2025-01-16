@@ -50,10 +50,9 @@ jobs:
             fi
           done
           
-          # Create content changes array
+          # Create content changes array using jq for proper JSON handling
           if [ ${#CONTENT_CHANGES[@]} -gt 0 ]; then
-            CONTENT_ARRAY=$(printf "%s," "${CONTENT_CHANGES[@]}" | sed 's/,$//' | jq -c "[$(echo)]")
-            echo "content_changes=$CONTENT_ARRAY" >> $GITHUB_OUTPUT
+            echo "content_changes=$(printf '%s\n' "${CONTENT_CHANGES[@]}" | jq -sc '.')" >> $GITHUB_OUTPUT
           else
             echo "content_changes=[]" >> $GITHUB_OUTPUT
           fi
