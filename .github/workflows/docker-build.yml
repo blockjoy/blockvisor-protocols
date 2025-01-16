@@ -571,7 +571,7 @@ jobs:
         run: |
           variants=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml | tr '\n' ' ')
           if [ -z "$variants" ]; then
-            echo " No variants found in ${{ matrix.image_path }}/babel.yaml"
+            echo "❌ No variants found in ${{ matrix.image_path }}/babel.yaml"
             exit 1
           fi
           echo "variants=$variants" >> $GITHUB_OUTPUT
@@ -600,9 +600,9 @@ jobs:
             echo "Checking variant: $variant"
             if OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1); then
               success_variants+=("$variant")
-              echo " Variant $variant check passed"
+              echo "✅ Variant $variant check passed"
             else
-              echo " Variant $variant check failed"
+              echo "❌ Variant $variant check failed"
               failed_variants+=("$variant")
             fi
           done
@@ -610,7 +610,7 @@ jobs:
           rm -rf ${{ matrix.image_path }}/babel.yaml-test
           
           if [ ${#failed_variants[@]} -gt 0 ]; then
-            echo " The following variants failed checks: ${failed_variants[*]}"
+            echo "❌ The following variants failed checks: ${failed_variants[*]}"
             exit 1
           fi
           
@@ -633,14 +633,7 @@ jobs:
             | sort_by(.createdAt)
             | last
             | if . == null then "" else
-              {
-                nodes: (.body | split("\n") 
-                | map(select(contains("running variant"))) 
-                | map(capture("- `(?<n>[a-z-]+-[a-z-]+-[a-z-]+)`, running variant `[^`]+`").n)
-                | join("\n")),
-                id: .id,
-                body: .body
-              }
+              (.body | capture("The following nodes have been deployed on `(?<host>[^`]+)`:\\n").host)
               end
           ')
           if [ -z "$PREV_HOST" ]; then
@@ -661,24 +654,20 @@ jobs:
         run: |
           echo "Finding nodes to clean up..."
           # Get list of nodes from PR comments
-          COMMENT_DATA=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
+          NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
             .comments
             | map(select(.author.login == "github-actions"))
             | map(select(.body | contains("following nodes have been deployed")))
             | sort_by(.createdAt)
             | last
             | if . == null then "" else
-              {
-                nodes: (.body | split("\n") 
-                | map(select(contains("running variant"))) 
-                | map(capture("- `(?<n>[a-z-]+-[a-z-]+-[a-z-]+)`, running variant `[^`]+`").n)
-                | join("\n")),
-                id: .id
-              }
+              (.body | split("\n") 
+              | map(select(contains("running variant"))) 
+              | map(capture("- `(?<n>[a-z-]+-[a-z-]+-[a-z-]+)`, running variant `[^`]+`").n)
+              | join("\n"))
               end
           ')
-          NODES=$(echo "$COMMENT_DATA" | jq -r '.nodes // empty')
-          COMMENT_ID=$(echo "$COMMENT_DATA" | jq -r '.id // empty')
+          
           if [ ! -z "$NODES" ]; then
             echo "Found nodes to clean up:"
             CLEANED_NODES=0
@@ -694,18 +683,18 @@ jobs:
                 echo "Warning: Failed to delete node '$node'"
               fi
             done <<< "$NODES"
-            if [ $CLEANED_NODES -gt 0 ] && [ ! -z "$COMMENT_ID" ]; then
+            
+            # Only post message if we actually cleaned up nodes
+            if [ $CLEANED_NODES -gt 0 ]; then
               if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
-                MESSAGE=" All nodes have been cleaned up after merge"
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge"
               elif [[ "${{ github.event.action }}" == "closed" ]]; then
-                MESSAGE=" All nodes have been cleaned up after PR close"
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR close"
               elif [[ "${{ github.event.action }}" == "synchronize" ]]; then
-                MESSAGE=" All nodes have been cleaned up after PR update"
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR update"
               else
-                MESSAGE=" All nodes have been cleaned up"
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up"
               fi
-              gh api --method PATCH "/repos/${{ github.repository }}/issues/comments/$COMMENT_ID" \
-                --field body="$MESSAGE"
             fi
           else
             echo "No nodes found to clean up, exiting cleanly"
