@@ -725,8 +725,11 @@ jobs:
           # Copy babel.yaml to test file
           cp ${{ matrix.image_path }}/babel.yaml ${{ matrix.image_path }}/babel.yaml-test
           
+          # Extract image name the same way as build-protocols
+          IMAGE_NAME=$(echo "${{ matrix.image_path }}" | cut -d'/' -f3)
+          
           # Update container_uri with newly built image
-          NEW_URI="docker://ghcr.io/blockjoy/${{ needs.build-protocols.outputs.image_name }}:${{ needs.build-protocols.outputs.image_tag }}"
+          NEW_URI="docker://ghcr.io/blockjoy/${IMAGE_NAME}:${{ needs.build-protocols.outputs.image_tag }}"
           TMPDIR=~/temp yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
 
       - name: Test nodes
