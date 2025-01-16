@@ -653,7 +653,6 @@ jobs:
 
   cleanup:
     needs: [get-host]
-    if: github.event.pull_request.user.login != 'renovate[bot]'
     runs-on: ${{ needs.get-host.outputs.target_host }}
     steps:
       - name: Cleanup nodes
