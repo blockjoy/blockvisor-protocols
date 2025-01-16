@@ -450,7 +450,6 @@ jobs:
           echo "Debug: Full command output:"
           echo "$OUTPUT"
           echo "Debug: API Status: $API_STATUS"
-          echo "Debug: Checking if output contains error message..."
           
           # More detailed error checking
           if echo "$OUTPUT" | grep -q "message.*Package not found" || \
@@ -461,13 +460,16 @@ jobs:
             BUILD_NUM=1
           else
             echo "API call succeeded, parsing response"
+            # Get the highest build number for today's date
             LATEST_BUILD=$(echo "$OUTPUT" | \
-              jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
+              jq -r "[.[] | select(.metadata.container.tags[] | select(startswith(\"v${DATE}\"))) | 
+                  .metadata.container.tags[] | select(startswith(\"v${DATE}\")) | 
+                  split(\".\")[1] | tonumber] | max // 0")
             if [ -z "$LATEST_BUILD" ] || [ "$LATEST_BUILD" = "null" ]; then
               echo "No existing versions found for today, starting at 1"
               BUILD_NUM=1
             else
-              echo "Found $LATEST_BUILD existing versions today"
+              echo "Found highest build number $LATEST_BUILD for today"
               BUILD_NUM=$((LATEST_BUILD + 1))
             fi
           fi
