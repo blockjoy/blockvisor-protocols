@@ -851,7 +851,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          STATUS_CONTEXT="test-nodes / ${{ matrix.image_path }}"
           if [[ "${{ job.status }}" == "success" ]]; then
             gh api \
               --method POST \
@@ -860,7 +859,7 @@ jobs:
               -f state='success' \
               -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
               -f description='All nodes tested successfully' \
-              -f context="$STATUS_CONTEXT"
+              -f context="test-nodes"
           else
             gh api \
               --method POST \
@@ -869,5 +868,5 @@ jobs:
               -f state='failure' \
               -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
               -f description='Node testing failed' \
-              -f context="$STATUS_CONTEXT"
+              -f context="test-nodes"
           fi
