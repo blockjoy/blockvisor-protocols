@@ -85,6 +85,8 @@ jobs:
           
           # Create array using jq for proper JSON handling
           if [ ${#CHANGED_BABEL[@]} -gt 0 ]; then
+            echo "DEBUG: Raw babel changes:"
+            printf "%s\n" "${CHANGED_BABEL[@]}"
             BABEL_ARRAY=$(printf "%s," "${CHANGED_BABEL[@]}" | sed 's/,$//' | jq -c "[$(echo)]")
             echo "DEBUG: Babel files with version changes:"
             echo "$BABEL_ARRAY" | jq '.'
