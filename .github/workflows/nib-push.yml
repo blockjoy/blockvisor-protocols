@@ -233,7 +233,7 @@ jobs:
     if: fromJson(needs.detect-changes.outputs.version_changes)[0]
     runs-on: dev
     permissions:
-      contents: read
+      contents: write
       packages: write
       pull-requests: write
     strategy:
