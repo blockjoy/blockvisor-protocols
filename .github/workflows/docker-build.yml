@@ -634,7 +634,7 @@ jobs:
           PREV_HOST=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
             .comments
             | map(select(.author.login == "github-actions"))
-            | map(select(.body | contains("following nodes have been deployed")))
+            | map(select(.body | test("All nodes have been cleaned up")))
             | sort_by(.createdAt)
             | last
             | if . == null then "" else
@@ -672,7 +672,7 @@ jobs:
           echo "Last cleanup was at: $LAST_CLEANUP"
           
           # Get list of nodes from PR comments after last cleanup
-          NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq --arg last "$LAST_CLEANUP" '
+          NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments | jq -r --arg last "$LAST_CLEANUP" '
             .comments
             | map(select(.author.login == "github-actions"))
             | map(select(.body | contains("following nodes have been deployed")))
