@@ -1,4 +1,4 @@
-version: 0.0.4
+version: 0.0.5
 container_uri: docker://ghcr.io/blockjoy/base-op-reth:v20250117.23
 sku_code: BASE-OP-RETH
 org_id: null

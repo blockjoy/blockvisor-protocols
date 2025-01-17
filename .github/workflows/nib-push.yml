@@ -86,8 +86,11 @@ jobs:
           # Create version changes array using jq for proper JSON handling
           if [ ${#VERSION_CHANGES[@]} -gt 0 ]; then
             VERSION_ARRAY=$(printf "%s," "${VERSION_CHANGES[@]}" | sed 's/,$//' | jq -c "[$(echo)]")
+            echo "DEBUG: Version changes array content:"
+            echo "$VERSION_ARRAY" | jq '.'
             echo "version_changes=$VERSION_ARRAY" >> $GITHUB_OUTPUT
           else
+            echo "DEBUG: No version changes detected"
             echo "version_changes=[]" >> $GITHUB_OUTPUT
           fi
 
@@ -233,6 +236,11 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
     steps:
+      - name: Debug matrix
+        run: |
+          echo "DEBUG: Matrix context:"
+          echo '${{ toJSON(matrix) }}' | jq '.'
+
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
