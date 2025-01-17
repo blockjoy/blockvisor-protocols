@@ -571,7 +571,7 @@ jobs:
         run: |
           variants=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml | tr '\n' ' ')
           if [ -z "$variants" ]; then
-            echo "❌ No variants found in ${{ matrix.image_path }}/babel.yaml"
+            echo " No variants found in ${{ matrix.image_path }}/babel.yaml"
             exit 1
           fi
           echo "variants=$variants" >> $GITHUB_OUTPUT
@@ -598,11 +598,16 @@ jobs:
           
           for variant in ${{ steps.get-variants.outputs.variants }}; do
             echo "Checking variant: $variant"
+            echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
             if OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1); then
               success_variants+=("$variant")
-              echo "✅ Variant $variant check passed"
+              echo " Variant $variant check passed"
+              echo "Command output:"
+              echo "$OUTPUT"
             else
-              echo "❌ Variant $variant check failed"
+              echo " Variant $variant check failed"
+              echo "Command output:"
+              echo "$OUTPUT"
               failed_variants+=("$variant")
             fi
           done
@@ -610,7 +615,7 @@ jobs:
           rm -rf ${{ matrix.image_path }}/babel.yaml-test
           
           if [ ${#failed_variants[@]} -gt 0 ]; then
-            echo "❌ The following variants failed checks: ${failed_variants[*]}"
+            echo " The following variants failed checks: ${failed_variants[*]}"
             exit 1
           fi
           
@@ -629,7 +634,7 @@ jobs:
           PREV_HOST=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
             .comments
             | map(select(.author.login == "github-actions"))
-            | map(select(.body | contains("following nodes have been deployed")))
+            | map(select(.body | test("All nodes have been cleaned up")))
             | sort_by(.createdAt)
             | last
             | if . == null then "" else
@@ -653,23 +658,40 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Finding nodes to clean up..."
-          # Get list of nodes from PR comments
-          NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
+          
+          # Find the latest cleanup comment timestamp
+          LAST_CLEANUP=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
+            .comments
+            | map(select(.author.login == "github-actions"))
+            | map(select(.body | test("All nodes have been cleaned up")))
+            | sort_by(.createdAt)
+            | last
+            | if . == null then "" else .createdAt end
+          ')
+          
+          echo "Last cleanup was at: $LAST_CLEANUP"
+          
+          # Get list of nodes from PR comments after last cleanup
+          NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments | jq -r --arg last "$LAST_CLEANUP" '
             .comments
             | map(select(.author.login == "github-actions"))
             | map(select(.body | contains("following nodes have been deployed")))
-            | sort_by(.createdAt)
-            | last
-            | if . == null then "" else
-              (.body | split("\n") 
+            | map(select(
+                if $last == "" then true
+                else (.createdAt > $last)
+                end
+              ))
+            | map(.body | split("\n") 
               | map(select(contains("running variant"))) 
               | map(capture("- `(?<n>[a-z-]+-[a-z-]+-[a-z-]+)`, running variant `[^`]+`").n)
-              | join("\n"))
-              end
+              | join("\n")
+            )
+            | join("\n")
           ')
           
           if [ ! -z "$NODES" ]; then
             echo "Found nodes to clean up:"
+            echo "$NODES"
             CLEANED_NODES=0
             while read -r node; do
               if [ -z "$node" ]; then 
