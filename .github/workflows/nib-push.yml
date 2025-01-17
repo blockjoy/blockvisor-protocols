@@ -149,7 +149,7 @@ jobs:
 
   push-protocols-staging:
     environment: Staging
-    needs: [detect-changes, check-protocols, push-protocols-dev]
+    needs: [detect-changes, check-protocols]
     if: needs.check-protocols.outputs.protocols_changed == 'true'
     runs-on: dev
     steps:
@@ -166,7 +166,7 @@ jobs:
 
   push-protocols-prod:
     environment: Prod
-    needs: [detect-changes, check-protocols, push-protocols-staging]
+    needs: [detect-changes, check-protocols]
     if: needs.check-protocols.outputs.protocols_changed == 'true'
     runs-on: dev
     steps:
