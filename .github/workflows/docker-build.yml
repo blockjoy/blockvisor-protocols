@@ -49,6 +49,7 @@ jobs:
       base_matrix: ${{ steps.set-matrix.outputs.base_matrix }}
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
       protocols_matrix: ${{ steps.set-matrix.outputs.protocols_matrix }}
+      content_changes: ${{ steps.set-matrix.outputs.content_changes }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -107,10 +108,12 @@ jobs:
           BASE=$(echo "$CHANGED_DIRS" | grep "^node-base$" || true)
           CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
           PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^protocols/[^/]\+/[^/]\+$" || true)
+          CONTENT_CHANGES=$(echo "$CHANGED_DIRS" | grep "^protocols/" || true)
           
           echo "Base dirs: $BASE"
           echo "Client dirs: $CLIENTS"
           echo "Protocol dirs: $PROTOCOLS"
+          echo "Content changes: $CONTENT_CHANGES"
           
           # Only output matrices if we have changes
           if [[ -n "$BASE" ]]; then
@@ -130,7 +133,52 @@ jobs:
           else
             echo 'protocols_matrix={"include":[]}' >> $GITHUB_OUTPUT
           fi
+          
+          if [[ -n "$CONTENT_CHANGES" ]]; then
+            echo "content_changes=$(echo "$CONTENT_CHANGES" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          else
+            echo 'content_changes={"include":[]}' >> $GITHUB_OUTPUT
+          fi
 
+  check-protocols:
+    needs: [detect-changes]
+    if: fromJson(needs.detect-changes.outputs.content_changes)[0]
+    runs-on: dev
+    outputs:
+      protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Check protocol keys in protocols.yaml
+        id: check-protocol
+        run: |
+          # Get all changed protocols from detect-changes
+          CHANGED_PROTOCOLS='${{ needs.detect-changes.outputs.content_changes }}'
+          
+          # Check each protocol key
+          echo "$CHANGED_PROTOCOLS" | jq -r '.[] | .image_path' | while read -r IMAGE_PATH; do
+            echo "Checking protocol in $IMAGE_PATH"
+            
+            # Get protocol key from babel.yaml
+            PROTOCOL_KEY=$(yq e '.protocol_key' "$IMAGE_PATH/babel.yaml")
+            echo "Checking for protocol key: $PROTOCOL_KEY"
+            
+            # Check if key exists in protocols.yaml
+            if ! yq e '.[] | select(.key == "'$PROTOCOL_KEY'")' protocols/protocols.yaml > /dev/null 2>&1; then
+              echo " Protocol key '$PROTOCOL_KEY' not found in protocols/protocols.yaml"
+              exit 1
+            fi
+          done
+          
+          # Check if protocols.yaml has changed
+          if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -q "^protocols/protocols.yaml$"; then
+            echo "protocols/protocols.yaml has changed, will push protocol updates"
+            echo "protocols_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "protocols/protocols.yaml unchanged"
+            echo "protocols_changed=false" >> $GITHUB_OUTPUT
+          fi
+        
   build-base:
     needs: [detect-changes]
     if: |
@@ -870,3 +918,20 @@ jobs:
               -f description='Node testing failed' \
               -f context="test-nodes"
           fi
+
+  push-protocols:
+    environment: Dev
+    needs: [check-protocols]
+    if: needs.check-protocols.outputs.protocols_changed == 'true'
+    runs-on: dev
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Setup NIB auth
+        run: |
+          echo '${{ secrets.NIB_AUTH }}' > ~/.nib.json
+
+      - name: Push protocols to dev
+        run: |
+          echo "Pushing protocol updates to dev"
+          nib protocol push --path protocols/protocols.yaml
