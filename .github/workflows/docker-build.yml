@@ -731,9 +731,15 @@ jobs:
     environment: Dev
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
+      fail-fast: false
     outputs:
       runner_host: ${{ steps.test-nodes.outputs.runner_host }}
       node_names: ${{ steps.test-nodes.outputs.node_names }}
+    permissions:
+      contents: read
+      packages: write
+      statuses: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Authenticate GitHub CLI
@@ -839,3 +845,29 @@ jobs:
           echo "start_failed=${START_FAILED}" >> $GITHUB_OUTPUT
           echo "status=success" >> $GITHUB_OUTPUT
           exit 0
+
+      - name: Report Status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          STATUS_CONTEXT="test-nodes / ${{ matrix.image_path }}"
+          if [[ "${{ job.status }}" == "success" ]]; then
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
+              -f state='success' \
+              -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              -f description='All nodes tested successfully' \
+              -f context="$STATUS_CONTEXT"
+          else
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
+              -f state='failure' \
+              -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              -f description='Node testing failed' \
+              -f context="$STATUS_CONTEXT"
+          fi
