@@ -10,14 +10,14 @@ variants:
     min_cpu: 32
     min_memory_mb: 32678
     min_disk_gb: 2000
-    sku_code: BASE-OP-RETMF
+    sku_code: BASE-OP-RETHMF
     archive_pointers:
       - pointer: !store_key base-op-reth-mainnet-full-v1
   - key: base-op-reth-mainnet-archive
     min_cpu: 32
     min_memory_mb: 32678
     min_disk_gb: 2000
-    sku_code: BASE-OPRETHMA
+    sku_code: BASE-OP-RETHMA
     archive_pointers:
       - pointer: !store_key base-op-reth-mainnet-archive-v1
 firewall_config:
