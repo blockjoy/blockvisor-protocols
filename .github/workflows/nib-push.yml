@@ -87,7 +87,9 @@ jobs:
           if [ ${#CHANGED_BABEL[@]} -gt 0 ]; then
             echo "DEBUG: Raw babel changes:"
             printf "%s\n" "${CHANGED_BABEL[@]}"
-            BABEL_ARRAY=$(printf "%s," "${CHANGED_BABEL[@]}" | sed 's/,$//' | jq -c "[$(echo)]")
+            # Join array elements and wrap in array brackets
+            BABEL_JSON="[$(printf "%s," "${CHANGED_BABEL[@]}" | sed 's/,$/')]"
+            BABEL_ARRAY=$(echo "$BABEL_JSON" | jq -c '.')
             echo "DEBUG: Babel files with version changes:"
             echo "$BABEL_ARRAY" | jq '.'
             echo "version_changes=$BABEL_ARRAY" >> $GITHUB_OUTPUT
