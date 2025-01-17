@@ -1,4 +1,4 @@
-version: 0.0.6
+version: 0.0.7
 container_uri: docker://ghcr.io/blockjoy/ethereum-reth:v20250117.16
 sku_code: ETH-RETH
 org_id: null
