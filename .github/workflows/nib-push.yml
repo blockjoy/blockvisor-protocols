@@ -82,10 +82,10 @@ jobs:
           
           # Create version changes array using jq for proper JSON handling
           if [ ${#VERSION_CHANGES[@]} -gt 0 ]; then
-            VERSION_ARRAY=$(printf "%s," "${VERSION_CHANGES[@]}" | sed 's/,$//' | jq -c "[$(echo)]")
+            VERSION_ARRAY=$(printf "%s," "${VERSION_CHANGES[@]}" | sed 's/,$//' | jq -c "{\"include\":[$(echo)]}")
             echo "version_changes=$VERSION_ARRAY" >> $GITHUB_OUTPUT
           else
-            echo "version_changes=[]" >> $GITHUB_OUTPUT
+            echo 'version_changes={"include":[]}' >> $GITHUB_OUTPUT
           fi
 
   check-protocols:
@@ -346,7 +346,7 @@ jobs:
           echo "Creating releases for changes: $VERSION_CHANGES"
           
           # Process each protocol version
-          echo "$VERSION_CHANGES" | jq -c '.[]' | while read -r change; do
+          echo "$VERSION_CHANGES" | jq -c '.include[]' | while read -r change; do
             PROTOCOL=$(echo $change | jq -r '.protocol')
             VERSION=$(echo $change | jq -r '.version')
             TAG="$PROTOCOL/v$VERSION"
