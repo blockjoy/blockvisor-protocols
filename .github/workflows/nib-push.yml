@@ -1,10 +1,9 @@
-name: NIB Push
+name: Push to BlockJoy
 
 on:
   pull_request:
     types: [closed]
 
-# Queue workflows from the same PR to run sequentially
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.head_ref || github.ref }}
   cancel-in-progress: false
@@ -131,14 +130,66 @@ jobs:
             echo "protocols_changed=false" >> $GITHUB_OUTPUT
           fi
 
-  push-dev:
+  push-protocols-dev:
     environment: Dev
     needs: [detect-changes, check-protocols]
+    if: needs.check-protocols.outputs.protocols_changed == 'true'
+    runs-on: dev
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Setup NIB auth
+        run: |
+          echo '${{ secrets.NIB_AUTH }}' > ~/.nib.json
+
+      - name: Push protocols to dev
+        run: |
+          echo "Pushing protocol updates to dev"
+          nib protocol push --path protocols/protocols.yaml
+
+  push-protocols-staging:
+    environment: Staging
+    needs: [detect-changes, check-protocols, push-protocols-dev]
+    if: needs.check-protocols.outputs.protocols_changed == 'true'
+    runs-on: dev
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Setup NIB auth
+        run: |
+          echo '${{ secrets.NIB_AUTH }}' > ~/.nib.json
+
+      - name: Push protocols to staging
+        run: |
+          echo "Pushing protocol updates to staging"
+          nib protocol push --path protocols/protocols.yaml
+
+  push-protocols-prod:
+    environment: Prod
+    needs: [detect-changes, check-protocols, push-protocols-staging]
+    if: needs.check-protocols.outputs.protocols_changed == 'true'
+    runs-on: dev
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Setup NIB auth
+        run: |
+          echo '${{ secrets.NIB_AUTH }}' > ~/.nib.json
+
+      - name: Push protocols to production
+        run: |
+          echo "Pushing protocol updates to production"
+          nib protocol push --path protocols/protocols.yaml
+
+  push-dev:
+    environment: Dev
+    needs: [detect-changes, check-protocols, push-protocols-dev]
     if: fromJson(needs.detect-changes.outputs.content_changes)[0]
     runs-on: dev
     permissions:
       contents: read
       packages: write
+      pull-requests: write
     strategy:
       matrix:
         include: ${{ fromJson(needs.detect-changes.outputs.content_changes) }}
@@ -152,11 +203,9 @@ jobs:
         run: |
           echo '${{ secrets.NIB_AUTH }}' > ~/.nib.json
 
-      - name: Push protocols to dev
-        if: needs.check-protocols.outputs.protocols_changed == 'true'
+      - name: Setup GitHub CLI
         run: |
-          echo "Pushing protocol updates to dev"
-          nib protocol push --path protocols/protocols.yaml
+          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Push to dev environment
         id: push-dev
@@ -187,9 +236,13 @@ jobs:
 
   push-staging:
     environment: Staging
-    needs: [detect-changes, push-dev, check-protocols]
+    needs: [detect-changes, push-dev, check-protocols, push-protocols-staging]
     if: fromJson(needs.detect-changes.outputs.version_changes)[0]
     runs-on: dev
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
     strategy:
       matrix:
         include: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
@@ -202,11 +255,9 @@ jobs:
         run: |
           echo '${{ secrets.NIB_AUTH }}' > ~/.nib.json
 
-      - name: Push protocols to staging
-        if: needs.check-protocols.outputs.protocols_changed == 'true'
+      - name: Setup GitHub CLI
         run: |
-          echo "Pushing protocol updates to staging"
-          nib protocol push --path protocols/protocols.yaml
+          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Create version tag
         run: |
@@ -244,9 +295,13 @@ jobs:
 
   push-prod:
     environment: Prod
-    needs: [detect-changes, push-staging, check-protocols]
+    needs: [detect-changes, push-staging, check-protocols, push-protocols-prod]
     if: fromJson(needs.detect-changes.outputs.version_changes)[0]
     runs-on: dev
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
     strategy:
       matrix:
         include: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
@@ -260,11 +315,9 @@ jobs:
         run: |
           echo '${{ secrets.NIB_AUTH }}' > ~/.nib.json
 
-      - name: Push protocols to prod
-        if: needs.check-protocols.outputs.protocols_changed == 'true'
+      - name: Setup GitHub CLI
         run: |
-          echo "Pushing protocol updates to prod"
-          nib protocol push --path protocols/protocols.yaml
+          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Push to production environment
         id: push-prod
