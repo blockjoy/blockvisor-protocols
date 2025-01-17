@@ -159,9 +159,31 @@ jobs:
           nib protocol push --path protocols/protocols.yaml
 
       - name: Push to dev environment
+        id: push-dev
         run: |
           echo "Pushing ${{ matrix.protocol }} to dev environment"
-          nib image push --path ${{ matrix.image_path }}/babel.yaml
+          OUTPUT=$(nib image push --path ${{ matrix.image_path }}/babel.yaml)
+          echo "$OUTPUT"
+          # Extract image ID from output
+          IMAGE_ID=$(echo "$OUTPUT" | grep "^Image '" | cut -d"'" -f2)
+          if [ ! -z "$IMAGE_ID" ]; then
+            # Split image ID into components
+            IFS='/' read -r PROTOCOL VARIANT VERSION BUILDNUM <<< "$IMAGE_ID"
+            echo "protocol=$PROTOCOL" >> $GITHUB_OUTPUT
+            echo "variant=$VARIANT" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "buildnum=$BUILDNUM" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment on PR (Dev)
+        if: steps.push-dev.outputs.protocol != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Capitalize first letter of protocol
+          PROTOCOL=$(echo "${{ steps.push-dev.outputs.protocol }}" | sed 's/\b\(.\)/\u\1/')
+          COMMENT="${PROTOCOL}: ${{ steps.push-dev.outputs.variant }} version ${{ steps.push-dev.outputs.version }} and build number ${{ steps.push-dev.outputs.buildnum }} has been pushed to the Dev API."
+          gh pr comment ${{ github.event.pull_request.number }} --body "$COMMENT"
 
   push-staging:
     environment: Staging
@@ -194,9 +216,31 @@ jobs:
           git push origin $TAG
 
       - name: Push to staging environment
+        id: push-staging
         run: |
           echo "Pushing ${{ matrix.protocol }} to staging environment"
-          nib image push --path ${{ matrix.image_path }}/babel.yaml
+          OUTPUT=$(nib image push --path ${{ matrix.image_path }}/babel.yaml)
+          echo "$OUTPUT"
+          # Extract image ID from output
+          IMAGE_ID=$(echo "$OUTPUT" | grep "^Image '" | cut -d"'" -f2)
+          if [ ! -z "$IMAGE_ID" ]; then
+            # Split image ID into components
+            IFS='/' read -r PROTOCOL VARIANT VERSION BUILDNUM <<< "$IMAGE_ID"
+            echo "protocol=$PROTOCOL" >> $GITHUB_OUTPUT
+            echo "variant=$VARIANT" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "buildnum=$BUILDNUM" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment on PR (Staging)
+        if: steps.push-staging.outputs.protocol != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Capitalize first letter of protocol
+          PROTOCOL=$(echo "${{ steps.push-staging.outputs.protocol }}" | sed 's/\b\(.\)/\u\1/')
+          COMMENT="${PROTOCOL}: ${{ steps.push-staging.outputs.variant }} version ${{ steps.push-staging.outputs.version }} and build number ${{ steps.push-staging.outputs.buildnum }} has been pushed to the Staging API."
+          gh pr comment ${{ github.event.pull_request.number }} --body "$COMMENT"
 
   push-prod:
     environment: Prod
@@ -223,9 +267,31 @@ jobs:
           nib protocol push --path protocols/protocols.yaml
 
       - name: Push to production environment
+        id: push-prod
         run: |
           echo "Pushing ${{ matrix.protocol }} to production environment"
-          nib image push --path ${{ matrix.image_path }}/babel.yaml
+          OUTPUT=$(nib image push --path ${{ matrix.image_path }}/babel.yaml)
+          echo "$OUTPUT"
+          # Extract image ID from output
+          IMAGE_ID=$(echo "$OUTPUT" | grep "^Image '" | cut -d"'" -f2)
+          if [ ! -z "$IMAGE_ID" ]; then
+            # Split image ID into components
+            IFS='/' read -r PROTOCOL VARIANT VERSION BUILDNUM <<< "$IMAGE_ID"
+            echo "protocol=$PROTOCOL" >> $GITHUB_OUTPUT
+            echo "variant=$VARIANT" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "buildnum=$BUILDNUM" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment on PR (Prod)
+        if: steps.push-prod.outputs.protocol != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Capitalize first letter of protocol
+          PROTOCOL=$(echo "${{ steps.push-prod.outputs.protocol }}" | sed 's/\b\(.\)/\u\1/')
+          COMMENT="${PROTOCOL}: ${{ steps.push-prod.outputs.variant }} version ${{ steps.push-prod.outputs.version }} and build number ${{ steps.push-prod.outputs.buildnum }} has been pushed to the Prod API."
+          gh pr comment ${{ github.event.pull_request.number }} --body "$COMMENT"
 
   create-release:
     needs: [detect-changes, push-prod]
