@@ -919,16 +919,6 @@ jobs:
               -f context="test-nodes"
           fi
 
-  test-nodes-success:
-    needs: [detect-changes]
-    if: needs.detect-changes.outputs.content_changes == '[]'
-    runs-on: dev
-    steps:
-      - name: No relevant changes detected
-        run: |
-          echo "No protocol changes detected that require testing"
-          exit 0
-
   push-protocols:
     environment: Dev
     needs: [check-protocols]
