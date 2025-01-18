@@ -900,9 +900,7 @@ jobs:
 
   workflow-status:
     needs: [detect-changes, test-nodes, build-node-base, build-clients, build-protocols]
-    if: |
-      github.event_name == 'pull_request' &&
-      github.event.action != 'closed'
+    if: always() && github.event_name == 'pull_request' && github.event.action != 'closed'
     runs-on: dev
     permissions:
       statuses: write
@@ -931,7 +929,7 @@ jobs:
           fi
 
           # All jobs either succeeded or were skipped
-          if [[ "${{ needs.detect-changes.outputs.content_changes }}" == "[]" ]]; then
+          if [[ "${{ needs.detect-changes.outputs.content_changes }}" == '{"include":[]}' ]]; then
             DESCRIPTION="No protocol changes detected that require testing"
           else
             DESCRIPTION="All checks passed successfully"
