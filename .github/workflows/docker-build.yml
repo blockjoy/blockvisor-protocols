@@ -50,6 +50,7 @@ jobs:
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
       protocols_matrix: ${{ steps.set-matrix.outputs.protocols_matrix }}
       content_changes: ${{ steps.set-matrix.outputs.content_changes }}
+      all_changed_files: ${{ steps.changed-files.outputs.all_changed_files }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -142,7 +143,10 @@ jobs:
 
   check-protocols:
     needs: [detect-changes]
-    if: fromJson(needs.detect-changes.outputs.content_changes)[0]
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      fromJson(needs.detect-changes.outputs.content_changes)[0]
     runs-on: dev
     outputs:
       protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
