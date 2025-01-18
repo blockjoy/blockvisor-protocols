@@ -50,6 +50,7 @@ jobs:
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
       protocols_matrix: ${{ steps.set-matrix.outputs.protocols_matrix }}
       content_changes: ${{ steps.set-matrix.outputs.content_changes }}
+      all_changed_files: ${{ steps.changed-files.outputs.all_changed_files }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -142,7 +143,10 @@ jobs:
 
   check-protocols:
     needs: [detect-changes]
-    if: fromJson(needs.detect-changes.outputs.content_changes)[0]
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      fromJson(needs.detect-changes.outputs.content_changes).include[0]
     runs-on: dev
     outputs:
       protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
@@ -179,7 +183,7 @@ jobs:
             echo "protocols_changed=false" >> $GITHUB_OUTPUT
           fi
         
-  build-base:
+  build-node-base:
     needs: [detect-changes]
     if: |
       github.event_name == 'pull_request' &&
@@ -894,30 +898,51 @@ jobs:
           echo "status=success" >> $GITHUB_OUTPUT
           exit 0
 
+  workflow-status:
+    needs: [detect-changes, test-nodes, build-node-base, build-clients, build-protocols]
+    if: always() && github.event_name == 'pull_request' && github.event.action != 'closed'
+    runs-on: dev
+    permissions:
+      statuses: write
+    steps:
       - name: Report Status
-        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [[ "${{ job.status }}" == "success" ]]; then
-            gh api \
-              --method POST \
-              -H "Accept: application/vnd.github+json" \
-              "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
-              -f state='success' \
-              -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-              -f description='All nodes tested successfully' \
-              -f context="test-nodes"
-          else
+          # Check for any failures in build jobs
+          if [[ "${{ needs.build-node-base.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-clients.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-protocols.result }}" == "failure" ]] || \
+             [[ "${{ needs.test-nodes.result }}" == "failure" ]]; then
+            DESCRIPTION="Workflow failed"
+            [[ "${{ needs.test-nodes.result }}" == "failure" ]] && DESCRIPTION="Node testing failed"
+            
             gh api \
               --method POST \
               -H "Accept: application/vnd.github+json" \
               "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
               -f state='failure' \
               -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-              -f description='Node testing failed' \
-              -f context="test-nodes"
+              -f description="$DESCRIPTION" \
+              -f context="workflow-status"
+            exit 1
           fi
+
+          # All jobs either succeeded or were skipped
+          if [[ "${{ needs.detect-changes.outputs.content_changes }}" == '{"include":[]}' ]]; then
+            DESCRIPTION="No protocol changes detected that require testing"
+          else
+            DESCRIPTION="All checks passed successfully"
+          fi
+          
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
+            -f state='success' \
+            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            -f description="$DESCRIPTION" \
+            -f context="workflow-status"
 
   push-protocols:
     environment: Dev
