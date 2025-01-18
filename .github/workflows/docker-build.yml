@@ -179,7 +179,7 @@ jobs:
             echo "protocols_changed=false" >> $GITHUB_OUTPUT
           fi
         
-  build-base:
+  build-node-base:
     needs: [detect-changes]
     if: |
       github.event_name == 'pull_request' &&
@@ -894,30 +894,53 @@ jobs:
           echo "status=success" >> $GITHUB_OUTPUT
           exit 0
 
+  workflow-status:
+    needs: [detect-changes, test-nodes, build-node-base, build-clients, build-protocols]
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed'
+    runs-on: dev
+    permissions:
+      statuses: write
+    steps:
       - name: Report Status
-        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [[ "${{ job.status }}" == "success" ]]; then
-            gh api \
-              --method POST \
-              -H "Accept: application/vnd.github+json" \
-              "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
-              -f state='success' \
-              -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-              -f description='All nodes tested successfully' \
-              -f context="test-nodes"
-          else
+          # Check for any failures in build jobs
+          if [[ "${{ needs.build-node-base.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-clients.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-protocols.result }}" == "failure" ]] || \
+             [[ "${{ needs.test-nodes.result }}" == "failure" ]]; then
+            DESCRIPTION="Workflow failed"
+            [[ "${{ needs.test-nodes.result }}" == "failure" ]] && DESCRIPTION="Node testing failed"
+            
             gh api \
               --method POST \
               -H "Accept: application/vnd.github+json" \
               "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
               -f state='failure' \
               -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-              -f description='Node testing failed' \
+              -f description="$DESCRIPTION" \
               -f context="test-nodes"
+            exit 1
           fi
+
+          # All jobs either succeeded or were skipped
+          if [[ "${{ needs.detect-changes.outputs.content_changes }}" == "[]" ]]; then
+            DESCRIPTION="No protocol changes detected that require testing"
+          else
+            DESCRIPTION="All checks passed successfully"
+          fi
+          
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
+            -f state='success' \
+            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            -f description="$DESCRIPTION" \
+            -f context="test-nodes"
 
   push-protocols:
     environment: Dev
