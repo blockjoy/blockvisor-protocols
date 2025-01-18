@@ -146,7 +146,7 @@ jobs:
     if: |
       github.event_name == 'pull_request' &&
       github.event.action != 'closed' &&
-      fromJson(needs.detect-changes.outputs.content_changes)[0]
+      fromJson(needs.detect-changes.outputs.content_changes).include[0]
     runs-on: dev
     outputs:
       protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
