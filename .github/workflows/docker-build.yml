@@ -924,7 +924,7 @@ jobs:
               -f state='failure' \
               -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
               -f description="$DESCRIPTION" \
-              -f context="test-nodes"
+              -f context="workflow-status"
             exit 1
           fi
 
@@ -942,7 +942,7 @@ jobs:
             -f state='success' \
             -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             -f description="$DESCRIPTION" \
-            -f context="test-nodes"
+            -f context="workflow-status"
 
   push-protocols:
     environment: Dev
