@@ -302,18 +302,20 @@ jobs:
           DATE=$(date '+%Y%m%d')
           
           # Try to get the current build number, default to 0 if API call fails
+          set +e
           OUTPUT=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
           API_STATUS=$?
+          set -e
           
           if echo "$OUTPUT" | grep -q "message.*Package not found" || \
              echo "$OUTPUT" | grep -q "status.*404" || \
              [ $API_STATUS -ne 0 ]; then
-            echo "Package not found or API error detected"
-            echo "Setting build number to 0"
-            BUILD_NUM=0
+            echo "Package $IMAGE_NAME not found in registry - this is expected for new images"
+            echo "Starting with build number 1"
+            BUILD_NUM=1
           else
             echo "API call succeeded, parsing response"
             LATEST_BUILD=$(echo "$OUTPUT" | \
@@ -519,8 +521,8 @@ jobs:
           if echo "$OUTPUT" | grep -q "message.*Package not found" || \
              echo "$OUTPUT" | grep -q "status.*404" || \
              [ $API_STATUS -ne 0 ]; then
-            echo "Package not found or API error detected"
-            echo "Setting build number to 1"
+            echo "Package $IMAGE_NAME not found in registry - this is expected for new images"
+            echo "Starting with build number 1"
             BUILD_NUM=1
           else
             echo "API call succeeded, parsing response"
@@ -665,17 +667,14 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
           API_STATUS=$?
-          
-          echo "Debug: Full command output:"
-          echo "$OUTPUT"
-          echo "Debug: API Status: $API_STATUS"
+          set -e
           
           # More detailed error checking
           if echo "$OUTPUT" | grep -q "message.*Package not found" || \
              echo "$OUTPUT" | grep -q "status.*404" || \
              [ $API_STATUS -ne 0 ]; then
-            echo "Package not found or API error detected"
-            echo "Setting build number to 1"
+            echo "Package $IMAGE_NAME not found in registry - this is expected for new images"
+            echo "Starting with build number 1"
             BUILD_NUM=1
           else
             echo "API call succeeded, parsing response"
