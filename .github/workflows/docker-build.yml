@@ -153,7 +153,6 @@ jobs:
     permissions:
       contents: read
       security-events: write
-      statuses: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -168,32 +167,6 @@ jobs:
           format: 'table'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
-
-      - name: Update PR status
-        if: always()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [[ "${{ steps.scan.outcome }}" == "success" ]]; then
-            gh api \
-              --method POST \
-              -H "Accept: application/vnd.github+json" \
-              "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
-              -f state='success' \
-              -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-              -f description="No vulnerabilities found in ${{ matrix.image_path }}/Dockerfile" \
-              -f context="trivy-dockerfile-${{ matrix.image_path }}"
-          else
-            gh api \
-              --method POST \
-              -H "Accept: application/vnd.github+json" \
-              "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
-              -f state='failure' \
-              -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-              -f description="Vulnerabilities found in ${{ matrix.image_path }}/Dockerfile" \
-              -f context="trivy-dockerfile-${{ matrix.image_path }}"
-            exit 1
-          fi
 
   check-protocols:
     needs: [detect-changes]
@@ -509,16 +482,21 @@ jobs:
       fromJson(needs.detect-changes.outputs.protocols_matrix).include[0] &&
       github.event.action != 'closed'
     runs-on: dev
-    permissions:
-      contents: read      # Allows reading repository contents
-      packages: write     # Allows pushing/pulling container images
-    strategy:
-      matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
     outputs:
       matrix: ${{ needs.detect-changes.outputs.protocols_matrix }}
       image_name: ${{ steps.version.outputs.image_name }}
       image_tag: ${{ steps.version.outputs.image_tag }}
+      runner_hostname: ${{ steps.get-hostname.outputs.hostname }}
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
+      fail-fast: false
+    permissions:
+      contents: read
+      packages: write
     steps:
+      - name: Get runner hostname
+        id: get-hostname
+        run: echo "hostname=$(hostname)" >> $GITHUB_OUTPUT
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Authenticate GitHub CLI
         run: |
@@ -726,6 +704,32 @@ jobs:
           fi
           
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
+
+  scan-images:
+    needs: [detect-changes, build-protocols]
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      fromJson(needs.detect-changes.outputs.protocols_matrix).include[0]
+    runs-on: ${{ needs.build-protocols.outputs.runner_hostname }}
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
+      fail-fast: false
+    permissions:
+      contents: read
+      security-events: write
+      packages: read
+    steps:
+      - name: Run Trivy vulnerability scanner
+        id: scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'image'
+          image-ref: 'localhost/${{ matrix.image_path }}:pr-${{ github.event.pull_request.number }}'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+          timeout: '10m'
 
   get-host:
     runs-on: dev
@@ -953,7 +957,7 @@ jobs:
           exit 0
 
   workflow-status:
-    needs: [detect-changes, test-nodes, build-node-base, build-clients, build-protocols]
+    needs: [detect-changes, test-nodes, build-node-base, build-clients, build-protocols, scan-images, scan-dockerfiles]
     if: always() && github.event_name == 'pull_request' && github.event.action != 'closed'
     runs-on: dev
     permissions:
@@ -963,13 +967,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Check for any failures in build jobs
           if [[ "${{ needs.build-node-base.result }}" == "failure" ]] || \
              [[ "${{ needs.build-clients.result }}" == "failure" ]] || \
              [[ "${{ needs.build-protocols.result }}" == "failure" ]] || \
-             [[ "${{ needs.test-nodes.result }}" == "failure" ]]; then
+             [[ "${{ needs.test-nodes.result }}" == "failure" ]] || \
+             [[ "${{ needs.scan-images.result }}" == "failure" ]] || \
+             [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]]; then
             DESCRIPTION="Workflow failed"
             [[ "${{ needs.test-nodes.result }}" == "failure" ]] && DESCRIPTION="Node testing failed"
+            [[ "${{ needs.scan-images.result }}" == "failure" ]] && DESCRIPTION="Image scanning failed"
+            [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] && DESCRIPTION="Dockerfile scanning failed"
             
             gh api \
               --method POST \
