@@ -1,5 +1,5 @@
 # 5
-ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250109.3
+ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250120.1
 
 FROM ${BASE_IMAGE} AS builder
 
