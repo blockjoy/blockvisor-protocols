@@ -178,8 +178,7 @@ jobs:
           scan-type: 'config'
           scan-ref: './${{ matrix.image_path }}/Dockerfile'
           hide-progress: false
-          format: 'sarif'
-          output: 'trivy-dockerfile-results.sarif'
+          format: 'table'
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
           
@@ -187,7 +186,11 @@ jobs:
         if: always()
         run: |
           set -x
-          trivy config --severity CRITICAL,HIGH --format table ./${{ matrix.image_path }}/Dockerfile > trivy-dockerfile-results.txt
+          trivy config \
+            --severity CRITICAL,HIGH \
+            --format table \
+            --debug \
+            ./${{ matrix.image_path }}/Dockerfile | tee trivy-dockerfile-results.txt
           cat trivy-dockerfile-results.txt
           
       - name: Comment on PR
