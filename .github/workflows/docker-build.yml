@@ -761,15 +761,12 @@ jobs:
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
 
   scan-images:
-    needs: [detect-changes, build-protocols]
+    needs: [detect-changes, build-node-base]
     if: |
       github.event_name == 'pull_request' &&
       github.event.action != 'closed' &&
-      fromJson(needs.detect-changes.outputs.protocols_matrix).include[0]
-    runs-on: ${{ needs.build-protocols.outputs.runner_hostname }}
-    strategy:
-      matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
-      fail-fast: false
+      fromJson(needs.detect-changes.outputs.base_matrix).include[0]
+    runs-on: dev
     permissions:
       contents: read
       security-events: write
@@ -781,9 +778,8 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'image'
-          image-ref: 'localhost/${{ matrix.image_path }}:pr-${{ github.event.pull_request.number }}'
-          format: 'sarif'
-          output: 'trivy-image-results.sarif'
+          image-ref: 'localhost/node-base:pr-${{ github.event.pull_request.number }}'
+          format: 'table'
           severity: 'CRITICAL,HIGH'
           timeout: '10m'
           exit-code: '1'
@@ -792,7 +788,7 @@ jobs:
         if: always()
         run: |
           set -x
-          trivy image --severity CRITICAL,HIGH --format table localhost/${{ matrix.image_path }}:pr-${{ github.event.pull_request.number }} > trivy-image-results.txt
+          trivy image --severity CRITICAL,HIGH --format table localhost/node-base:pr-${{ github.event.pull_request.number }} > trivy-image-results.txt
 
       - name: Comment on PR
         if: always()
@@ -803,7 +799,7 @@ jobs:
           if [ -s trivy-image-results.txt ]; then
             echo "Vulnerabilities found, commenting on PR"
             {
-              echo "### 🔍 Trivy Image Scan Results for \`${{ matrix.image_path }}\`"
+              echo "### 🔍 Trivy Image Scan Results for \`node-base\`"
               echo ""
               echo "<details>"
               echo "<summary>Click to view findings</summary>"
@@ -813,12 +809,12 @@ jobs:
               echo "\`\`\`"
               echo "</details>"
               echo ""
-              echo "These vulnerabilities were found in the built image. Please review and update dependencies to their latest secure versions where possible."
+              echo "These vulnerabilities were found in the node-base image. Since this is our base image, these vulnerabilities will affect all derived images. Please review and update dependencies to their latest secure versions where possible."
             } > comment.md
             gh pr comment ${{ github.event.pull_request.number }} --body-file comment.md
           else
             echo "No vulnerabilities found in image"
-            gh pr comment ${{ github.event.pull_request.number }} --body "✅ No vulnerabilities found in \`${{ matrix.image_path }}\` image"
+            gh pr comment ${{ github.event.pull_request.number }} --body "✅ No vulnerabilities found in \`node-base\` image"
           fi
 
   get-host:
@@ -923,7 +919,7 @@ jobs:
           fi
 
   test-nodes:
-    needs: [build-protocols, get-host, cleanup, scan-images]
+    needs: [build-protocols, get-host, cleanup]
     if: |
       github.event_name == 'pull_request' &&
       github.event.action != 'closed'
