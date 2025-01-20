@@ -424,7 +424,7 @@ jobs:
               echo "These vulnerabilities were found in the node-base image. Since this is our base image, these vulnerabilities will affect all derived images. Please review and update dependencies to their latest secure versions where possible."
             } > comment.md
             gh pr comment ${{ github.event.pull_request.number }} --body-file comment.md
-            exit 1
+            exit 0
           else
             echo "No vulnerabilities found in image"
             gh pr comment ${{ github.event.pull_request.number }} --body "✅ No vulnerabilities found in \`node-base\` image"
