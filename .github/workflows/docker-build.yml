@@ -99,15 +99,12 @@ jobs:
           CHANGED_DIRS=$(for file in ${ALL_CHANGED_FILES}; do
             echo "Checking file: $file"
             
-            # Get protocol key from babel.yaml
-            PROTOCOL_KEY=$(yq e '.protocol_key' "$file")
-            echo "Checking for protocol key: $PROTOCOL_KEY"
-            
-            # Check if key exists in protocols.yaml
-            if ! yq e '.[] | select(.key == "'$PROTOCOL_KEY'")' protocols/protocols.yaml > /dev/null 2>&1; then
-              echo " Protocol key '$PROTOCOL_KEY' not found in protocols/protocols.yaml"
-              exit 1
-            fi
+            echo "$DOCKER_DIRS" | while read -r docker_dir; do
+              if [[ "$file" =~ ^"$docker_dir"(/|$) ]]; then
+                echo "$docker_dir"
+              fi
+            done
+
           done | sort -u)
           echo "Changed directories:"
           echo "$CHANGED_DIRS"
