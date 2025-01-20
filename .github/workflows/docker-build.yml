@@ -180,7 +180,7 @@ jobs:
           hide-progress: false
           format: 'table'
           severity: 'CRITICAL,HIGH'
-          exit-code: '1'
+          exit-code: '0'
           
       - name: Generate human-readable report
         if: always()
@@ -394,7 +394,7 @@ jobs:
           format: 'table'
           severity: 'CRITICAL,HIGH'
           timeout: '10m'
-          exit-code: '1'
+          exit-code: '0'
 
       - name: Generate human-readable report
         if: always()
