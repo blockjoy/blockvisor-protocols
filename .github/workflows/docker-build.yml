@@ -141,6 +141,60 @@ jobs:
             echo 'content_changes={"include":[]}' >> $GITHUB_OUTPUT
           fi
 
+  scan-dockerfiles:
+    needs: [detect-changes]
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed'
+    runs-on: dev
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.content_changes) }}
+      fail-fast: false
+    permissions:
+      contents: read
+      security-events: write
+      statuses: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy Dockerfile scan
+        id: scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: './${{ matrix.image_path }}/Dockerfile'
+          hide-progress: false
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Update PR status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${{ steps.scan.outcome }}" == "success" ]]; then
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
+              -f state='success' \
+              -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              -f description="No vulnerabilities found in ${{ matrix.image_path }}/Dockerfile" \
+              -f context="trivy-dockerfile-${{ matrix.image_path }}"
+          else
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
+              -f state='failure' \
+              -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              -f description="Vulnerabilities found in ${{ matrix.image_path }}/Dockerfile" \
+              -f context="trivy-dockerfile-${{ matrix.image_path }}"
+            exit 1
+          fi
+
   check-protocols:
     needs: [detect-changes]
     if: |
