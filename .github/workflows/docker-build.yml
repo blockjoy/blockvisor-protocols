@@ -292,6 +292,7 @@ jobs:
       - name: Extract image name
         id: version
         run: |
+          set -x
           # Extract image name from path - get the last part of the path
           IMAGE_NAME=$(basename ${{ matrix.image_path }})
           echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
