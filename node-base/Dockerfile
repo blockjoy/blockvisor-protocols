@@ -1,10 +1,9 @@
 #3
-FROM debian:bookworm-slim@sha256:1537a6a1cbc4b4fd401da800ee9480207e7dc1f23560c21259f681db56768f63
+FROM debian:bookworm-slim@sha256:f70dc8d6a8b6a06824c92471a1a258030836b26b043881358b967bf73de7c5ab
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 ENV GO_VERSION=1.23.1
-ENV CADVISOR_VERSION=0.49.1
 
 RUN apt-get update --allow-insecure-repositories \
     && apt-get install -y --no-install-recommends \
