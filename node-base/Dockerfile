@@ -67,16 +67,5 @@ COPY config/grafana-dashboard.yml /usr/share/grafana/conf/provisioning/dashboard
 RUN apt-get autoremove -y && apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Create non-root user and set proper permissions
-RUN useradd -r -u 999 -d /home/blockjoy blockjoy && \
-    mkdir -p /home/blockjoy && \
-    chown -R blockjoy:blockjoy /home/blockjoy && \
-    chown -R blockjoy:blockjoy /var/lib/babel && \
-    chown -R blockjoy:blockjoy /etc/caddy && \
-    chown -R blockjoy:blockjoy /var/lib/grafana && \
-    chown -R blockjoy:blockjoy /usr/share/grafana
-
-USER blockjoy
-
 COPY base.rhai /var/lib/babel/plugin/base.rhai
 COPY templates/caddy-dashboard.template /var/lib/babel/templates/caddy-dashboard.template
