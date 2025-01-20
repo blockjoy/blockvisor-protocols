@@ -107,12 +107,12 @@ jobs:
           echo "Changed directories:"
           echo "$CHANGED_DIRS"
           
-          # Create matrices using jq, filtering by directory structure
+          # Filter by component
           BASE=$(echo "$CHANGED_DIRS" | grep "^node-base$" || true)
           CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
           PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^protocols/[^/]\+/[^/]\+$" || true)
           CONTENT_CHANGES=$(echo "$CHANGED_DIRS" | grep "^protocols/" || true)
-          DOCKERFILE_CHANGES=$(echo "$CHANGED_DIRS" | grep -E "^node-base/|clients/|protocols/" || true)
+          DOCKERFILE_CHANGES=$(echo "$CHANGED_DIRS" | grep -E "^node-base$|^clients/|^protocols/" || true)
           
           echo "Base dirs: $BASE"
           echo "Client dirs: $CLIENTS"
