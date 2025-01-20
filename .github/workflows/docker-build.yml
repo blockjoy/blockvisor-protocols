@@ -273,6 +273,8 @@ jobs:
     permissions:
       contents: read      # Allows reading repository contents
       packages: write     # Allows pushing/pulling container images
+      security-events: write  # For trivy scan results
+      pull-requests: write    # For commenting on PRs
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.base_matrix) }}
     steps:
@@ -280,12 +282,13 @@ jobs:
       - name: Authenticate GitHub CLI
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # v3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          buildkitd-flags: |
+            --debug
+            --allow-insecure-entitlement network.host
+
       - name: Generate version
         id: version
         run: |
@@ -367,13 +370,76 @@ jobs:
           echo "Generated build contexts: ${BUILD_CONTEXTS}"
           echo "Valid images: ${VALID_IMAGES}"
           echo "Current image path: '${{ matrix.image_path }}'"
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # v3
+      - name: Build base image
+        uses: docker/build-push-action@67a2d409c0a876cbe6b11854e3e25193efe4e62d # v6
         with:
-          buildkitd-flags: |
-            --debug
-            --allow-insecure-entitlement network.host
-      - name: Build and push base image
+          context: ./${{ matrix.image_path }}
+          push: false
+          load: true
+          build-args: |
+            GRAFANA_LOKI_API_KEY=${{ secrets.GRAFANA_LOKI_API_KEY }}
+            GRAFANA_PROM_API_KEY=${{ secrets.GRAFANA_PROM_API_KEY }}
+          build-contexts: ${{ steps.build-contexts.outputs.contexts }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            localhost/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
+
+      - name: Run Trivy vulnerability scanner
+        id: scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'image'
+          image-ref: 'localhost/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          timeout: '10m'
+          exit-code: '1'
+
+      - name: Generate human-readable report
+        if: always()
+        run: |
+          set -x
+          trivy image --severity CRITICAL,HIGH --format table localhost/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }} > trivy-image-results.txt
+
+      - name: Comment on PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -x
+          if [ -s trivy-image-results.txt ]; then
+            echo "Vulnerabilities found, commenting on PR"
+            {
+              echo "### 🔍 Trivy Image Scan Results for \`node-base\`"
+              echo ""
+              echo "<details>"
+              echo "<summary>Click to view findings</summary>"
+              echo ""
+              echo "\`\`\`"
+              cat trivy-image-results.txt
+              echo "\`\`\`"
+              echo "</details>"
+              echo ""
+              echo "These vulnerabilities were found in the node-base image. Since this is our base image, these vulnerabilities will affect all derived images. Please review and update dependencies to their latest secure versions where possible."
+            } > comment.md
+            gh pr comment ${{ github.event.pull_request.number }} --body-file comment.md
+            exit 1
+          else
+            echo "No vulnerabilities found in image"
+            gh pr comment ${{ github.event.pull_request.number }} --body "✅ No vulnerabilities found in \`node-base\` image"
+          fi
+
+      - name: Log in to GitHub Container Registry
+        if: success()
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push base image
+        if: success()
         uses: docker/build-push-action@67a2d409c0a876cbe6b11854e3e25193efe4e62d # v6
         with:
           context: ./${{ matrix.image_path }}
@@ -760,63 +826,6 @@ jobs:
           
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
 
-  scan-images:
-    needs: [detect-changes, build-node-base]
-    if: |
-      github.event_name == 'pull_request' &&
-      github.event.action != 'closed' &&
-      fromJson(needs.detect-changes.outputs.base_matrix).include[0]
-    runs-on: dev
-    permissions:
-      contents: read
-      security-events: write
-      packages: read
-      pull-requests: write
-    steps:
-      - name: Run Trivy vulnerability scanner
-        id: scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'image'
-          image-ref: 'localhost/node-base:pr-${{ github.event.pull_request.number }}'
-          format: 'table'
-          severity: 'CRITICAL,HIGH'
-          timeout: '10m'
-          exit-code: '1'
-
-      - name: Generate human-readable report
-        if: always()
-        run: |
-          set -x
-          trivy image --severity CRITICAL,HIGH --format table localhost/node-base:pr-${{ github.event.pull_request.number }} > trivy-image-results.txt
-
-      - name: Comment on PR
-        if: always()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -x
-          if [ -s trivy-image-results.txt ]; then
-            echo "Vulnerabilities found, commenting on PR"
-            {
-              echo "### 🔍 Trivy Image Scan Results for \`node-base\`"
-              echo ""
-              echo "<details>"
-              echo "<summary>Click to view findings</summary>"
-              echo ""
-              echo "\`\`\`"
-              cat trivy-image-results.txt
-              echo "\`\`\`"
-              echo "</details>"
-              echo ""
-              echo "These vulnerabilities were found in the node-base image. Since this is our base image, these vulnerabilities will affect all derived images. Please review and update dependencies to their latest secure versions where possible."
-            } > comment.md
-            gh pr comment ${{ github.event.pull_request.number }} --body-file comment.md
-          else
-            echo "No vulnerabilities found in image"
-            gh pr comment ${{ github.event.pull_request.number }} --body "✅ No vulnerabilities found in \`node-base\` image"
-          fi
-
   get-host:
     runs-on: dev
     outputs:
@@ -1043,7 +1052,7 @@ jobs:
           exit 0
 
   workflow-status:
-    needs: [detect-changes, test-nodes, build-node-base, build-clients, build-protocols, scan-images, scan-dockerfiles]
+    needs: [detect-changes, test-nodes, build-node-base, build-clients, build-protocols, scan-dockerfiles]
     if: always() && github.event_name == 'pull_request' && github.event.action != 'closed'
     runs-on: dev
     permissions:
@@ -1057,11 +1066,9 @@ jobs:
              [[ "${{ needs.build-clients.result }}" == "failure" ]] || \
              [[ "${{ needs.build-protocols.result }}" == "failure" ]] || \
              [[ "${{ needs.test-nodes.result }}" == "failure" ]] || \
-             [[ "${{ needs.scan-images.result }}" == "failure" ]] || \
              [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]]; then
             DESCRIPTION="Workflow failed"
             [[ "${{ needs.test-nodes.result }}" == "failure" ]] && DESCRIPTION="Node testing failed"
-            [[ "${{ needs.scan-images.result }}" == "failure" ]] && DESCRIPTION="Image scanning failed"
             [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] && DESCRIPTION="Dockerfile scanning failed"
             
             gh api \
