@@ -2,7 +2,7 @@
 
 ARG ERIGON_IMAGE=ghcr.io/blockjoy/erigon:v20250116.15
 ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v20250110.2
-ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250109.3
+ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250120.1
 
 FROM ${ERIGON_IMAGE} AS erigon
 
