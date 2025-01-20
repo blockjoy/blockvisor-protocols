@@ -98,13 +98,11 @@ jobs:
           # For each changed file, find which Docker directory it belongs to
           CHANGED_DIRS=$(for file in ${ALL_CHANGED_FILES}; do
             echo "Checking file: $file"
-            
             echo "$DOCKER_DIRS" | while read -r docker_dir; do
               if [[ "$file" =~ ^"$docker_dir"(/|$) ]]; then
                 echo "$docker_dir"
               fi
             done
-
           done | sort -u)
           echo "Changed directories:"
           echo "$CHANGED_DIRS"
