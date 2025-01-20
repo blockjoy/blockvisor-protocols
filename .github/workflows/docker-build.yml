@@ -51,6 +51,8 @@ jobs:
       protocols_matrix: ${{ steps.set-matrix.outputs.protocols_matrix }}
       content_changes: ${{ steps.set-matrix.outputs.content_changes }}
       all_changed_files: ${{ steps.changed-files.outputs.all_changed_files }}
+      dockerfile_changes: ${{ steps.set-matrix.outputs.dockerfile_changes }}
+      dockerfile_matrix: ${{ steps.set-matrix.outputs.dockerfile_matrix }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -105,16 +107,18 @@ jobs:
           echo "Changed directories:"
           echo "$CHANGED_DIRS"
           
-          # Create matrices using jq, filtering by directory structure
+          # Filter by component
           BASE=$(echo "$CHANGED_DIRS" | grep "^node-base$" || true)
           CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
           PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^protocols/[^/]\+/[^/]\+$" || true)
           CONTENT_CHANGES=$(echo "$CHANGED_DIRS" | grep "^protocols/" || true)
+          DOCKERFILE_CHANGES=$(echo "$CHANGED_DIRS" | grep -E "^node-base$|^clients/|^protocols/" || true)
           
           echo "Base dirs: $BASE"
           echo "Client dirs: $CLIENTS"
           echo "Protocol dirs: $PROTOCOLS"
           echo "Content changes: $CONTENT_CHANGES"
+          echo "Dockerfile changes: $DOCKERFILE_CHANGES"
           
           # Only output matrices if we have changes
           if [[ -n "$BASE" ]]; then
@@ -139,6 +143,81 @@ jobs:
             echo "content_changes=$(echo "$CONTENT_CHANGES" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
           else
             echo 'content_changes={"include":[]}' >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ -n "$DOCKERFILE_CHANGES" ]]; then
+            echo "dockerfile_changes=true" >> $GITHUB_OUTPUT
+            echo "dockerfile_matrix=$(echo "$DOCKERFILE_CHANGES" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          else
+            echo 'dockerfile_changes=false' >> $GITHUB_OUTPUT
+            echo 'dockerfile_matrix={"include":[]}' >> $GITHUB_OUTPUT
+          fi
+
+  scan-dockerfiles:
+    needs: [detect-changes]
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      contains(needs.detect-changes.outputs.dockerfile_changes, 'true')
+    runs-on: dev
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.dockerfile_matrix) }}
+      fail-fast: false
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy Dockerfile scan
+        id: scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: './${{ matrix.image_path }}/Dockerfile'
+          hide-progress: false
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+          
+      - name: Generate human-readable report
+        if: always()
+        run: |
+          set -x
+          trivy config \
+            --severity CRITICAL,HIGH \
+            --format table \
+            --debug \
+            ./${{ matrix.image_path }}/Dockerfile | tee trivy-dockerfile-results.txt
+          cat trivy-dockerfile-results.txt
+          
+      - name: Comment on PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -x
+          if [ -s trivy-dockerfile-results.txt ]; then
+            echo "Vulnerabilities found, commenting on PR"
+            {
+              echo "### 🔍 Trivy Dockerfile Scan Results for \`${{ matrix.image_path }}/Dockerfile\`"
+              echo ""
+              echo "<details>"
+              echo "<summary>Click to view findings</summary>"
+              echo ""
+              echo "\`\`\`"
+              cat trivy-dockerfile-results.txt
+              echo "\`\`\`"
+              echo "</details>"
+              echo ""
+              echo "Please review these findings and make necessary fixes to improve the security of your Dockerfile."
+            } > comment.md
+            gh pr comment ${{ github.event.pull_request.number }} --body-file comment.md
+          else
+            echo "No vulnerabilities found in Dockerfile"
+            gh pr comment ${{ github.event.pull_request.number }} --body "✅ No security issues found in \`${{ matrix.image_path }}/Dockerfile\`"
           fi
 
   check-protocols:
@@ -184,15 +263,18 @@ jobs:
           fi
         
   build-node-base:
-    needs: [detect-changes]
+    needs: [detect-changes, scan-dockerfiles]
     if: |
       github.event_name == 'pull_request' &&
       fromJson(needs.detect-changes.outputs.base_matrix).include[0] &&
-      github.event.action != 'closed'
+      github.event.action != 'closed' &&
+      (needs.scan-dockerfiles.result == 'success' || needs.scan-dockerfiles.result == 'skipped')
     runs-on: dev
     permissions:
       contents: read      # Allows reading repository contents
       packages: write     # Allows pushing/pulling container images
+      security-events: write  # For trivy scan results
+      pull-requests: write    # For commenting on PRs
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.base_matrix) }}
     steps:
@@ -200,12 +282,13 @@ jobs:
       - name: Authenticate GitHub CLI
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # v3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          buildkitd-flags: |
+            --debug
+            --allow-insecure-entitlement network.host
+
       - name: Generate version
         id: version
         run: |
@@ -287,13 +370,76 @@ jobs:
           echo "Generated build contexts: ${BUILD_CONTEXTS}"
           echo "Valid images: ${VALID_IMAGES}"
           echo "Current image path: '${{ matrix.image_path }}'"
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # v3
+      - name: Build base image
+        uses: docker/build-push-action@67a2d409c0a876cbe6b11854e3e25193efe4e62d # v6
         with:
-          buildkitd-flags: |
-            --debug
-            --allow-insecure-entitlement network.host
-      - name: Build and push base image
+          context: ./${{ matrix.image_path }}
+          push: false
+          load: true
+          build-args: |
+            GRAFANA_LOKI_API_KEY=${{ secrets.GRAFANA_LOKI_API_KEY }}
+            GRAFANA_PROM_API_KEY=${{ secrets.GRAFANA_PROM_API_KEY }}
+          build-contexts: ${{ steps.build-contexts.outputs.contexts }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            localhost/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
+
+      - name: Run Trivy vulnerability scanner
+        id: scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'image'
+          image-ref: 'localhost/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          timeout: '10m'
+          exit-code: '0'
+
+      - name: Generate human-readable report
+        if: always()
+        run: |
+          set -x
+          trivy image --severity CRITICAL,HIGH --format table localhost/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }} > trivy-image-results.txt
+
+      - name: Comment on PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -x
+          if [ -s trivy-image-results.txt ]; then
+            echo "Vulnerabilities found, commenting on PR"
+            {
+              echo "### 🔍 Trivy Image Scan Results for \`node-base\`"
+              echo ""
+              echo "<details>"
+              echo "<summary>Click to view findings</summary>"
+              echo ""
+              echo "\`\`\`"
+              cat trivy-image-results.txt
+              echo "\`\`\`"
+              echo "</details>"
+              echo ""
+              echo "These vulnerabilities were found in the node-base image. Since this is our base image, these vulnerabilities will affect all derived images. Please review and update dependencies to their latest secure versions where possible."
+            } > comment.md
+            gh pr comment ${{ github.event.pull_request.number }} --body-file comment.md
+            exit 0
+          else
+            echo "No vulnerabilities found in image"
+            gh pr comment ${{ github.event.pull_request.number }} --body "✅ No vulnerabilities found in \`node-base\` image"
+          fi
+
+      - name: Log in to GitHub Container Registry
+        if: success()
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push base image
+        if: success()
         uses: docker/build-push-action@67a2d409c0a876cbe6b11854e3e25193efe4e62d # v6
         with:
           context: ./${{ matrix.image_path }}
@@ -309,11 +455,12 @@ jobs:
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
 
   build-clients:
-    needs: [detect-changes]
+    needs: [detect-changes, scan-dockerfiles]
     if: |
       github.event_name == 'pull_request' &&
       fromJson(needs.detect-changes.outputs.clients_matrix).include[0] &&
-      github.event.action != 'closed'
+      github.event.action != 'closed' &&
+      (needs.scan-dockerfiles.result == 'success' || needs.scan-dockerfiles.result == 'skipped')
     runs-on: dev
     permissions:
       contents: read      # Allows reading repository contents
@@ -448,23 +595,29 @@ jobs:
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
 
   build-protocols:
-    needs: [detect-changes]
+    needs: [detect-changes, scan-dockerfiles]
     environment: Dev
     if: |
       github.event_name == 'pull_request' &&
       fromJson(needs.detect-changes.outputs.protocols_matrix).include[0] &&
-      github.event.action != 'closed'
+      github.event.action != 'closed' &&
+      (needs.scan-dockerfiles.result == 'success' || needs.scan-dockerfiles.result == 'skipped')
     runs-on: dev
-    permissions:
-      contents: read      # Allows reading repository contents
-      packages: write     # Allows pushing/pulling container images
-    strategy:
-      matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
     outputs:
       matrix: ${{ needs.detect-changes.outputs.protocols_matrix }}
       image_name: ${{ steps.version.outputs.image_name }}
       image_tag: ${{ steps.version.outputs.image_tag }}
+      runner_hostname: ${{ steps.get-hostname.outputs.hostname }}
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
+      fail-fast: false
+    permissions:
+      contents: read
+      packages: write
     steps:
+      - name: Get runner hostname
+        id: get-hostname
+        run: echo "hostname=$(hostname)" >> $GITHUB_OUTPUT
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Authenticate GitHub CLI
         run: |
@@ -899,7 +1052,7 @@ jobs:
           exit 0
 
   workflow-status:
-    needs: [detect-changes, test-nodes, build-node-base, build-clients, build-protocols]
+    needs: [detect-changes, test-nodes, build-node-base, build-clients, build-protocols, scan-dockerfiles]
     if: always() && github.event_name == 'pull_request' && github.event.action != 'closed'
     runs-on: dev
     permissions:
@@ -909,13 +1062,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Check for any failures in build jobs
           if [[ "${{ needs.build-node-base.result }}" == "failure" ]] || \
              [[ "${{ needs.build-clients.result }}" == "failure" ]] || \
              [[ "${{ needs.build-protocols.result }}" == "failure" ]] || \
-             [[ "${{ needs.test-nodes.result }}" == "failure" ]]; then
+             [[ "${{ needs.test-nodes.result }}" == "failure" ]] || \
+             [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]]; then
             DESCRIPTION="Workflow failed"
             [[ "${{ needs.test-nodes.result }}" == "failure" ]] && DESCRIPTION="Node testing failed"
+            [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] && DESCRIPTION="Dockerfile scanning failed"
             
             gh api \
               --method POST \
