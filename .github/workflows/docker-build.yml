@@ -166,6 +166,7 @@ jobs:
     permissions:
       contents: read
       security-events: write
+      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -177,9 +178,40 @@ jobs:
           scan-type: 'config'
           scan-ref: './${{ matrix.image_path }}/Dockerfile'
           hide-progress: false
-          format: 'table'
-          exit-code: '1'
+          format: 'sarif'
+          output: 'trivy-dockerfile-results.sarif'
           severity: 'CRITICAL,HIGH'
+          
+      - name: Generate human-readable report
+        if: always()
+        run: |
+          trivy config --severity CRITICAL,HIGH --format table ./${{ matrix.image_path }}/Dockerfile > trivy-dockerfile-results.txt
+          
+      - name: Comment on PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -s trivy-dockerfile-results.txt ]; then
+            echo "Vulnerabilities found, commenting on PR"
+            {
+              echo "### 🔍 Trivy Dockerfile Scan Results for \`${{ matrix.image_path }}/Dockerfile\`"
+              echo ""
+              echo "<details>"
+              echo "<summary>Click to view findings</summary>"
+              echo ""
+              echo "\`\`\`"
+              cat trivy-dockerfile-results.txt
+              echo "\`\`\`"
+              echo "</details>"
+              echo ""
+              echo "Please review these findings and make necessary fixes to improve the security of your Dockerfile."
+            } > comment.md
+            gh pr comment ${{ github.event.pull_request.number }} --body-file comment.md
+          else
+            echo "No vulnerabilities found in Dockerfile"
+            gh pr comment ${{ github.event.pull_request.number }} --body "✅ No security issues found in \`${{ matrix.image_path }}/Dockerfile\`"
+          fi
 
   check-protocols:
     needs: [detect-changes]
@@ -735,6 +767,7 @@ jobs:
       contents: read
       security-events: write
       packages: read
+      pull-requests: write
     steps:
       - name: Run Trivy vulnerability scanner
         id: scan
@@ -742,10 +775,41 @@ jobs:
         with:
           scan-type: 'image'
           image-ref: 'localhost/${{ matrix.image_path }}:pr-${{ github.event.pull_request.number }}'
-          format: 'table'
-          exit-code: '1'
+          format: 'sarif'
+          output: 'trivy-image-results.sarif'
           severity: 'CRITICAL,HIGH'
           timeout: '10m'
+
+      - name: Generate human-readable report
+        if: always()
+        run: |
+          trivy image --severity CRITICAL,HIGH --format table localhost/${{ matrix.image_path }}:pr-${{ github.event.pull_request.number }} > trivy-image-results.txt
+
+      - name: Comment on PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -s trivy-image-results.txt ]; then
+            echo "Vulnerabilities found, commenting on PR"
+            {
+              echo "### 🔍 Trivy Image Scan Results for \`${{ matrix.image_path }}\`"
+              echo ""
+              echo "<details>"
+              echo "<summary>Click to view findings</summary>"
+              echo ""
+              echo "\`\`\`"
+              cat trivy-image-results.txt
+              echo "\`\`\`"
+              echo "</details>"
+              echo ""
+              echo "These vulnerabilities were found in the built image. Please review and update dependencies to their latest secure versions where possible."
+            } > comment.md
+            gh pr comment ${{ github.event.pull_request.number }} --body-file comment.md
+          else
+            echo "No vulnerabilities found in image"
+            gh pr comment ${{ github.event.pull_request.number }} --body "✅ No vulnerabilities found in \`${{ matrix.image_path }}\` image"
+          fi
 
   get-host:
     runs-on: dev
