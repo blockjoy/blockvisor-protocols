@@ -15,7 +15,7 @@ RUN apt-get update --allow-insecure-repositories \
     apt-transport-https \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     curl \
     software-properties-common \
@@ -37,7 +37,7 @@ RUN mkdir -p /etc/apt/keyrings/ && \
 RUN curl -1sLf 'https://dl.cloudsmith.io/public/caddy/xcaddy/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-xcaddy-archive-keyring.gpg && \
     curl -1sLf 'https://dl.cloudsmith.io/public/caddy/xcaddy/debian.deb.txt' > /etc/apt/sources.list.d/caddy-xcaddy.list
 
-RUN apt-get update && apt-get install -y xcaddy alloy grafana
+RUN apt-get update && apt-get install -y --no-install-recommends xcaddy alloy grafana
 
 RUN wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz && \
     tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz && \
@@ -67,6 +67,17 @@ COPY config/grafana-dashboard.yml /usr/share/grafana/conf/provisioning/dashboard
 
 RUN apt-get autoremove -y && apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Create non-root user and set proper permissions
+RUN useradd -r -u 999 -d /home/blockjoy blockjoy && \
+    mkdir -p /home/blockjoy && \
+    chown -R blockjoy:blockjoy /home/blockjoy && \
+    chown -R blockjoy:blockjoy /var/lib/babel && \
+    chown -R blockjoy:blockjoy /etc/caddy && \
+    chown -R blockjoy:blockjoy /var/lib/grafana && \
+    chown -R blockjoy:blockjoy /usr/share/grafana
+
+USER blockjoy
 
 COPY base.rhai /var/lib/babel/plugin/base.rhai
 COPY templates/caddy-dashboard.template /var/lib/babel/templates/caddy-dashboard.template
