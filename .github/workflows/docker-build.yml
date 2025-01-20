@@ -186,13 +186,16 @@ jobs:
       - name: Generate human-readable report
         if: always()
         run: |
+          set -x
           trivy config --severity CRITICAL,HIGH --format table ./${{ matrix.image_path }}/Dockerfile > trivy-dockerfile-results.txt
+          cat trivy-dockerfile-results.txt
           
       - name: Comment on PR
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -x
           if [ -s trivy-dockerfile-results.txt ]; then
             echo "Vulnerabilities found, commenting on PR"
             {
@@ -785,6 +788,7 @@ jobs:
       - name: Generate human-readable report
         if: always()
         run: |
+          set -x
           trivy image --severity CRITICAL,HIGH --format table localhost/${{ matrix.image_path }}:pr-${{ github.event.pull_request.number }} > trivy-image-results.txt
 
       - name: Comment on PR
@@ -792,6 +796,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -x
           if [ -s trivy-image-results.txt ]; then
             echo "Vulnerabilities found, commenting on PR"
             {
@@ -915,7 +920,7 @@ jobs:
           fi
 
   test-nodes:
-    needs: [build-protocols, get-host, cleanup]
+    needs: [build-protocols, get-host, cleanup, scan-images]
     if: |
       github.event_name == 'pull_request' &&
       github.event.action != 'closed'
