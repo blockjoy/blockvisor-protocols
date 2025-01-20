@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250109.3
+ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250120.1
 ARG NITRO_IMAGE=offchainlabs/nitro-node:v3.3.2-9d70997
 
 FROM ${NITRO_IMAGE} AS nitro_node
