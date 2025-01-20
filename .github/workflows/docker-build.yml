@@ -108,11 +108,11 @@ jobs:
           echo "$CHANGED_DIRS"
           
           # Filter by component
-          BASE=$(echo "$CHANGED_DIRS" | grep "^node-base$" || true)
+          BASE=$(echo "$CHANGED_DIRS" | grep "^base-images/" || true)
           CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
           PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^protocols/[^/]\+/[^/]\+$" || true)
           CONTENT_CHANGES=$(echo "$CHANGED_DIRS" | grep "^protocols/" || true)
-          DOCKERFILE_CHANGES=$(echo "$CHANGED_DIRS" | grep -E "^node-base$|^clients/|^protocols/" || true)
+          DOCKERFILE_CHANGES=$(echo "$CHANGED_DIRS" | grep -E "^base-images/|^clients/|^protocols/" || true)
           
           echo "Base dirs: $BASE"
           echo "Client dirs: $CLIENTS"
@@ -120,12 +120,13 @@ jobs:
           echo "Content changes: $CONTENT_CHANGES"
           echo "Dockerfile changes: $DOCKERFILE_CHANGES"
           
-          # Only output matrices if we have changes
+          # Generate base image matrix from changed base-images directories
           if [[ -n "$BASE" ]]; then
-            echo "base_matrix=$(echo "$BASE" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+            BASE_MATRIX=$(echo "$BASE" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')
           else
-            echo 'base_matrix={"include":[]}' >> $GITHUB_OUTPUT
+            BASE_MATRIX='{"include":[]}'
           fi
+          echo "base_matrix=$BASE_MATRIX" >> $GITHUB_OUTPUT
           
           if [[ -n "$CLIENTS" ]]; then
             echo "clients_matrix=$(echo "$CLIENTS" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
@@ -262,7 +263,8 @@ jobs:
             echo "protocols_changed=false" >> $GITHUB_OUTPUT
           fi
         
-  build-node-base:
+  build-base-images:
+    name: build-base-images
     needs: [detect-changes, scan-dockerfiles]
     if: |
       github.event_name == 'pull_request' &&
@@ -277,38 +279,43 @@ jobs:
       pull-requests: write    # For commenting on PRs
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.base_matrix) }}
+    outputs:
+      image_name: ${{ steps.version.outputs.image_name }}
+      image_tag: ${{ steps.version.outputs.image_tag }}
+      version_tag: ${{ steps.version.outputs.version_tag }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Authenticate GitHub CLI
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # v3
-        with:
-          buildkitd-flags: |
-            --debug
-            --allow-insecure-entitlement network.host
 
-      - name: Generate version
+      - name: Extract image name
         id: version
         run: |
+          set -x
+          # Extract image name from path - get the last part of the path
+          IMAGE_NAME=$(basename ${{ matrix.image_path }})
+          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+
+          # Generate version tag
           SHA=$(git rev-parse --short HEAD)
           DATE=$(date '+%Y%m%d')
-          IMAGE_NAME=$(basename "${{ matrix.image_path }}")
           
           # Try to get the current build number, default to 0 if API call fails
+          set +e
           OUTPUT=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
           API_STATUS=$?
+          set -e
           
           if echo "$OUTPUT" | grep -q "message.*Package not found" || \
              echo "$OUTPUT" | grep -q "status.*404" || \
              [ $API_STATUS -ne 0 ]; then
-            echo "Package not found or API error detected"
-            echo "Setting build number to 0"
-            BUILD_NUM=0
+            echo "Package $IMAGE_NAME not found in registry - this is expected for new images"
+            echo "Starting with build number 1"
+            BUILD_NUM=1
           else
             echo "API call succeeded, parsing response"
             LATEST_BUILD=$(echo "$OUTPUT" | \
@@ -338,9 +345,7 @@ jobs:
           echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
           echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
           echo "sha=${SHA}" >> $GITHUB_OUTPUT
-          
-          # Script should succeed even if API call failed
-          exit 0
+
       - name: Generate build contexts
         id: build-contexts
         run: |
@@ -370,6 +375,14 @@ jobs:
           echo "Generated build contexts: ${BUILD_CONTEXTS}"
           echo "Valid images: ${VALID_IMAGES}"
           echo "Current image path: '${{ matrix.image_path }}'"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # v3
+        with:
+          buildkitd-flags: |
+            --debug
+            --allow-insecure-entitlement network.host
+
       - name: Build base image
         uses: docker/build-push-action@67a2d409c0a876cbe6b11854e3e25193efe4e62d # v6
         with:
@@ -409,25 +422,24 @@ jobs:
         run: |
           set -x
           if [ -s trivy-image-results.txt ]; then
-            echo "Vulnerabilities found, commenting on PR"
             {
-              echo "### 🔍 Trivy Image Scan Results for \`node-base\`"
+              echo "### 🔍 Trivy Image Scan Results for \`${{ steps.version.outputs.image_name }}\`"
               echo ""
-              echo "<details>"
-              echo "<summary>Click to view findings</summary>"
+              echo "<details><summary>Click to show scan results</summary>"
               echo ""
               echo "\`\`\`"
               cat trivy-image-results.txt
               echo "\`\`\`"
+              echo ""
               echo "</details>"
               echo ""
-              echo "These vulnerabilities were found in the node-base image. Since this is our base image, these vulnerabilities will affect all derived images. Please review and update dependencies to their latest secure versions where possible."
+              echo "These vulnerabilities were found in the ${{ steps.version.outputs.image_name }} image. Since this is a base image, these vulnerabilities will affect all derived images. Please review and update dependencies to their latest secure versions where possible."
             } > comment.md
             gh pr comment ${{ github.event.pull_request.number }} --body-file comment.md
             exit 0
           else
             echo "No vulnerabilities found in image"
-            gh pr comment ${{ github.event.pull_request.number }} --body "✅ No vulnerabilities found in \`node-base\` image"
+            gh pr comment ${{ github.event.pull_request.number }} --body "✅ No vulnerabilities found in \`${{ steps.version.outputs.image_name }}\` image"
           fi
 
       - name: Log in to GitHub Container Registry
@@ -509,8 +521,8 @@ jobs:
           if echo "$OUTPUT" | grep -q "message.*Package not found" || \
              echo "$OUTPUT" | grep -q "status.*404" || \
              [ $API_STATUS -ne 0 ]; then
-            echo "Package not found or API error detected"
-            echo "Setting build number to 1"
+            echo "Package $IMAGE_NAME not found in registry - this is expected for new images"
+            echo "Starting with build number 1"
             BUILD_NUM=1
           else
             echo "API call succeeded, parsing response"
@@ -543,6 +555,7 @@ jobs:
           echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
           echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
           echo "sha=${SHA}" >> $GITHUB_OUTPUT
+
       - name: Generate build contexts
         id: build-contexts
         run: |
@@ -654,17 +667,14 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
           API_STATUS=$?
-          
-          echo "Debug: Full command output:"
-          echo "$OUTPUT"
-          echo "Debug: API Status: $API_STATUS"
+          set -e
           
           # More detailed error checking
           if echo "$OUTPUT" | grep -q "message.*Package not found" || \
              echo "$OUTPUT" | grep -q "status.*404" || \
              [ $API_STATUS -ne 0 ]; then
-            echo "Package not found or API error detected"
-            echo "Setting build number to 1"
+            echo "Package $IMAGE_NAME not found in registry - this is expected for new images"
+            echo "Starting with build number 1"
             BUILD_NUM=1
           else
             echo "API call succeeded, parsing response"
@@ -1052,7 +1062,7 @@ jobs:
           exit 0
 
   workflow-status:
-    needs: [detect-changes, test-nodes, build-node-base, build-clients, build-protocols, scan-dockerfiles]
+    needs: [detect-changes, test-nodes, build-base-images, build-clients, build-protocols, scan-dockerfiles]
     if: always() && github.event_name == 'pull_request' && github.event.action != 'closed'
     runs-on: dev
     permissions:
@@ -1062,7 +1072,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [[ "${{ needs.build-node-base.result }}" == "failure" ]] || \
+          if [[ "${{ needs.build-base-images.result }}" == "failure" ]] || \
              [[ "${{ needs.build-clients.result }}" == "failure" ]] || \
              [[ "${{ needs.build-protocols.result }}" == "failure" ]] || \
              [[ "${{ needs.test-nodes.result }}" == "failure" ]] || \
