@@ -51,6 +51,8 @@ jobs:
       protocols_matrix: ${{ steps.set-matrix.outputs.protocols_matrix }}
       content_changes: ${{ steps.set-matrix.outputs.content_changes }}
       all_changed_files: ${{ steps.changed-files.outputs.all_changed_files }}
+      dockerfile_changes: ${{ steps.set-matrix.outputs.dockerfile_changes }}
+      dockerfile_matrix: ${{ steps.set-matrix.outputs.dockerfile_matrix }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -110,11 +112,13 @@ jobs:
           CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
           PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^protocols/[^/]\+/[^/]\+$" || true)
           CONTENT_CHANGES=$(echo "$CHANGED_DIRS" | grep "^protocols/" || true)
+          DOCKERFILE_CHANGES=$(echo "$CHANGED_DIRS" | grep -E "^node-base/|clients/|protocols/" || true)
           
           echo "Base dirs: $BASE"
           echo "Client dirs: $CLIENTS"
           echo "Protocol dirs: $PROTOCOLS"
           echo "Content changes: $CONTENT_CHANGES"
+          echo "Dockerfile changes: $DOCKERFILE_CHANGES"
           
           # Only output matrices if we have changes
           if [[ -n "$BASE" ]]; then
@@ -140,15 +144,24 @@ jobs:
           else
             echo 'content_changes={"include":[]}' >> $GITHUB_OUTPUT
           fi
+          
+          if [[ -n "$DOCKERFILE_CHANGES" ]]; then
+            echo "dockerfile_changes=true" >> $GITHUB_OUTPUT
+            echo "dockerfile_matrix=$(echo "$DOCKERFILE_CHANGES" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          else
+            echo 'dockerfile_changes=false' >> $GITHUB_OUTPUT
+            echo 'dockerfile_matrix={"include":[]}' >> $GITHUB_OUTPUT
+          fi
 
   scan-dockerfiles:
     needs: [detect-changes]
     if: |
       github.event_name == 'pull_request' &&
-      github.event.action != 'closed'
+      github.event.action != 'closed' &&
+      contains(needs.detect-changes.outputs.dockerfile_changes, 'true')
     runs-on: dev
     strategy:
-      matrix: ${{ fromJson(needs.detect-changes.outputs.content_changes) }}
+      matrix: ${{ fromJson(needs.detect-changes.outputs.dockerfile_matrix) }}
       fail-fast: false
     permissions:
       contents: read
@@ -211,11 +224,12 @@ jobs:
           fi
         
   build-node-base:
-    needs: [detect-changes]
+    needs: [detect-changes, scan-dockerfiles]
     if: |
       github.event_name == 'pull_request' &&
       fromJson(needs.detect-changes.outputs.base_matrix).include[0] &&
-      github.event.action != 'closed'
+      github.event.action != 'closed' &&
+      (needs.scan-dockerfiles.result == 'success' || needs.scan-dockerfiles.result == 'skipped')
     runs-on: dev
     permissions:
       contents: read      # Allows reading repository contents
@@ -336,11 +350,12 @@ jobs:
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
 
   build-clients:
-    needs: [detect-changes]
+    needs: [detect-changes, scan-dockerfiles]
     if: |
       github.event_name == 'pull_request' &&
       fromJson(needs.detect-changes.outputs.clients_matrix).include[0] &&
-      github.event.action != 'closed'
+      github.event.action != 'closed' &&
+      (needs.scan-dockerfiles.result == 'success' || needs.scan-dockerfiles.result == 'skipped')
     runs-on: dev
     permissions:
       contents: read      # Allows reading repository contents
@@ -475,12 +490,13 @@ jobs:
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
 
   build-protocols:
-    needs: [detect-changes]
+    needs: [detect-changes, scan-dockerfiles]
     environment: Dev
     if: |
       github.event_name == 'pull_request' &&
       fromJson(needs.detect-changes.outputs.protocols_matrix).include[0] &&
-      github.event.action != 'closed'
+      github.event.action != 'closed' &&
+      (needs.scan-dockerfiles.result == 'success' || needs.scan-dockerfiles.result == 'skipped')
     runs-on: dev
     outputs:
       matrix: ${{ needs.detect-changes.outputs.protocols_matrix }}
