@@ -69,16 +69,30 @@ jobs:
           for file in $CHANGED_FILES; do
             if [[ "$file" == *"babel.yaml" ]]; then
               echo "Processing $file for version changes"
+              DIR=$(dirname "$file")
+              PROTOCOL=$(basename "$DIR")
               
               # Compare version key between current and base
               CURRENT_VERSION=$(yq e '.version' "$file")
               PREV_VERSION=$(git show ${{ github.event.pull_request.base.sha }}:"$file" | yq e '.version' -)
               
+              # Check if tag exists for current version
+              TAG="${PROTOCOL}/v${CURRENT_VERSION}"
+              if git rev-parse "$TAG" >/dev/null 2>&1; then
+                TAG_EXISTS="true"
+              else
+                TAG_EXISTS="false"
+              fi
+
               if [ "$CURRENT_VERSION" != "$PREV_VERSION" ]; then
                 echo "Version changed in $file: $PREV_VERSION -> $CURRENT_VERSION"
-                DIR=$(dirname "$file")
-                PROTOCOL=$(basename "$DIR")
-                CHANGED_BABEL+=("{\"protocol\":\"$PROTOCOL\",\"babel_yaml\":\"$file\"}")
+                CHANGED_BABEL+=("{\"protocol\":\"$PROTOCOL\",\"babel_yaml\":\"$file\",\"version\":\"$CURRENT_VERSION\",\"tag_exists\":$TAG_EXISTS,\"version_changed\":true}")
+              else
+                # Check if content has changed when version is the same
+                if ! git diff --quiet ${{ github.event.pull_request.base.sha }} HEAD -- "$file"; then
+                  echo "Content changed in $file (version unchanged: $CURRENT_VERSION)"
+                  CHANGED_BABEL+=("{\"protocol\":\"$PROTOCOL\",\"babel_yaml\":\"$file\",\"version\":\"$CURRENT_VERSION\",\"tag_exists\":$TAG_EXISTS,\"version_changed\":false}")
+                fi
               fi
             fi
           done
@@ -230,7 +244,11 @@ jobs:
   push-staging:
     environment: Staging
     needs: [detect-changes, push-dev, check-protocols]
-    if: fromJson(needs.detect-changes.outputs.version_changes)[0]
+    if: |
+      fromJson(needs.detect-changes.outputs.version_changes)[0] && (
+        fromJson(needs.detect-changes.outputs.version_changes)[0].version_changed == true ||
+        (fromJson(needs.detect-changes.outputs.version_changes)[0].version_changed == false && fromJson(needs.detect-changes.outputs.version_changes)[0].tag_exists == true)
+      )
     runs-on: dev
     permissions:
       contents: write
