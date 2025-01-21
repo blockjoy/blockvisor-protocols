@@ -813,8 +813,8 @@ jobs:
           
           for variant in ${{ steps.get-variants.outputs.variants }}; do
             echo "Checking variant: $variant"
-            echo "Running: nib image check --lint --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            if OUTPUT=$(nib image check --lint --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1); then
+            echo "Running: nib image check --lint-only --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
+            if OUTPUT=$(nib image check --lint-only --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1); then
               success_variants+=("$variant")
               echo " Variant $variant check passed"
               echo "Command output:"
