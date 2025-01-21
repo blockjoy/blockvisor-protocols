@@ -297,11 +297,16 @@ jobs:
           fi
 
       - name: Create version tag
+        if: matrix.version_changed == true
         run: |
           TAG="${{ steps.push-staging.outputs.protocol }}/v${{ steps.push-staging.outputs.version }}"
-          echo "Creating tag $TAG"
-          git tag $TAG
-          git push origin $TAG
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Creating tag $TAG"
+            git tag $TAG
+            git push origin $TAG
+          else
+            echo "Tag $TAG already exists, skipping creation"
+          fi
 
       - name: Comment on PR (Staging)
         if: steps.push-staging.outputs.protocol != ''
