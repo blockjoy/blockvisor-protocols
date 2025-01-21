@@ -16,14 +16,12 @@ RUN git clone --depth 1 --branch $ERIGON_VERSION https://github.com/erigontech/e
 
 # Build erigon with Go caching
 WORKDIR /root/erigon
-RUN mkdir -p dist
+RUN mkdir -p distro
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
-    make erigon && make DIST=dist install && \
-    cp dist/erigon /root/bin/ && \
-    cp dist/libsilkworm_capi.so /root/lib/
+    make erigon && make DIST=distro install
 
 # Create minimal final image
 FROM ${BASE_IMAGE}
-COPY --from=builder /root/bin/erigon /root/bin/erigon
-COPY --from=builder /root/lib/libsilkworm_capi.so /root/lib/libsilkworm_capi.so
+COPY --from=builder /root/erigon/distro/erigon /root/bin/
+COPY --from=builder /root/erigon/distro/libsilkworm_capi.so /root/lib/
