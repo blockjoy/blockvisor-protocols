@@ -1,6 +1,0 @@
-GITHUB_TOKEN=your_github_token
-GITHUB_USER=your_github_username
-GRAFANA_LOKI_API_KEY=your_loki_key
-GRAFANA_LOKI_BASICAUTH=your_loki_auth
-GRAFANA_PROM_BASICAUTH=your_prom_auth
-CLOUDFLARE_API_KEY=your_cloudflare_key
