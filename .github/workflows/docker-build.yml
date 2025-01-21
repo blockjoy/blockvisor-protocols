@@ -946,7 +946,6 @@ jobs:
     environment: Dev
     strategy:
       matrix: ${{ fromJson(needs.build-protocols.outputs.matrix) }}
-      fail-fast: true
     outputs:
       runner_host: ${{ steps.test-nodes.outputs.runner_host }}
       node_names: ${{ steps.test-nodes.outputs.node_names }}
