@@ -103,7 +103,7 @@ discovery.relabel "logs_default_journal_scrape" {
 loki.source.journal "logs_default_journal_scrape" {
 	max_age       = "24h0m0s"
 	relabel_rules = discovery.relabel.logs_default_journal_scrape.rules
-	forward_to    = [loki.write.logs_default.receiver,loki.write.logs_local.receiver]
+	forward_to    = [loki.write.logs_default.receiver]
 	labels        = {
 		cluster  = "prod-nodes",
 		instance = "{{ hostname }}{{ tld }}",
