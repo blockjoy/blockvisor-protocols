@@ -105,8 +105,8 @@ jobs:
           if [ ${#CHANGED_BABEL[@]} -gt 0 ]; then
             echo "DEBUG: Raw babel changes:"
             printf "%s\n" "${CHANGED_BABEL[@]}"
-            # Create JSON array directly
-            BABEL_JSON="[${CHANGED_BABEL[*]}]"
+            # Join array elements with commas and wrap in brackets
+            BABEL_JSON="[$(IFS=,; echo "${CHANGED_BABEL[*]}")]"
             BABEL_ARRAY=$(echo "$BABEL_JSON" | jq -c '.')
             echo "DEBUG: Babel files with version changes:"
             echo "$BABEL_ARRAY" | jq '.'
