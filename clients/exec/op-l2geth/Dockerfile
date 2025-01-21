@@ -4,8 +4,15 @@ FROM ${BASE_IMAGE} as builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV OPL2GETH_VERSION=develop
+ENV GO_VERSION=1.19.13
 ENV PATH="/usr/local/go/bin:${PATH}"
 ENV GOROOT="/usr/local/go"
+
+# Install Go
+RUN curl -O https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz && \
+    rm -rf /usr/local/go && \
+    tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz && \
+    rm go${GO_VERSION}.linux-amd64.tar.gz
 
 RUN mkdir -p /root/bin
 
