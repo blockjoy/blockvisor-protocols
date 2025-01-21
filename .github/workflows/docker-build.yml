@@ -813,8 +813,8 @@ jobs:
           
           for variant in ${{ steps.get-variants.outputs.variants }}; do
             echo "Checking variant: $variant"
-            echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            if OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1); then
+            echo "Running: nib image check --lint --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
+            if OUTPUT=$(nib image check --lint --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1); then
               success_variants+=("$variant")
               echo " Variant $variant check passed"
               echo "Command output:"
@@ -1002,14 +1002,14 @@ jobs:
           for variant in $VARIANTS; do
             echo "Testing variant: $variant"
             
-            # Run nib image play and capture output
-            echo "Running: nib image play --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            OUTPUT=$(nib image play --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 || true)
+            # Run nib image check and capture output
+            echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
+            OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 || true)
             NIB_EXIT=$?
-            echo "nib image play output:"
+            echo "nib image check output:"
             echo "$OUTPUT"
             if [ $NIB_EXIT -ne 0 ]; then
-              echo "Error: nib image play failed with exit code $NIB_EXIT"
+              echo "Error: nib image check failed with exit code $NIB_EXIT"
               exit 1
             fi
             
