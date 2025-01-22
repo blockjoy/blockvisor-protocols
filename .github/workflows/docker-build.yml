@@ -995,10 +995,8 @@ jobs:
         id: test-nodes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash --noprofile --norc -eo pipefail {0}
         run: |
-          # Allow errors without exiting
-          set +e
-          
           # Store runner hostname
           RUNNER_HOST=$(hostname)
           echo "runner_host=${RUNNER_HOST}" >> $GITHUB_OUTPUT
@@ -1024,19 +1022,16 @@ jobs:
             
             # Run nib image check and capture output
             echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            set +e  # Allow nib command to fail without exiting
-            OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1)
-            set -e  # Restore exit on error
-            
-            echo "nib image check output:"
-            echo "$OUTPUT"
-            
-            # Check for errors in output
-            if echo "$OUTPUT" | grep -q "Error: "; then
+            if ! OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1); then
+              echo "nib image check output:"
+              echo "$OUTPUT"
               echo "Error detected in nib image check output"
               ((CHECK_FAILED++))
               continue
             fi
+            
+            echo "nib image check output:"
+            echo "$OUTPUT"
             
             # Only proceed with node operations if node was started
             if echo "$OUTPUT" | grep -q "Node started"; then
@@ -1056,12 +1051,7 @@ jobs:
               
               # Start the node
               echo "Starting node ${NODE_NAME}"
-              set +e  # Allow node start to fail without exiting
-              START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1)
-              START_EXIT=$?
-              set -e  # Restore exit on error
-              
-              if [ $START_EXIT -ne 0 ]; then
+              if ! START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1); then
                 echo "Error: Failed to start node ${NODE_NAME}:"
                 echo "$START_OUTPUT"
                 ((CHECK_FAILED++))
