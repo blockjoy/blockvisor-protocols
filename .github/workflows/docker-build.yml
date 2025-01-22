@@ -1021,8 +1021,16 @@ jobs:
             
             # Run nib image check and capture output
             echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1)
-            NIB_EXIT=$?
+            # Use a temporary file to capture output since we need both output and exit code
+            NIB_OUTPUT_FILE=$(mktemp)
+            if nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test > "$NIB_OUTPUT_FILE" 2>&1; then
+              NIB_EXIT=0
+            else
+              NIB_EXIT=$?
+            fi
+            OUTPUT=$(<"$NIB_OUTPUT_FILE")
+            rm "$NIB_OUTPUT_FILE"
+            
             echo "nib image check output:"
             echo "$OUTPUT"
             echo "nib exit code: $NIB_EXIT"
