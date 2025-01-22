@@ -240,7 +240,7 @@ jobs:
           CHANGED_PROTOCOLS='${{ needs.detect-changes.outputs.content_changes }}'
           
           # Check each protocol key
-          echo "$CHANGED_PROTOCOLS" | jq -r '.[] | .image_path' | while read -r IMAGE_PATH; do
+          echo "$CHANGED_PROTOCOLS" | jq -r '.include[] | .image_path' | while read -r IMAGE_PATH; do
             echo "Checking protocol in $IMAGE_PATH"
             
             # Get protocol key from babel.yaml
