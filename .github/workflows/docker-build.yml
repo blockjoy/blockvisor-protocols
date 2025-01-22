@@ -1021,12 +1021,19 @@ jobs:
             
             # Run nib image check and capture output
             echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 || true)
+            OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1)
             NIB_EXIT=$?
             echo "nib image check output:"
             echo "$OUTPUT"
+            echo "nib exit code: $NIB_EXIT"
             
-            # Check if node was started regardless of final exit code
+            if [ $NIB_EXIT -ne 0 ]; then
+              echo "Error: nib image check failed with exit code $NIB_EXIT"
+              ((CHECK_FAILED++))
+              continue
+            fi
+            
+            # Only proceed with node operations if nib check passed
             if echo "$OUTPUT" | grep -q "Node started"; then
               # Extract node name from the 'Created ... dev_node' line
               NODE_NAME=$(echo "$OUTPUT" | grep -o "'[^']*'" | head -1 | tr -d "'")
@@ -1051,11 +1058,6 @@ jobs:
               else
                 echo "Successfully started node ${NODE_NAME}"
               fi
-            fi
-            
-            if [ $NIB_EXIT -ne 0 ]; then
-              echo "Error: nib image check failed with exit code $NIB_EXIT"
-              ((CHECK_FAILED++))
             fi
           done
 
