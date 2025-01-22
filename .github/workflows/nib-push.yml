@@ -229,7 +229,7 @@ jobs:
       - name: Create version tag
         if: steps.push-dev.outputs.protocol != ''
         run: |
-          TAG="${{ steps.push-dev.outputs.protocol_variant }}/v${{ steps.push-dev.outputs.version }}"
+          TAG="${{ steps.push-dev.outputs.tag_name }}"
           if ! git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Creating tag $TAG"
             git tag $TAG
@@ -304,7 +304,7 @@ jobs:
           fi
 
       - name: Create version tag
-        if: matrix.version_changed == true
+        if: steps.push-staging.outputs.tag != ''
         run: |
           TAG="${{ steps.push-staging.outputs.tag }}"
           if ! git rev-parse "$TAG" >/dev/null 2>&1; then
