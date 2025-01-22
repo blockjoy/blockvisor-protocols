@@ -10,3 +10,9 @@
   ticker: null
   description: Base is a network of computers all over the world that follow a set of rules called the base protocol. The Base network acts as the foundation for communities, applications, organizations and digital assets that anyone can build or use.
   visibility: public
+- key: avalanche
+  name: Avalanche protocol
+  org_id: null
+  ticker: null
+  description: Avalanche is a network of computers all over the world that follow a set of rules called the Avalanche protocol. The Avalanche network acts as the foundation for communities, applications, organizations and digital assets that anyone can build or use.
+  visibility: public

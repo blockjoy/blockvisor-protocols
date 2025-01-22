@@ -1,0 +1,51 @@
+version: 0.0.1
+container_uri: docker://ghcr.io/blockjoy/avalanchego:v20250121.1
+sku_code: AVAX-GO
+org_id: null
+description: Avalanche node with avalanchego client
+visibility: public
+protocol_key: avalanche
+variants:
+  - key: avalanchego-mainnet-archive
+    min_cpu: 12
+    min_memory_mb: 24576
+    min_disk_gb: 8000
+    sku_code: AVAX-GO-MA
+    archive_pointers:
+      - pointer: !store_key avalanchego-mainnet-v1
+  - key: avalanchego-testnet-archive
+    min_cpu: 4
+    min_memory_mb: 8192
+    min_disk_gb: 2000
+    sku_code: AVAX-GO-TA
+    archive_pointers:
+      - pointer: !store_key avalanchego-testnet-v1
+firewall_config:
+  default_in: deny
+  default_out: allow
+  rules:
+    - key: Allow incoming ports TCP
+      description: Allow TCP inbound traffic on ports 80, 443, 9650
+      protocol: tcp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 80
+          name: HTTP port
+        - port: 443
+          name: HTTPS port
+    - key: Allow incoming ports UDP
+      description: Allow UDP inbound traffic on port 9651
+      protocol: udp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 9651
+          name: Avalanche P2P port
+properties: []

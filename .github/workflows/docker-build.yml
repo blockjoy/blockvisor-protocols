@@ -240,7 +240,7 @@ jobs:
           CHANGED_PROTOCOLS='${{ needs.detect-changes.outputs.content_changes }}'
           
           # Check each protocol key
-          echo "$CHANGED_PROTOCOLS" | jq -r '.[] | .image_path' | while read -r IMAGE_PATH; do
+          echo "$CHANGED_PROTOCOLS" | jq -r '.include[] | .image_path' | while read -r IMAGE_PATH; do
             echo "Checking protocol in $IMAGE_PATH"
             
             # Get protocol key from babel.yaml
@@ -1012,54 +1012,45 @@ jobs:
           # Initialize arrays for node info
           declare -a NODE_NAMES=()
           declare -a DEPLOYED_NODES=()
-          declare -i CHECK_FAILED=0
-          START_FAILED=false
           
           # For each variant, start a node and capture info
           for variant in $VARIANTS; do
             echo "Testing variant: $variant"
             
-            # Run nib image check and capture output
+            # Run nib image check
             echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 || true)
-            NIB_EXIT=$?
+            OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1)
+            if [ $? -ne 0 ] || echo "$OUTPUT" | grep -q "Error: "; then
+              echo "nib image check output:"
+              echo "$OUTPUT"
+              echo "Error: nib image check failed"
+              exit 1
+            fi
+            
             echo "nib image check output:"
             echo "$OUTPUT"
             
-            # Check if node was started regardless of final exit code
-            if echo "$OUTPUT" | grep -q "Node started"; then
-              # Extract node name from the 'Created ... dev_node' line
-              NODE_NAME=$(echo "$OUTPUT" | grep -o "'[^']*'" | head -1 | tr -d "'")
-              if [ -z "$NODE_NAME" ]; then
-                echo "Error: Failed to extract node name from output"
-                ((CHECK_FAILED++))
-                continue
-              fi
-              
-              # Store for later use
-              NODE_NAMES+=("$NODE_NAME")
-              
-              # Add to deployed nodes list before attempting start
-              DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
-              
-              # Start the node
-              echo "Starting node ${NODE_NAME}"
-              if ! START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1); then
-                echo "Error: Failed to start node ${NODE_NAME}:"
-                echo "$START_OUTPUT"
-                ((CHECK_FAILED++))
-              else
-                echo "Successfully started node ${NODE_NAME}"
-              fi
+            # Extract node name
+            NODE_NAME=$(echo "$OUTPUT" | grep -o "'[^']*'" | head -1 | tr -d "'")
+            if [ -z "$NODE_NAME" ]; then
+              echo "Error: Failed to extract node name from output"
+              exit 1
             fi
             
-            if [ $NIB_EXIT -ne 0 ]; then
-              echo "Error: nib image check failed with exit code $NIB_EXIT"
-              ((CHECK_FAILED++))
+            # Store for later use
+            NODE_NAMES+=("$NODE_NAME")
+            DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
+            
+            # Start the node
+            echo "Starting node ${NODE_NAME}"
+            if ! bv n start "$NODE_NAME"; then
+              echo "Error: Failed to start node ${NODE_NAME}"
+              exit 1
             fi
+            echo "Successfully started node ${NODE_NAME}"
           done
 
-          # Post comment about all deployed nodes
+          # Post comment about deployed nodes
           if [ ${#DEPLOYED_NODES[@]} -gt 0 ]; then
             COMMENT="The following nodes have been deployed on \`${RUNNER_HOST}\`:"$'\n'
             for node in "${DEPLOYED_NODES[@]}"; do
@@ -1071,16 +1062,7 @@ jobs:
 
           # Save node names for cleanup
           echo "node_names=${NODE_NAMES[*]}" >> $GITHUB_OUTPUT
-          echo "start_failed=${START_FAILED}" >> $GITHUB_OUTPUT
-          
-          # Exit with failure if any checks failed
-          if [ $CHECK_FAILED -gt 0 ]; then
-            echo "Error: $CHECK_FAILED node checks/starts failed"
-            exit 1
-          fi
-          
           echo "status=success" >> $GITHUB_OUTPUT
-          exit 0
 
   workflow-status:
     needs: [detect-changes, test-nodes, build-base-images, build-clients, build-protocols, scan-dockerfiles]
