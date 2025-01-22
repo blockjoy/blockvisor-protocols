@@ -996,7 +996,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -x
           # Store runner hostname
           RUNNER_HOST=$(hostname)
           echo "runner_host=${RUNNER_HOST}" >> $GITHUB_OUTPUT
