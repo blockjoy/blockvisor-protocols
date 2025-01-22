@@ -1030,7 +1030,6 @@ jobs:
             if echo "$OUTPUT" | grep -q "Error: "; then
               echo "Error detected in nib image check output"
               ((CHECK_FAILED++))
-              continue
             fi
             
             # Only proceed with node operations if node was started
@@ -1040,7 +1039,6 @@ jobs:
               if [ -z "$NODE_NAME" ]; then
                 echo "Error: Failed to extract node name from output"
                 ((CHECK_FAILED++))
-                continue
               fi
               
               # Store for later use
