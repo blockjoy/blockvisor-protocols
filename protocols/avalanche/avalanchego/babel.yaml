@@ -6,14 +6,14 @@ description: Avalanche node with avalanchego client
 visibility: public
 protocol_key: avalanche
 variants:
-  - key: mainnet
+  - key: avalanchego-mainnet-archive
     min_cpu: 12
     min_memory_mb: 24576
     min_disk_gb: 8000
     sku_code: AVAX-GO-MA
     archive_pointers:
       - pointer: !store_key avalanchego-mainnet-v1
-  - key: testnet
+  - key: avalanchego-testnet-archive
     min_cpu: 4
     min_memory_mb: 8192
     min_disk_gb: 2000

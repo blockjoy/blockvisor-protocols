@@ -21,7 +21,7 @@ fn base_config(metrics_port, rpc_port, caddy_dir) {
                 params: #{
                     hostname: node_env().node_name,
                     tld: ".n0des.xzy",
-                    blockchain: node_env().blockchain_type,
+                    blockchain: node_env().node_protocol,
                     metrics_port: `${metrics_port}`,
                     metrics_path: "/ext/metrics",
                 }
