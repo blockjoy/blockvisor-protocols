@@ -216,6 +216,25 @@ jobs:
             echo "variant=$VARIANT" >> $GITHUB_OUTPUT
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "buildnum=$BUILDNUM" >> $GITHUB_OUTPUT
+            
+            # Extract base variant name (e.g., base-op-reth from base-op-reth-mainnet-archive)
+            PROTOCOL_VARIANT=$(echo "$VARIANT" | cut -d'-' -f1-3)
+            
+            # Create tag name
+            TAG_NAME="${PROTOCOL_VARIANT}/v${VERSION}-dev+${BUILDNUM}"
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create version tag
+        if: steps.push-dev.outputs.protocol != ''
+        run: |
+          TAG="${{ steps.push-dev.outputs.protocol }}/v${{ steps.push-dev.outputs.version }}-dev+${{ steps.push-dev.outputs.buildnum }}"
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Creating tag $TAG"
+            git tag $TAG
+            git push origin $TAG
+          else
+            echo "Tag $TAG already exists, skipping creation"
           fi
 
       - name: Comment on PR (Dev)
@@ -273,12 +292,16 @@ jobs:
             echo "variant=$VARIANT" >> $GITHUB_OUTPUT
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "buildnum=$BUILDNUM" >> $GITHUB_OUTPUT
+            
+            # Extract base variant name (e.g., base-op-reth from base-op-reth-mainnet-archive)
+            PROTOCOL_VARIANT=$(echo "$VARIANT" | cut -d'-' -f1-3)
+            echo "protocol_variant=$PROTOCOL_VARIANT" >> $GITHUB_OUTPUT
           fi
 
       - name: Create version tag
         if: matrix.version_changed == true
         run: |
-          TAG="${{ steps.push-staging.outputs.protocol }}/v${{ steps.push-staging.outputs.version }}"
+          TAG="${{ steps.push-staging.outputs.protocol_variant }}/v${{ steps.push-staging.outputs.version }}"
           if ! git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Creating tag $TAG"
             git tag $TAG
