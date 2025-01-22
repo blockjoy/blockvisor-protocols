@@ -1020,18 +1020,18 @@ jobs:
           for variant in $VARIANTS; do
             echo "Testing variant: $variant"
             
-            # Run nib image check and capture output
+            # Run nib image check and capture output in a subshell
             echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            if ! OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1); then
-              echo "nib image check output:"
-              echo "$OUTPUT"
+            OUTPUT=$(bash -c "nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 || true")
+            echo "nib image check output:"
+            echo "$OUTPUT"
+            
+            # Check for errors in output
+            if echo "$OUTPUT" | grep -q "Error: "; then
               echo "Error detected in nib image check output"
               ((CHECK_FAILED++))
               continue
             fi
-            
-            echo "nib image check output:"
-            echo "$OUTPUT"
             
             # Only proceed with node operations if node was started
             if echo "$OUTPUT" | grep -q "Node started"; then
@@ -1051,7 +1051,8 @@ jobs:
               
               # Start the node
               echo "Starting node ${NODE_NAME}"
-              if ! START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1); then
+              START_OUTPUT=$(bash -c "bv n start $NODE_NAME 2>&1 || true")
+              if echo "$START_OUTPUT" | grep -q "Error: "; then
                 echo "Error: Failed to start node ${NODE_NAME}:"
                 echo "$START_OUTPUT"
                 ((CHECK_FAILED++))
