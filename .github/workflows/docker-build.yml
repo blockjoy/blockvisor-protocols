@@ -995,8 +995,8 @@ jobs:
         id: test-nodes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash --noprofile --norc -eo pipefail {0}
         run: |
+          set -x
           # Store runner hostname
           RUNNER_HOST=$(hostname)
           echo "runner_host=${RUNNER_HOST}" >> $GITHUB_OUTPUT
