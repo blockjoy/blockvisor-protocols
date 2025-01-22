@@ -1,4 +1,4 @@
-version: 0.0.1
+version: 0.0.2
 container_uri: docker://ghcr.io/blockjoy/ethereum-erigon:v20250122.6
 sku_code: ETH-ERG
 org_id: null

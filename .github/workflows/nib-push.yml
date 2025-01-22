@@ -181,7 +181,7 @@ jobs:
     if: fromJson(needs.detect-changes.outputs.content_changes)[0]
     runs-on: dev
     permissions:
-      contents: read
+      contents: write
       packages: write
       pull-requests: write
     strategy:
@@ -217,8 +217,9 @@ jobs:
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "buildnum=$BUILDNUM" >> $GITHUB_OUTPUT
             
-            # Extract base variant name (e.g., base-op-reth from base-op-reth-mainnet-archive)
-            PROTOCOL_VARIANT=$(echo "$VARIANT" | cut -d'-' -f1-3)
+            # Get protocol variant from parent folder of babel.yaml
+            PROTOCOL_VARIANT=$(basename $(dirname ${{ matrix.image_path }}/babel.yaml))
+            echo "protocol_variant=$PROTOCOL_VARIANT" >> $GITHUB_OUTPUT
             
             # Create tag name
             TAG_NAME="${PROTOCOL_VARIANT}/v${VERSION}-dev+${BUILDNUM}"
@@ -228,7 +229,7 @@ jobs:
       - name: Create version tag
         if: steps.push-dev.outputs.protocol != ''
         run: |
-          TAG="${{ steps.push-dev.outputs.protocol }}/v${{ steps.push-dev.outputs.version }}-dev+${{ steps.push-dev.outputs.buildnum }}"
+          TAG="${{ steps.push-dev.outputs.protocol_variant }}/v${{ steps.push-dev.outputs.version }}"
           if ! git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Creating tag $TAG"
             git tag $TAG
@@ -293,15 +294,19 @@ jobs:
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "buildnum=$BUILDNUM" >> $GITHUB_OUTPUT
             
-            # Extract base variant name (e.g., base-op-reth from base-op-reth-mainnet-archive)
-            PROTOCOL_VARIANT=$(echo "$VARIANT" | cut -d'-' -f1-3)
+            # Get protocol variant from parent folder of babel.yaml
+            PROTOCOL_VARIANT=$(basename $(dirname ${{ matrix.babel_yaml }}))
             echo "protocol_variant=$PROTOCOL_VARIANT" >> $GITHUB_OUTPUT
+            
+            # Create tag name
+            TAG="${PROTOCOL_VARIANT}/v${VERSION}"
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
           fi
 
       - name: Create version tag
         if: matrix.version_changed == true
         run: |
-          TAG="${{ steps.push-staging.outputs.protocol_variant }}/v${{ steps.push-staging.outputs.version }}"
+          TAG="${{ steps.push-staging.outputs.tag }}"
           if ! git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Creating tag $TAG"
             git tag $TAG
@@ -366,6 +371,11 @@ jobs:
             echo "variant=$VARIANT" >> $GITHUB_OUTPUT
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "buildnum=$BUILDNUM" >> $GITHUB_OUTPUT
+            
+            # Use same tag format as staging
+            PROTOCOL_VARIANT=$(basename $(dirname ${{ matrix.babel_yaml }}))
+            TAG="${PROTOCOL_VARIANT}/v${VERSION}"
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
           fi
 
       - name: Comment on PR (Prod)
@@ -381,27 +391,23 @@ jobs:
   create-release:
     needs: [detect-changes, push-prod]
     runs-on: dev
-    if: success()
+    if: fromJson(needs.detect-changes.outputs.version_changes)[0]
     permissions:
       contents: write
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.detect-changes.outputs.version_changes) }}
     steps:
       - name: Create Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Parse version_changes JSON array
-          VERSION_CHANGES='${{ needs.detect-changes.outputs.version_changes }}'
+          # Get protocol variant from babel.yaml path
+          PROTOCOL_VARIANT=$(basename $(dirname ${{ matrix.babel_yaml }}))
+          TAG="${PROTOCOL_VARIANT}/v${{ matrix.version }}"
           
-          echo "Creating releases for changes: $VERSION_CHANGES"
-          
-          # Process each protocol version
-          echo "$VERSION_CHANGES" | jq -c '.[]' | while read -r change; do
-            PROTOCOL=$(echo $change | jq -r '.protocol')
-            VERSION=$(echo $change | jq -r '.version')
-            TAG="$PROTOCOL/v$VERSION"
-            
-            echo "Creating release for $TAG"
-            gh release create "$TAG" \
-              --title "$PROTOCOL version $VERSION" \
-              --notes "Release of $PROTOCOL version $VERSION" \
-              --target ${{ github.event.pull_request.merge_commit_sha }}
+          echo "Creating release for $TAG"
+          gh release create "$TAG" \
+            --title "$PROTOCOL_VARIANT version ${{ matrix.version }}" \
+            --notes "Release of $PROTOCOL_VARIANT version ${{ matrix.version }}" \
+            --target ${{ github.event.pull_request.merge_commit_sha }}
