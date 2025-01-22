@@ -14,12 +14,13 @@ ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
 ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 
 # Create necessary directories
-RUN mkdir -p /root/bin /var/lib/avalanchego /var/lib/babel/templates
+RUN mkdir -p /root/bin /root/avalanche /var/lib/babel/templates
 
 # Copy avalanchego binary and templates
 COPY --from=avalanchego /root/bin/avalanchego /root/bin/
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
+COPY configs /root/avalanche/
 
 # Copy protocol files
 COPY avalanche.rhai /var/lib/babel/plugin/
