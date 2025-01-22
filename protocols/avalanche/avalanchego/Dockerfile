@@ -20,8 +20,6 @@ RUN mkdir -p /usr/local/bin /var/lib/avalanchego /var/lib/babel/templates
 COPY --from=avalanchego /usr/local/bin/avalanchego /usr/local/bin/
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
-COPY templates/netdata-conf.template /var/lib/babel/templates/
-COPY templates/netdata-stream-conf.template /var/lib/babel/templates/
 
 # Copy protocol files
 COPY avalanche.rhai /var/lib/babel/plugin/
