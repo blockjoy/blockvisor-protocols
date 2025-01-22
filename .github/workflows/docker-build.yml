@@ -98,11 +98,11 @@ jobs:
           # For each changed file, find which Docker directory it belongs to
           CHANGED_DIRS=$(for file in ${ALL_CHANGED_FILES}; do
             echo "Checking file: $file"
-            echo "$DOCKER_DIRS" | while read -r docker_dir; do
-              if [[ "$file" =~ ^"$docker_dir"(/|$) ]]; then
-                echo "$docker_dir"
-              fi
-            done
+            
+            # Check if this file is in a Docker directory
+            if [[ "$file" =~ ^"$DOCKER_DIRS"(/|$) ]]; then
+              echo "$file" | cut -d'/' -f1
+            fi
           done | sort -u)
           echo "Changed directories:"
           echo "$CHANGED_DIRS"
@@ -996,6 +996,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Allow errors without exiting
+          set +e
+          
           # Store runner hostname
           RUNNER_HOST=$(hostname)
           echo "runner_host=${RUNNER_HOST}" >> $GITHUB_OUTPUT
@@ -1021,7 +1024,10 @@ jobs:
             
             # Run nib image check and capture output
             echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 || true)
+            set +e  # Allow nib command to fail without exiting
+            OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1)
+            set -e  # Restore exit on error
+            
             echo "nib image check output:"
             echo "$OUTPUT"
             
@@ -1050,7 +1056,12 @@ jobs:
               
               # Start the node
               echo "Starting node ${NODE_NAME}"
-              if ! START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1); then
+              set +e  # Allow node start to fail without exiting
+              START_OUTPUT=$(bv n start "$NODE_NAME" 2>&1)
+              START_EXIT=$?
+              set -e  # Restore exit on error
+              
+              if [ $START_EXIT -ne 0 ]; then
                 echo "Error: Failed to start node ${NODE_NAME}:"
                 echo "$START_OUTPUT"
                 ((CHECK_FAILED++))
