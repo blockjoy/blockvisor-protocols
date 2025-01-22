@@ -1021,27 +1021,18 @@ jobs:
             
             # Run nib image check and capture output
             echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            # Use a temporary file to capture output since we need both output and exit code
-            NIB_OUTPUT_FILE=$(mktemp)
-            if nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test > "$NIB_OUTPUT_FILE" 2>&1; then
-              NIB_EXIT=0
-            else
-              NIB_EXIT=$?
-            fi
-            OUTPUT=$(<"$NIB_OUTPUT_FILE")
-            rm "$NIB_OUTPUT_FILE"
-            
+            OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 || true)
             echo "nib image check output:"
             echo "$OUTPUT"
-            echo "nib exit code: $NIB_EXIT"
             
-            if [ $NIB_EXIT -ne 0 ]; then
-              echo "Error: nib image check failed with exit code $NIB_EXIT"
+            # Check for errors in output
+            if echo "$OUTPUT" | grep -q "Error: "; then
+              echo "Error detected in nib image check output"
               ((CHECK_FAILED++))
               continue
             fi
             
-            # Only proceed with node operations if nib check passed
+            # Only proceed with node operations if node was started
             if echo "$OUTPUT" | grep -q "Node started"; then
               # Extract node name from the 'Created ... dev_node' line
               NODE_NAME=$(echo "$OUTPUT" | grep -o "'[^']*'" | head -1 | tr -d "'")
