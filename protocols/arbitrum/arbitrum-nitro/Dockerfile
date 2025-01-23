@@ -17,7 +17,7 @@ ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
 ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 
 # Create necessary directories
-RUN mkdir -p /root/bin /var/lib/babel/templates
+RUN mkdir -p /root/bin /root/lib /var/lib/babel/templates
 
 # Copy libs and binaries from builds
 COPY --from=arb-node /usr/lib/librocksdb.so.6.20 /root/lib
