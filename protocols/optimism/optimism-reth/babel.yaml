@@ -52,3 +52,4 @@ firewall_config:
       ports:
         - port: 9003
           name: OP Node P2P port
+properties: []
