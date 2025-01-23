@@ -19,7 +19,10 @@ ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 # Create necessary directories
 RUN mkdir -p /root/bin /var/lib/babel/templates
 
-# Copy binaries from builds
+# Copy libs and binaries from builds
+COPY --from=arb_node /usr/lib/librocksdb.so.6.20 /root/lib
+COPY --from=arb_node /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 /root/lib
+COPY --from=arb_node /usr/lib/x86_64-linux-gnu/libtcmalloc.so.4 /root/lib
 COPY --from=arb-node /root/bin/arb-node /root/bin/
 COPY --from=nitro /root/bin/nitro /root/bin/
 
