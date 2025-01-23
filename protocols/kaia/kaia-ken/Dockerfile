@@ -1,4 +1,3 @@
-#6
 ARG KAIA_KEN_IMAGE=ghcr.io/blockjoy/ken:v20250123.2
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 

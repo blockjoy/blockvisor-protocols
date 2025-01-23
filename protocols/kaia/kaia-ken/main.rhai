@@ -1,4 +1,4 @@
-import "kaia" as kaia;
+import "base" as base;
 import "kaia-ken" as kaia_ken;
 
 const CADDY_DIR = node_env().data_mount_point + "caddy";
