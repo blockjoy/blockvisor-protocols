@@ -1,4 +1,4 @@
-fn base_config(metrics_port, metrics_path, rpc_port, ws_port, authrpc_port, op_rpc_port, caddy_dir) { 
+fn base_config(metrics_port, metrics_path, rpc_port, ws_port, caddy_dir) { 
     #{   
         config_files: [
             #{
