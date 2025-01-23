@@ -1,0 +1,51 @@
+version: 0.0.15
+container_uri: docker://ghcr.io/blockjoy/ken:v20250123.1
+sku_code: KAIA-KEN
+org_id: null
+description: Kaia Ken EN node
+visibility: public
+protocol_key: kaia
+variants:
+  - key: kaia-ken-mainnet-full
+    min_cpu: 24
+    min_memory_mb: 131072
+    min_disk_gb: 5700
+    sku_code: KAIA-KEN-MF
+    archive_pointers:
+      - pointer: !store_key kaia-ken-mainnet-full-v1
+  - key: kaia-ken-mainnet-archive
+    min_cpu: 24
+    min_memory_mb: 131072
+    min_disk_gb: 30000
+    sku_code: KAIA-KEN-MA
+    archive_pointers:
+      - pointer: !store_key kaia-ken-mainnet-archive-v1
+firewall_config:
+  default_in: deny
+  default_out: allow
+  rules:
+    - key: Allow incoming ports TCP
+      description: Allow TCP inbound traffic on port 80, 443
+      protocol: tcp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 80
+          name: HTTP port
+        - port: 443
+          name: HTTPS port
+    - key: Allow P2P ports TCP/UDP
+      description: Allow inbound traffic on P2P ports
+      protocol: both
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 32323
+          name: P2P port
+properties: []
