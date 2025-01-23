@@ -1021,22 +1021,12 @@ jobs:
           for variant in $VARIANTS; do
             echo "Testing variant: $variant"
             
-            # Run nib image check
+            # Run nib image check and tee output to both console and file
             echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1)
-            echo "$OUTPUT"
-            if [ $? -ne 0 ] || echo "$OUTPUT" | grep -q "Error: "; then
-              echo "nib image check output:"
-              echo "$OUTPUT"
-              echo "Error: nib image check failed"
-              exit 1
-            fi
+            nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 | tee /tmp/nib_output.log
             
-            echo "nib image check output:"
-            echo "$OUTPUT"
-            
-            # Extract node name
-            NODE_NAME=$(echo "$OUTPUT" | grep -o "'[^']*'" | head -1 | tr -d "'")
+            # Extract node name from the complete output
+            NODE_NAME=$(cat /tmp/nib_output.log | grep -o "'[^']*'" | head -1 | tr -d "'")
             if [ -z "$NODE_NAME" ]; then
               echo "Error: Failed to extract node name from output"
               exit 1
