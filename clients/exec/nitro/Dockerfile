@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250120.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 ARG NITRO_IMAGE=offchainlabs/nitro-node:v3.3.2-9d70997
 
 FROM ${NITRO_IMAGE} AS nitro_node
