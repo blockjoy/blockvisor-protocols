@@ -98,6 +98,8 @@ jobs:
           # For each changed file, find which Docker directory it belongs to
           CHANGED_DIRS=$(for file in ${ALL_CHANGED_FILES}; do
             echo "Checking file: $file"
+            
+            # Get protocol key from babel.yaml
             echo "$DOCKER_DIRS" | while read -r docker_dir; do
               if [[ "$file" =~ ^"$docker_dir"(/|$) ]]; then
                 echo "$docker_dir"
@@ -231,7 +233,9 @@ jobs:
     outputs:
       protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history to allow commit comparisons
 
       - name: Check protocol keys in protocols.yaml
         id: check-protocol
@@ -866,7 +870,7 @@ jobs:
           PREV_HOST=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
             .comments
             | map(select(.author.login == "github-actions"))
-            | map(select(.body | test("All nodes have been cleaned up")))
+            | map(select(.body | test("The following nodes have been deployed on")))
             | sort_by(.createdAt)
             | last
             | if . == null then "" else
@@ -941,13 +945,13 @@ jobs:
             # Only post message if we actually cleaned up nodes
             if [ $CLEANED_NODES -gt 0 ]; then
               if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
-                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge"
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge."
               elif [[ "${{ github.event.action }}" == "closed" ]]; then
-                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR close"
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR close."
               elif [[ "${{ github.event.action }}" == "synchronize" ]]; then
-                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR update"
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR update."
               else
-                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up"
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up."
               fi
             fi
           else
@@ -1012,42 +1016,33 @@ jobs:
           # Initialize arrays for node info
           declare -a NODE_NAMES=()
           declare -a DEPLOYED_NODES=()
+          declare -a ERROR_NODES=()
           
           # For each variant, start a node and capture info
           for variant in $VARIANTS; do
             echo "Testing variant: $variant"
             
-            # Run nib image check
+            # Run nib image check and tee output to both console and file
             echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1)
-            if [ $? -ne 0 ] || echo "$OUTPUT" | grep -q "Error: "; then
-              echo "nib image check output:"
-              echo "$OUTPUT"
-              echo "Error: nib image check failed"
-              exit 1
-            fi
+            nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 | tee /tmp/nib_output.log
             
-            echo "nib image check output:"
-            echo "$OUTPUT"
-            
-            # Extract node name
-            NODE_NAME=$(echo "$OUTPUT" | grep -o "'[^']*'" | head -1 | tr -d "'")
+            # Extract node name from the complete output
+            NODE_NAME=$(cat /tmp/nib_output.log | grep -o "'[^']*'" | head -1 | tr -d "'")
             if [ -z "$NODE_NAME" ]; then
               echo "Error: Failed to extract node name from output"
               exit 1
             fi
             
-            # Store for later use
+            # Store node info
             NODE_NAMES+=("$NODE_NAME")
             DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
             
-            # Start the node
-            echo "Starting node ${NODE_NAME}"
-            if ! bv n start "$NODE_NAME"; then
-              echo "Error: Failed to start node ${NODE_NAME}"
-              exit 1
+            # Check for errors in the output
+            if grep -q "Error: " /tmp/nib_output.log; then
+              ERROR_MSG=$(grep "Error: " /tmp/nib_output.log)
+              echo "Error found in nib output for $NODE_NAME: $ERROR_MSG"
+              ERROR_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`:"$'\n'"  \`\`\`"$'\n'"  $ERROR_MSG"$'\n'"  \`\`\`")
             fi
-            echo "Successfully started node ${NODE_NAME}"
           done
 
           # Post comment about deployed nodes
@@ -1058,6 +1053,16 @@ jobs:
             done
             COMMENT="${COMMENT}"$'\n'"These nodes will be cleaned up on PR merge or close and replaced on PR update."
             echo -e "$COMMENT" | gh pr comment ${{ github.event.pull_request.number }} --body-file -
+          fi
+
+          # Post comment about error nodes if any
+          if [ ${#ERROR_NODES[@]} -gt 0 ]; then
+            ERROR_COMMENT="These nodes have errors:"$'\n'
+            for node in "${ERROR_NODES[@]}"; do
+              ERROR_COMMENT="${ERROR_COMMENT}${node}"$'\n'
+            done
+            ERROR_COMMENT="${ERROR_COMMENT}"$'\n'"Please verify these nodes for errors that can be corrected now. We will allow the PR to be merged since some execution clients won't start properly without a valid dataset. "
+            echo -e "$ERROR_COMMENT" | gh pr comment ${{ github.event.pull_request.number }} --body-file -
           fi
 
           # Save node names for cleanup

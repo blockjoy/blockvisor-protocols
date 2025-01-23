@@ -16,3 +16,9 @@
   ticker: null
   description: Avalanche is a network of computers all over the world that follow a set of rules called the Avalanche protocol. The Avalanche network acts as the foundation for communities, applications, organizations and digital assets that anyone can build or use.
   visibility: public
+- key: optimism
+  name: Optimism protocol
+  org_id: null
+  ticker: null
+  description: Optimism is a Layer 2 blockchain built on top of Ethereum that aims to scale the Ethereum ecosystem through optimistic rollup technology. The Optimism network provides faster and cheaper transactions while maintaining Ethereum's security guarantees.
+  visibility: public
