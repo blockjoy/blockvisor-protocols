@@ -993,7 +993,7 @@ jobs:
           
           # Update container_uri with newly built image
           NEW_URI="docker://ghcr.io/blockjoy/${IMAGE_NAME}:${{ needs.build-protocols.outputs.image_tag }}"
-          TMPDIR=~/temp yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
+          yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
 
       - name: Test nodes
         id: test-nodes
