@@ -60,7 +60,7 @@ const PLUGIN_CONFIG = #{
         ],
     },
     services: {
-        let mut services = [
+        let base_services = [
             #{
                 name: "nitro",           
                 run_sh: `HOME=${global::NITRO_DIR} && /root/bin/nitro \
@@ -84,23 +84,27 @@ const PLUGIN_CONFIG = #{
                          ${global::NITRO_EXTRA_ARGS}`,
                 shutdown_timeout_secs: 300,
                 log_timestamp: false,
-            },
+            }
         ];
+
         if global::NITRO_EXTRA_ARGS != "" {
-            services.push(#{
-                name: "arb-classic",
-                run_sh: `HOME=${global::ONE_DIR} && /root/bin/arb-node \
-                        --l1.url=${global::VARIANT.l1_url} \
-                        --node.chain-id=42161 \
-                        --l2.disable-upstream \
-                        --node.cache.allow-slow-lookup \
-                        --node.rpc.port=8546 \
-                        --core.checkpoint-gas-frequency=156250000 \
-                        --core.lazy-load-core-machine`,
-                log_timestamp: false,
-            });
+            base_services + [
+                #{
+                    name: "arb-classic",
+                    run_sh: `HOME=${global::ONE_DIR} && /root/bin/arb-node \
+                            --l1.url=${global::VARIANT.l1_url} \
+                            --node.chain-id=42161 \
+                            --l2.disable-upstream \
+                            --node.cache.allow-slow-lookup \
+                            --node.rpc.port=8546 \
+                            --core.checkpoint-gas-frequency=156250000 \
+                            --core.lazy-load-core-machine`,
+                    log_timestamp: false,
+                }
+            ]
+        } else {
+            base_services
         }
-        services;
     },
     upload: #{
         exclude: [
