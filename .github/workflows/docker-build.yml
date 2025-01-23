@@ -98,6 +98,8 @@ jobs:
           # For each changed file, find which Docker directory it belongs to
           CHANGED_DIRS=$(for file in ${ALL_CHANGED_FILES}; do
             echo "Checking file: $file"
+            
+            # Get protocol key from babel.yaml
             echo "$DOCKER_DIRS" | while read -r docker_dir; do
               if [[ "$file" =~ ^"$docker_dir"(/|$) ]]; then
                 echo "$docker_dir"
@@ -231,7 +233,9 @@ jobs:
     outputs:
       protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history to allow commit comparisons
 
       - name: Check protocol keys in protocols.yaml
         id: check-protocol
@@ -1020,6 +1024,7 @@ jobs:
             # Run nib image check
             echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
             OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1)
+            echo "$OUTPUT"
             if [ $? -ne 0 ] || echo "$OUTPUT" | grep -q "Error: "; then
               echo "nib image check output:"
               echo "$OUTPUT"
