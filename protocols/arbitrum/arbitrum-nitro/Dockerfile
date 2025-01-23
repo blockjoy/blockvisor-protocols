@@ -30,7 +30,6 @@ COPY --from=arb-node /usr/lib/x86_64-linux-gnu/libunwind.so.8 /usr/lib/x86_64-li
 COPY --from=arb-node /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /usr/lib/x86_64-linux-gnu/
 COPY --from=arb-node /usr/lib/x86_64-linux-gnu/libatomic.so.1 /usr/lib/x86_64-linux-gnu/
 COPY --from=arb-node /usr/lib/x86_64-linux-gnu/libbz2.so.1.0 /usr/lib/x86_64-linux-gnu/
-COPY --from=arb-node /usr/lib/x86_64-linux-gnu/liblzma.so.5 /usr/lib/x86_64-linux-gnu/
 COPY --from=arb-node /root/bin/arb-node /root/bin/
 COPY --from=nitro /root/bin/nitro /root/bin/
 
