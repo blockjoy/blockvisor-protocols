@@ -46,6 +46,7 @@ const PLUGIN_CONFIG = #{
             `mkdir -p ${global::HOME}`,
             `mkdir -p ${global::CADDY_DIR}`,
         ],
+        jobs: [],
     },
     services: [
         #{
