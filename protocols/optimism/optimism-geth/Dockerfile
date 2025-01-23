@@ -24,8 +24,8 @@ RUN mkdir -p /root/bin /var/lib/babel/templates
 
 # Copy binaries from builds
 COPY --from=op-node /root/bin/op-node /root/bin/
-COPY --from=op-geth /root/bin/geth /root/bin/op-geth
-COPY --from=op-l2geth /root/bin/geth /root/bin/op-l2geth
+COPY --from=op-geth /root/bin/op-geth /root/bin/
+COPY --from=op-l2geth /root/bin/op-l2geth /root/bin/
 
 # Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/
