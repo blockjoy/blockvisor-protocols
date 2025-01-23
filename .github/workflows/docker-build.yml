@@ -1025,6 +1025,12 @@ jobs:
             echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
             nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 | tee /tmp/nib_output.log
             
+            # Check for errors in the output
+            if grep -q "Error: " /tmp/nib_output.log; then
+              echo "Error found in nib output"
+              exit 1
+            fi
+            
             # Extract node name from the complete output
             NODE_NAME=$(cat /tmp/nib_output.log | grep -o "'[^']*'" | head -1 | tr -d "'")
             if [ -z "$NODE_NAME" ]; then
@@ -1035,14 +1041,6 @@ jobs:
             # Store for later use
             NODE_NAMES+=("$NODE_NAME")
             DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
-            
-            # Start the node
-            echo "Starting node ${NODE_NAME}"
-            if ! bv n start "$NODE_NAME"; then
-              echo "Error: Failed to start node ${NODE_NAME}"
-              exit 1
-            fi
-            echo "Successfully started node ${NODE_NAME}"
           done
 
           # Post comment about deployed nodes
