@@ -18,6 +18,5 @@ COPY --from=arb_node /usr/lib/x86_64-linux-gnu/libzstd.so.1 /usr/lib/x86_64-linu
 COPY --from=arb_node /usr/lib/x86_64-linux-gnu/libunwind.so.8 /usr/lib/x86_64-linux-gnu/libunwind.so.8
 COPY --from=arb_node /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /usr/lib/x86_64-linux-gnu/libstdc++.so.6
 COPY --from=arb_node /usr/lib/x86_64-linux-gnu/libatomic.so.1 /usr/lib/x86_64-linux-gnu/libatomic.so.1
-COPY --from=arb_node /usr/lib/x86_64-linux-gnu/libbz2.so.1.0 /usr/lib/x86_64-linux-gnu/libbz2.so.1.0
 
 COPY --from=arb_node /home/user/go/bin/arb-node /root/bin/arb-node
