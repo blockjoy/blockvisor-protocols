@@ -870,7 +870,7 @@ jobs:
           PREV_HOST=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
             .comments
             | map(select(.author.login == "github-actions"))
-            | map(select(.body | test("All nodes have been cleaned up")))
+            | map(select(.body | test("The following nodes have been deployed on")))
             | sort_by(.createdAt)
             | last
             | if . == null then "" else
