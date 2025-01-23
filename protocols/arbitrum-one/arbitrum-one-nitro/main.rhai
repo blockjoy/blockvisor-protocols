@@ -2,13 +2,14 @@ import "base" as base;
 import "nitro" as nitro;
 
 const METRICS_PORT = "6070";
+const ARB_NODE_RPC_PORT = "8546";
 const RPC_PORT = "8547";
 const WS_PORT = "8549";
 const METRICS_PATH = "/debug/metrics/prometheus";
 const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const CLASSIC_RPC = "http://127.0.0.1:8546";
 
-let NITRO_CONFIG = nitro::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
+let NITRO_CONFIG = nitro::base_config(global::METRICS_PORT, global::ARB_NODE_RPC_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
 
 const BASE_CONFIG = #{
     config_files: NITRO_CONFIG.config_files + base::BASE_CONFIG.config_files,
@@ -90,13 +91,13 @@ const PLUGIN_CONFIG = #{
         if global::NITRO_EXTRA_ARGS != "" {
             base_services + [
                 #{
-                    name: "arb-classic",
+                    name: "arb-node",
                     run_sh: `HOME=${global::ONE_DIR} && /root/bin/arb-node \
                             --l1.url=${global::VARIANT.l1_url} \
                             --node.chain-id=42161 \
                             --l2.disable-upstream \
                             --node.cache.allow-slow-lookup \
-                            --node.rpc.port=8546 \
+                            --node.rpc.port=${global::ARB_NODE_RPC_PORT} \
                             --core.checkpoint-gas-frequency=156250000 \
                             --core.lazy-load-core-machine`,
                     log_timestamp: false,
@@ -112,10 +113,6 @@ const PLUGIN_CONFIG = #{
         ],
     },
 };
-
-fn netdata_update() {
-    run_sh(`wget -O /tmp/netdata-kickstart.sh https://get.netdata.cloud/kickstart.sh && sh /tmp/netdata-kickstart.sh --stable-channel --disable-telemetry --non-interactive --dont-start-it --native-only --disable-cloud`);
-}
 
 fn application_status() {
     let resp = parse_hex(run_jrpc(#{host: global::API_HOST, method: "eth_chainId"}).expect(200).result);
