@@ -53,6 +53,7 @@ jobs:
       all_changed_files: ${{ steps.changed-files.outputs.all_changed_files }}
       dockerfile_changes: ${{ steps.set-matrix.outputs.dockerfile_changes }}
       dockerfile_matrix: ${{ steps.set-matrix.outputs.dockerfile_matrix }}
+      protocols_yaml_changed: ${{ steps.set-matrix.outputs.protocols_yaml_changed }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -109,6 +110,13 @@ jobs:
           echo "Changed directories:"
           echo "$CHANGED_DIRS"
           
+          # Check if protocols.yaml changed
+          if echo "$ALL_CHANGED_FILES" | grep -q "^protocols/protocols.yaml$"; then
+            echo "protocols_yaml_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "protocols_yaml_changed=false" >> $GITHUB_OUTPUT
+          fi
+
           # Filter by component
           BASE=$(echo "$CHANGED_DIRS" | grep "^base-images/" || true)
           CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
@@ -228,7 +236,8 @@ jobs:
     if: |
       github.event_name == 'pull_request' &&
       github.event.action != 'closed' &&
-      fromJson(needs.detect-changes.outputs.content_changes).include[0]
+      (fromJson(needs.detect-changes.outputs.content_changes).include[0] ||
+       needs.detect-changes.outputs.protocols_yaml_changed == 'true')
     runs-on: dev
     outputs:
       protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
