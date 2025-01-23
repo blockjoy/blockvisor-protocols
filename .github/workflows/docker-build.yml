@@ -111,7 +111,7 @@ jobs:
           echo "$CHANGED_DIRS"
           
           # Check if protocols.yaml changed
-          if echo "$ALL_CHANGED_FILES" | grep -q "^protocols/protocols.yaml$"; then
+          if [[ "$ALL_CHANGED_FILES" =~ protocols/protocols.yaml ]]; then
             echo "protocols_yaml_changed=true" >> $GITHUB_OUTPUT
           else
             echo "protocols_yaml_changed=false" >> $GITHUB_OUTPUT
