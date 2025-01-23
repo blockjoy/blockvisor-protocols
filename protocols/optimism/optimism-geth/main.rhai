@@ -131,7 +131,7 @@ const PLUGIN_CONFIG = #{
                     RPC_ENABLE=true \
                     RPC_PORT=8548 \
                     RPC_VHOSTS=* \
-                    /root/bin/l2geth \
+                    /root/bin/op-l2geth \
                     --datadir ${global::OP_DIR}/l2geth \
                     --port 30304 \
                     --nousb`,
