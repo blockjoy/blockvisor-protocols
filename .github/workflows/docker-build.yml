@@ -1061,7 +1061,7 @@ jobs:
             for node in "${ERROR_NODES[@]}"; do
               ERROR_COMMENT="${ERROR_COMMENT}${node}"$'\n'
             done
-            ERROR_COMMENT="${ERROR_COMMENT}"$'\n'"While we allow merging since some execution clients won't start without data, it's advisable to verify the nodes for errors that can be corrected now."
+            ERROR_COMMENT="${ERROR_COMMENT}"$'\n'"Please verify these nodes for errors that can be corrected now. We will allow the PR to be merged since some execution clients won't start properly with a valid dataset. "
             echo -e "$ERROR_COMMENT" | gh pr comment ${{ github.event.pull_request.number }} --body-file -
           fi
 
