@@ -22,9 +22,9 @@
   ticker: null
   description: Optimism is a Layer 2 blockchain built on top of Ethereum that aims to scale the Ethereum ecosystem through optimistic rollup technology. The Optimism network provides faster and cheaper transactions while maintaining Ethereum's security guarantees.
   visibility: public
-- key: arbitrum
+- key: arbitrum-one
   name: Arbitrum protocol
   org_id: null
   ticker: null
-  description: Arbitrum is a Layer 2 scaling solution for Ethereum that uses optimistic rollups to achieve high throughput, low costs, and Ethereum-level security guarantees. The Arbitrum network enables faster and cheaper transactions while maintaining compatibility with Ethereum smart contracts.
+  description: Arbitrum is a Layer 2 scaling solution for Ethereum that uses optimistic rollups to achieve low costs, and Ethereum-level security guarantees. The Arbitrum network enables faster and cheaper transactions while maintaining compatibility with Arbitrum smart contracts.
   visibility: public
