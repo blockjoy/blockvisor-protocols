@@ -945,13 +945,13 @@ jobs:
             # Only post message if we actually cleaned up nodes
             if [ $CLEANED_NODES -gt 0 ]; then
               if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
-                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge"
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after merge."
               elif [[ "${{ github.event.action }}" == "closed" ]]; then
-                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR close"
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR close."
               elif [[ "${{ github.event.action }}" == "synchronize" ]]; then
-                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR update"
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up after PR update."
               else
-                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up"
+                gh pr comment ${{ github.event.pull_request.number }} --body " All nodes have been cleaned up."
               fi
             fi
           else
@@ -1061,7 +1061,7 @@ jobs:
             for node in "${ERROR_NODES[@]}"; do
               ERROR_COMMENT="${ERROR_COMMENT}${node}"$'\n'
             done
-            ERROR_COMMENT="${ERROR_COMMENT}"$'\n'"Please verify these nodes for errors that can be corrected now. We will allow the PR to be merged since some execution clients won't start properly with a valid dataset. "
+            ERROR_COMMENT="${ERROR_COMMENT}"$'\n'"Please verify these nodes for errors that can be corrected now. We will allow the PR to be merged since some execution clients won't start properly without a valid dataset. "
             echo -e "$ERROR_COMMENT" | gh pr comment ${{ github.event.pull_request.number }} --body-file -
           fi
 
