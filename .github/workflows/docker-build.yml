@@ -1016,6 +1016,7 @@ jobs:
           # Initialize arrays for node info
           declare -a NODE_NAMES=()
           declare -a DEPLOYED_NODES=()
+          declare -a ERROR_NODES=()
           
           # For each variant, start a node and capture info
           for variant in $VARIANTS; do
@@ -1025,12 +1026,6 @@ jobs:
             echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
             nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 | tee /tmp/nib_output.log
             
-            # Check for errors in the output
-            if grep -q "Error: " /tmp/nib_output.log; then
-              echo "Error found in nib output"
-              exit 1
-            fi
-            
             # Extract node name from the complete output
             NODE_NAME=$(cat /tmp/nib_output.log | grep -o "'[^']*'" | head -1 | tr -d "'")
             if [ -z "$NODE_NAME" ]; then
@@ -1038,9 +1033,16 @@ jobs:
               exit 1
             fi
             
-            # Store for later use
+            # Store node info
             NODE_NAMES+=("$NODE_NAME")
             DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
+            
+            # Check for errors in the output
+            if grep -q "Error: " /tmp/nib_output.log; then
+              ERROR_MSG=$(grep "Error: " /tmp/nib_output.log)
+              echo "Error found in nib output for $NODE_NAME: $ERROR_MSG"
+              ERROR_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`:"$'\n'"  \`\`\`"$'\n'"  $ERROR_MSG"$'\n'"  \`\`\`")
+            fi
           done
 
           # Post comment about deployed nodes
@@ -1051,6 +1053,16 @@ jobs:
             done
             COMMENT="${COMMENT}"$'\n'"These nodes will be cleaned up on PR merge or close and replaced on PR update."
             echo -e "$COMMENT" | gh pr comment ${{ github.event.pull_request.number }} --body-file -
+          fi
+
+          # Post comment about error nodes if any
+          if [ ${#ERROR_NODES[@]} -gt 0 ]; then
+            ERROR_COMMENT="These nodes have errors:"$'\n'
+            for node in "${ERROR_NODES[@]}"; do
+              ERROR_COMMENT="${ERROR_COMMENT}${node}"$'\n'
+            done
+            ERROR_COMMENT="${ERROR_COMMENT}"$'\n'"While we allow merging since some execution clients won't start without data, it's advisable to verify the nodes for errors that can be corrected now."
+            echo -e "$ERROR_COMMENT" | gh pr comment ${{ github.event.pull_request.number }} --body-file -
           fi
 
           # Save node names for cleanup
