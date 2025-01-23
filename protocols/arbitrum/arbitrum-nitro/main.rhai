@@ -100,7 +100,7 @@ const PLUGIN_CONFIG = #{
                 log_timestamp: false,
             });
         }
-        services
+        services;
     },
     upload: #{
         exclude: [
