@@ -1,0 +1,58 @@
+version: 0.0.1
+container_uri: docker://ghcr.io/blockjoy/polygon-bor:20250123.1
+sku_code: POLY-ERI
+org_id: null
+description: Polygon
+visibility: public
+protocol_key: polygon
+variants:
+  - key: polygon-bor-mainnet-archive
+    min_cpu: 32
+    min_memory_mb: 32768
+    min_disk_gb: 2600
+    sku_code: POLY-ERI-MA
+    archive_pointers:
+      - pointer: !store_key polygon-bor-mainnet-archive-v1
+firewall_config:
+  default_in: deny
+  default_out: allow
+  rules:
+    - key: Allow incoming ports TCP
+      description: Allow TCP inbound traffic on ports 80, 443, 30303, 30304, 42069, 26656
+      protocol: tcp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 80
+          name: HTTP port
+        - port: 443
+          name: HTTPS port
+        - port: 30303
+          name: P2P port
+        - port: 30304
+          name: P2P port
+        - port: 42069
+          name: Snapsync port
+        - port: 26656
+          name: Heimdall NLP port
+    - key: Allow incoming ports UDP
+      description: Allow UDP inbound traffic on port 30303, 30304, 42069, 26656
+      protocol: udp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 30303
+          name: P2P port
+        - port: 30304
+          name: P2P port
+        - port: 42069
+          name: Snapsync port
+        - port: 26656
+          name: Heimdall NLP port
+properties: []
