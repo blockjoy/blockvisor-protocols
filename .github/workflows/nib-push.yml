@@ -15,6 +15,7 @@ jobs:
     outputs:
       version_changes: ${{ steps.check-versions.outputs.version_changes }}
       content_changes: ${{ steps.check-content.outputs.content_changes }}
+      protocols_yaml_changed: ${{ steps.check-content.outputs.protocols_yaml_changed }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -34,6 +35,7 @@ jobs:
         id: check-content
         run: |
           declare -a CONTENT_CHANGES=()
+          declare -a PROTOCOLS_YAML_CHANGED=false
           
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             if [[ "$file" == *"babel.yaml" ]]; then
@@ -46,6 +48,8 @@ jobs:
                 echo "Content changed in $file"
                 CONTENT_CHANGES+=("{\"image_path\":\"$DIR\",\"protocol\":\"$PROTOCOL\"}")
               fi
+            elif [[ "$file" == "protocols/protocols.yaml" ]]; then
+              PROTOCOLS_YAML_CHANGED=true
             fi
           done
           
@@ -55,6 +59,7 @@ jobs:
           else
             echo "content_changes=[]" >> $GITHUB_OUTPUT
           fi
+          echo "protocols_yaml_changed=$PROTOCOLS_YAML_CHANGED" >> $GITHUB_OUTPUT
 
       - name: Check version changes
         id: check-versions
@@ -101,7 +106,10 @@ jobs:
 
   check-protocols:
     needs: [detect-changes]
-    if: fromJson(needs.detect-changes.outputs.content_changes)[0]
+    if: |
+      github.event.pull_request.merged == true &&
+      (fromJson(needs.detect-changes.outputs.content_changes).include[0] ||
+       needs.detect-changes.outputs.protocols_yaml_changed == 'true')
     runs-on: dev
     outputs:
       protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
@@ -110,6 +118,8 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0  # Fetch all history for all tags and branches
 
       - name: Check protocol keys in protocols.yaml
         id: check-protocol
@@ -125,10 +135,16 @@ jobs:
             PROTOCOL_KEY=$(yq e '.protocol_key' "$IMAGE_PATH/babel.yaml")
             echo "Checking for protocol key: $PROTOCOL_KEY"
             
-            # Check if key exists in protocols.yaml
-            if ! yq e '.[] | select(.key == "'$PROTOCOL_KEY'")' protocols/protocols.yaml > /dev/null 2>&1; then
-              echo " Protocol key '$PROTOCOL_KEY' not found in protocols/protocols.yaml"
+            # Count occurrences of the key in protocols.yaml
+            KEY_COUNT=$(yq e '[.[] | select(.key == "'$PROTOCOL_KEY'")] | length' protocols/protocols.yaml)
+            if [ "$KEY_COUNT" -eq 0 ]; then
+              echo "Error: Protocol key '$PROTOCOL_KEY' not found in protocols/protocols.yaml"
               exit 1
+            elif [ "$KEY_COUNT" -gt 1 ]; then
+              echo "Error: Found $KEY_COUNT occurrences of protocol key '$PROTOCOL_KEY' in protocols.yaml. Protocol keys must be unique."
+              exit 1
+            else
+              echo "Found exactly one occurrence of key '$PROTOCOL_KEY'"
             fi
           done
           

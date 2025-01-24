@@ -4,7 +4,7 @@ sku_code: ARB-NITRO
 org_id: null
 description: Arbitrum One Archive Node
 visibility: public
-protocol_key: arbitrum
+protocol_key: arbitrum-one
 variants:
   - key: nitro-mainnet-archive
     min_cpu: 24
