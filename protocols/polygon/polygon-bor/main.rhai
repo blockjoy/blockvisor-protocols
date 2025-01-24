@@ -4,7 +4,7 @@ import "polygon-bor" as polygon_bor;
 
 const HEIMDALL_DIR = BLOCKCHAIN_DATA_PATH + "/heimdall";
 const BOR_DIR = BLOCKCHAIN_DATA_PATH + "/bor";
-const CADDY_DIR = DATA_DRIVE_MOUNT_POINT + "caddy";
+const CADDY_DIR = node_env().data_mount_point + "caddy";
 const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const HEIMDALL_PORT = 1317;
