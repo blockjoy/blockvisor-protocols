@@ -6,7 +6,8 @@
 		format json
 		level INFO
 	}
-	acme_dns cloudflare UR8KSq7bqAWNJkpol5eEQPiU_K0ADrdXzCZoXEl3
+	acme_dns cloudflare ${CLOUDFLARE_API_KEY}
+	order request_decompress before reverse_proxy
 	auto_https disable_redirects
 	storage file_system {{ data_dir }}
 	email ops@blockjoy.com
@@ -15,9 +16,10 @@
 	}
 }
 
-http://{{ hostname }}{{ tld }}, https://{{ hostname }}{{ tld }} {
+http://{{ hostname }}{{ tld }}, https://{{ hostname }}{{ tld }}, http:// {
+	request_decompress
 	tls {
-		dns cloudflare UR8KSq7bqAWNJkpol5eEQPiU_K0ADrdXzCZoXEl3
+		dns cloudflare ${CLOUDFLARE_API_KEY}
 		resolvers 1.1.1.1
 	}
 	log {
@@ -32,15 +34,15 @@ http://{{ hostname }}{{ tld }}, https://{{ hostname }}{{ tld }} {
 	log_append upstream_latency_ms {rp.upstream.latency_ms}
 	log_append upstream_duration_ms {rp.upstream.duration_ms}
 	log_append duration_ms {rp.duration_ms}
-	handle /metrics {
-		rewrite * /debug/prometheus/metrics
-		reverse_proxy 127.0.0.1:{{ metrics_port }} {
-			header_up Host localhost
-		}
-	}
 	@websockets {
 		header Connection *Upgrade*
 		header Upgrade websocket
+	}
+	route /metrics {
+		rewrite * {{ metrics_path }}
+		reverse_proxy 127.0.0.1:{{ metrics_port }} {
+			header_up Host localhost
+		}
 	}
 	reverse_proxy 127.0.0.1:{{ rpc_port }} {
 		header_up Host localhost

@@ -6,13 +6,13 @@ description: Polygon
 visibility: public
 protocol_key: polygon
 variants:
-  - key: polygon-mainnet-full
+  - key: polygon-bor-mainnet-full
     min_cpu: 32
     min_memory_mb: 32768
-    min_disk_gb: 1000
+    min_disk_gb: 2600
     sku_code: POLY-BOR-MF
     archive_pointers:
-      - pointer: !store_key polygon-mainnet-full-v1
+      - pointer: !store_key polygon-bor-mainnet-full-v1
 firewall_config:
   default_in: deny
   default_out: allow
