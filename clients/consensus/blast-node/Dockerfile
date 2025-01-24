@@ -15,6 +15,12 @@ RUN apt-get update && \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Remove existing Go installation and install Go 1.21.5
+RUN rm -rf /usr/local/go && \
+    wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz && \
+    rm go${GO_VERSION}.linux-amd64.tar.gz
+
 # Install node
 # Download and install nvm:
 ENV NVM_DIR=/root/.nvm
