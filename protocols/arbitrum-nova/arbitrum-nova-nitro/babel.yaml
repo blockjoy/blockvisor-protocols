@@ -1,0 +1,39 @@
+version: 0.0.1
+container_uri: docker://ghcr.io/blockjoy/arbitrum-nova-nitro:v20250124.1
+sku_code: ARBNOVA-NITRO
+org_id: null
+description: Arbitrum Nova Archive Node
+visibility: public
+protocol_key: arbitrum-nova
+variants:
+  - key: nitro-mainnet-archive
+    min_cpu: 24
+    min_memory_mb: 32768
+    min_disk_gb: 9000
+    sku_code: ARBNOVA-NITRO-MA
+    archive_pointers:
+      - pointer: !store_key arbitrum-nova-nitro-mainnet-archive-v1
+firewall_config:
+  default_in: deny
+  default_out: allow
+  rules:
+    - key: TCP ports
+      protocol: tcp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: all
+      ports:
+        - port: 80
+        - port: 443
+    - key: UDP ports
+      protocol: udp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: all
+      ports:
+        - port: 24567
+properties: []
