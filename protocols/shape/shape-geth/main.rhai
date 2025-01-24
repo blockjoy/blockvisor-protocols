@@ -76,7 +76,7 @@ const PLUGIN_CONFIG = #{
         },
         #{
             name: "op-node",
-            run_sh: `/root/bin/op-node --network ${global::OP_NETWORK} --p2p.bootnodes=${global::BOOTNODES} --rpc.addr=127.0.0.1 --rpc.port=${global::OP_NODE_RPC_PORT} --l1=${global::L1_URL} --l1.beacon=${global::BEACON_URL} --l1.rpckind=${global::L1_KIND} --l2=http://127.0.0.1:${global::AUTHRPC_PORT} --l2.jwt-secret=${global::SHAPE_DIR}/jwt.txt`,
+            run_sh: `/root/bin/op-node --network ${global::OP_NETWORK} --p2p.bootnodes=${global::BOOTNODES} --rpc.addr=127.0.0.1 --rpc.port=${global::OP_NODE_RPC_PORT} --l1=${global::L1_URL} --l1.beacon=${global::BEACON_URL} --l1.rpckind=${global::L1_RPCKIND} --l2=http://127.0.0.1:${global::AUTHRPC_PORT} --l2.jwt-secret=${global::SHAPE_DIR}/jwt.txt`,
             shutdown_timeout_secs: 120,
         },
     ],
