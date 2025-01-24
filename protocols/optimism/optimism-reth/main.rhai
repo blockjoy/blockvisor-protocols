@@ -22,13 +22,13 @@ const BASE_CONFIG = #{
 };
 
 const VARIANTS = #{
-    "optimism-reth-mainnet-archive": #{
+    "reth-mainnet-archive": #{
         sequencer_url: "https://mainnet-sequencer.optimism.io/",
         opnet: "op-mainnet",
         chain: "optimism",
 
     },
-    "optimism-reth-mainnet-full": #{
+    "reth-mainnet-full": #{
         sequencer_url: "https://mainnet-sequencer.optimism.io/",
         opnet: "op-mainnet",
         chain: "optimism",

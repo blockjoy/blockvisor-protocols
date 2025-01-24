@@ -644,7 +644,7 @@ jobs:
             ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
 
   build-protocols:
-    needs: [detect-changes, scan-dockerfiles]
+    needs: [detect-changes, scan-dockerfiles, check-protocols]
     environment: Dev
     if: |
       github.event_name == 'pull_request' &&

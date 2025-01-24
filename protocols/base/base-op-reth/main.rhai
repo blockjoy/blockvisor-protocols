@@ -16,14 +16,14 @@ const BASE_CONFIG  = #{
 };
 
 const VARIANTS = #{
-    "base-op-reth-mainnet-full": #{
+    "op-reth-mainnet-full": #{
         net: "base-mainnet",
         chain: "base",
         l1_rpckind: "standard",
         opnet: "base-mainnet",
         sequencer_url: "https://mainnet-sequencer.base.org",
     },
-    "base-op-reth-mainnet-archive": #{
+    "op-reth-mainnet-archive": #{
         net: "base-mainnet",
         chain: "base",
         l1_rpckind: "standard",

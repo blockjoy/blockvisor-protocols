@@ -17,13 +17,13 @@ const BASE_CONFIG = #{
 };
 
 const VARIANTS = #{
-    "arbitrum-nitro-mainnet-archive": #{
+    "nitro-mainnet-archive": #{
         l1_url: "https://eth-l1.blkjy.io",
         beacon_url: "https://lighthouse.blkjy.io",
         net_type: "main",
         wasm_root: "0x8b104a2e80ac6165dc58b9048de12f301d70b02a0ab51396c22b4b4b802a16a4",
     },
-    "arbitrum-nitro-mainnet-full": #{
+    "nitro-mainnet-full": #{
         l1_url: "https://eth-l1.blkjy.io",
         beacon_url: "https://lighthouse.blkjy.io",
         net_type: "main",
