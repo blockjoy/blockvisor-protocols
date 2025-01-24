@@ -36,9 +36,9 @@ const BABEL_VERSION = "1.7.1";
 const PLUGIN_CONFIG = #{
     init: #{
         commands: [
-            `mkdir -p ${global::CADDY_DIR}`
-            `mkdir -p ${global::BOR_DIR}`
-            `mkdir -p ${global::HEIMDALL_DIR}`
+            `mkdir -p ${global::CADDY_DIR}`,
+            `mkdir -p ${global::BOR_DIR}`,
+            `mkdir -p ${global::HEIMDALL_DIR}`,
         ],
         jobs: []
     },
