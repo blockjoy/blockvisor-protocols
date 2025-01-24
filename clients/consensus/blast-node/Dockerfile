@@ -5,6 +5,7 @@ FROM ${BASE_IMAGE}
 ENV DEBIAN_FRONTEND=noninteractive
 ENV BLASTOP_VERSION=v1.1.0
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
+ENV GO_VERSION=1.21.5
 
 # Install additional system dependencies
 RUN apt-get update && \
