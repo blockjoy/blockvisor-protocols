@@ -40,3 +40,9 @@
   ticker: null
   description: Arbitrum is a Layer 2 scaling solution for Ethereum that uses optimistic rollups to achieve low costs, and Ethereum-level security guarantees. The Arbitrum network enables faster and cheaper transactions while maintaining compatibility with Arbitrum smart contracts.
   visibility: public
+- key: blast
+  name: Blast protocol
+  org_id: null
+  ticker: null
+  description: Blast is an Ethereum Layer 2 blockchain that uniquely offers built-in yield generation (4% for ETH, 5% for stablecoins) through ETH staking and real-world asset protocols, automatically passing these yields back to its users.
+  visibility: public
