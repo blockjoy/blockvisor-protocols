@@ -893,12 +893,12 @@ jobs:
               end
           ')
           if [ -z "$PREV_HOST" ]; then
-            echo "No previous host found, using default"
-            PREV_HOST="dev"
+            echo "No previous host found, using runner host"
+            echo "target_host=${{ runner.name }}" >> $GITHUB_OUTPUT
           else
             echo "Found previous host: $PREV_HOST"
+            echo "target_host=$PREV_HOST" >> $GITHUB_OUTPUT
           fi
-          echo "target_host=$PREV_HOST" >> $GITHUB_OUTPUT
 
   cleanup:
     needs: [get-host]
