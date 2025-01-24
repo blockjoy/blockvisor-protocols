@@ -260,10 +260,16 @@ jobs:
             PROTOCOL_KEY=$(yq e '.protocol_key' "$IMAGE_PATH/babel.yaml")
             echo "Checking for protocol key: $PROTOCOL_KEY"
             
-            # Check if key exists in protocols.yaml
-            if ! yq e '.[] | select(.key == "'$PROTOCOL_KEY'")' protocols/protocols.yaml > /dev/null 2>&1; then
-              echo " Protocol key '$PROTOCOL_KEY' not found in protocols/protocols.yaml"
+            # Count occurrences of the key in protocols.yaml
+            KEY_COUNT=$(yq e '[.[] | select(.key == "'$PROTOCOL_KEY'")] | length' protocols/protocols.yaml)
+            if [ "$KEY_COUNT" -eq 0 ]; then
+              echo "Error: Protocol key '$PROTOCOL_KEY' not found in protocols/protocols.yaml"
               exit 1
+            elif [ "$KEY_COUNT" -gt 1 ]; then
+              echo "Error: Found $KEY_COUNT occurrences of protocol key '$PROTOCOL_KEY' in protocols.yaml. Protocol keys must be unique."
+              exit 1
+            else
+              echo "Found exactly one occurrence of key '$PROTOCOL_KEY'"
             fi
           done
           

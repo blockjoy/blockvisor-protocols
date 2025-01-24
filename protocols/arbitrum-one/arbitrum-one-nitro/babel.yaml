@@ -6,14 +6,14 @@ description: Arbitrum One Archive Node
 visibility: public
 protocol_key: arbitrum
 variants:
-  - key: arbitrum-nitro-mainnet-archive
+  - key: nitro-mainnet-archive
     min_cpu: 24
     min_memory_mb: 65536
     min_disk_gb: 22000
     sku_code: ARB-NITRO-MA
     archive_pointers:
       - pointer: !store_key arbitrum-nitro-mainnet-archive-v1
-  - key: arbitrum-nitro-mainnet-full
+  - key: nitro-mainnet-full
     min_cpu: 16
     min_memory_mb: 32768
     min_disk_gb: 10000
