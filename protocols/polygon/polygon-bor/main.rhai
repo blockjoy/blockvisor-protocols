@@ -1,5 +1,5 @@
 import "base" as base;
-import "polygon_bor" as polygon_bor;
+import "polygon-bor" as polygon_bor;
 
 
 const HEIMDALL_DIR = BLOCKCHAIN_DATA_PATH + "/heimdall";
