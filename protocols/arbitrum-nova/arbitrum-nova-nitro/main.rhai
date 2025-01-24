@@ -4,8 +4,10 @@ import "nitro" as nitro;
 const RPC_PORT = 8547;
 const WS_PORT = 8548;
 const METRICS_PORT = 6767;
+const METRICS_PATH = "/debug/metrics/prometheus";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 
-let NITRO_CONFIG = nitro::base_config(global::METRICS_PORT, "", global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, "/debug/metrics/prometheus");
+let NITRO_CONFIG = nitro::base_config(METRICS_PORT, RPC_PORT, WS_PORT, CADDY_DIR, METRICS_PATH);
 
 const BASE_CONFIG = #{
     config_files: NITRO_CONFIG.config_files + base::BASE_CONFIG.config_files,
@@ -22,8 +24,7 @@ const VARIANTS = #{
 };
 
 const API_HOST = `http://127.0.0.1:${RPC_PORT}`;
-const HOME = BLOCKCHAIN_DATA_PATH + "/arbitrum";
-const CADDY_DIR = BLOCKCHAIN_DATA_PATH + "/caddy";
+const HOME = node_env().protocol_data_path + "/arbitrum";
 
 const VARIANT = VARIANTS[node_env().node_variant];
 
@@ -32,41 +33,41 @@ const BABEL_VERSION = "1.11.0";
 const PLUGIN_CONFIG = #{
     init: #{
         commands: [
-            `mkdir -p ${global::HOME}`,
-            `mkdir -p ${global::CADDY_DIR}`,
+            `mkdir -p ${HOME}`,
+            `mkdir -p ${CADDY_DIR}`,
         ],
         jobs: [
             #{
                 name: "migrate_old_dir",
-                run_sh: `[ -d "/blockjoy/arbitrum" ] && mv /blockjoy/arbitrum ${BLOCKCHAIN_DATA_PATH} && rm -rf /blockjoy/arbitrum || true`,
+                run_sh: `[ -d "/blockjoy/arbitrum" ] && mv /blockjoy/arbitrum ${HOME} && rm -rf /blockjoy/arbitrum || true`,
             },
         ],
     },
     services: [
         #{
             name: "nitro",           
-            run_sh: `HOME=${global::HOME} && /usr/bin/nitro \
-                    --parent-chain.connection.url=${global::VARIANT.l1_url} \
+            run_sh: `HOME=${HOME} && /usr/bin/nitro \
+                    --parent-chain.connection.url=${VARIANT.l1_url} \
                     --chain.id=42170 \
                     --metrics \
                     --metrics-server.addr=127.0.0.1 \
-                    --metrics-server.port=${global::METRICS_PORT} \
+                    --metrics-server.port=${METRICS_PORT} \
                     --http.api=net,web3,eth,arb \
                     --http.corsdomain=* \
                     --http.addr=127.0.0.1 \
-                    --http.port=${global::RPC_PORT} \
+                    --http.port=${RPC_PORT} \
                     --http.vhosts=* \
                     --ws.rpcprefix=/ \
                     --ws.addr=127.0.0.1 \
                     --ws.api=net,web3,eth,arb \
                     --ws.origins=* \
-                    --ws.port=${global::WS_PORT} \
+                    --ws.port=${WS_PORT} \
                     --execution.caching.archive \
-                    --parent-chain.blob-client.beacon-url=${global::VARIANT.beacon_url} \
-                    --validation.wasm.allowed-wasm-module-roots=${global::VARIANT.wasm_root} \
-                    --persistent.chain=${global::HOME} \
-                    --persistent.global-config=${global::HOME} \
-                    --persistent.log-dir=${global::HOME}`,
+                    --parent-chain.blob-client.beacon-url=${VARIANT.beacon_url} \
+                    --validation.wasm.allowed-wasm-module-roots=${VARIANT.wasm_root} \
+                    --persistent.chain=${HOME} \
+                    --persistent.global-config=${HOME} \
+                    --persistent.log-dir=${HOME}`,
             shutdown_timeout_secs: 300,
             log_timestamp: false,
         }
@@ -79,7 +80,7 @@ const PLUGIN_CONFIG = #{
 };
 
 fn application_status() {
-    let resp = run_jrpc(#{host: global::API_HOST, method: "/"});
+    let resp = run_jrpc(#{host: API_HOST, method: "/"});
 
     if resp.status_code == 200 {
         "broadcasting"
@@ -89,11 +90,11 @@ fn application_status() {
 }
 
 fn height() {
-    parse_hex(run_jrpc(#{host: global::API_HOST, method: "eth_blockNumber"}).expect(200).result)
+    parse_hex(run_jrpc(#{host: API_HOST, method: "eth_blockNumber"}).expect(200).result)
 }
 
 fn sync_status() {
-    let resp = run_jrpc(#{host: global::API_HOST, method: "eth_syncing"}).expect(200);
+    let resp = run_jrpc(#{host: API_HOST, method: "eth_syncing"}).expect(200);
     if resp.result == false {
         "synced"
     } else {
