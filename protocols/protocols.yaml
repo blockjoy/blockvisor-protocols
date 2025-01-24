@@ -28,3 +28,9 @@
   ticker: null
   description: Arbitrum is a Layer 2 scaling solution for Ethereum that uses optimistic rollups to achieve low costs, and Ethereum-level security guarantees. The Arbitrum network enables faster and cheaper transactions while maintaining compatibility with Arbitrum smart contracts.
   visibility: public
+- key: shape
+  name: Shape protocol
+  org_id: null
+  ticker: null
+  description: Shape is a Layer 2 blockchain built on top of OP that provides faster and cheaper transactions while maintaining OP's security guarantees.
+  visibility: public

@@ -39,6 +39,11 @@
   ],
   "packageRules": [
     {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch"
+    },
+    {
       "description": "Client version control. To exclude multiple versions, use pattern: /^(?!2\\.56\\.0-.*|2\\.57\\.0-.*|3\\.0\\.0-.*).*$/ to exclude versions 2.56.0, 2.57.0, and 3.0.0 with any sha",
       "matchFileNames": [
         "clients/**"
@@ -76,6 +81,8 @@
       "enabled": false
     }
   ],
-  "prHourlyLimit": 0,
-  "prConcurrentLimit": 0
+  "prHourlyLimit": 2,
+  "prConcurrentLimit": 1,
+  "schedule": ["0 5 * * *"],
+  "groupName": "all"
 }

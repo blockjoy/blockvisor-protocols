@@ -6,14 +6,14 @@ description: Base OP Reth node1
 visibility: public
 protocol_key: base
 variants:
-  - key: base-op-reth-mainnet-full
+  - key: op-reth-mainnet-full
     min_cpu: 32
     min_memory_mb: 32678
     min_disk_gb: 2000
     sku_code: BASE-OPRETH-MF
     archive_pointers:
       - pointer: !store_key base-op-reth-mainnet-full-v1
-  - key: base-op-reth-mainnet-archive
+  - key: op-reth-mainnet-archive
     min_cpu: 32
     min_memory_mb: 32678
     min_disk_gb: 2000

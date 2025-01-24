@@ -12,14 +12,14 @@ variants:
     min_disk_gb: 8000
     sku_code: AVAX-GO-MA
     archive_pointers:
-      - pointer: !store_key avalanchego-mainnet-v1
+      - pointer: !store_key avalanche-avalanchego-mainnet-archive-v1
   - key: avalanchego-testnet-archive
     min_cpu: 4
     min_memory_mb: 8192
     min_disk_gb: 2000
     sku_code: AVAX-GO-TA
     archive_pointers:
-      - pointer: !store_key avalanchego-testnet-v1
+      - pointer: !store_key avalanche-avalanchego-testnet-archive-v1
 firewall_config:
   default_in: deny
   default_out: allow

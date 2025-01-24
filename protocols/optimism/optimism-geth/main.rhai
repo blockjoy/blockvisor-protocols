@@ -24,7 +24,7 @@ const BASE_CONFIG = #{
 };
 
 const VARIANTS = #{
-    "optimism-geth-mainnet-archive": #{
+    "geth-mainnet-archive": #{
         sequencer_url: "https://mainnet-sequencer.optimism.io/",
         net_type: "main",
         url: "https://mainnet.optimism.io",
@@ -35,7 +35,7 @@ const VARIANTS = #{
         ethnet: "mainnet",
         chainid: 10,
     },
-    "optimism-geth-testnet-archive": #{
+    "geth-testnet-archive": #{
         sequencer_url: "https://goerli-sequencer.optimism.io/",
         net_type: "test",
         url: "https://goerli.optimism.io",
