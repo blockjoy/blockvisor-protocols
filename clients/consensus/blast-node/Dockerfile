@@ -3,7 +3,7 @@ ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV OP_NODE_VERSION=op-node/v1.10.2
+ENV BLASTOP_VERSION=v1.1.0
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 # Install additional system dependencies
@@ -40,11 +40,12 @@ RUN . "$HOME/.cargo/env" && cargo install just
 # Install Foundry
 RUN . "$HOME/.cargo/env" && cargo install --git https://github.com/foundry-rs/foundry --profile release --locked forge cast chisel anvil
 
-# Build Op Node
+# Build Blast Node
 WORKDIR /root
-RUN . "$HOME/.cargo/env" && git clone https://github.com/ethereum-optimism/optimism.git && \
-    cd optimism && \
-    git checkout ${OP_NODE_VERSION} && \
+RUN . "$HOME/.cargo/env" && git clone https://github.com/blast-io/blast.git && \
+    cd blast && \
+    git checkout ${BLASTOP_VERSION} && \
+    cd blast-optimism && \
     make op-node && \
     mkdir -p /root/bin && \
-    mv op-node/bin/op-node /root/bin/
+    mv op-node/bin/op-node /root/bin/blast-node
