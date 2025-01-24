@@ -40,3 +40,9 @@
   ticker: null
   description: Arbitrum is a Layer 2 scaling solution for Ethereum that uses optimistic rollups to achieve low costs, and Ethereum-level security guarantees. The Arbitrum network enables faster and cheaper transactions while maintaining compatibility with Arbitrum smart contracts.
   visibility: public
+- key: polygon
+  name: Polygon protocol
+  org_id: null
+  ticker: null
+  description: Polygon is a Layer 2 blockchain platform which aims to create a multi-chain blockchain system compatible with Ethereum.
+  visibility: public
