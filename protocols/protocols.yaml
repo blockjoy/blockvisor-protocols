@@ -23,7 +23,7 @@
   description: Optimism is a Layer 2 blockchain built on top of Ethereum that aims to scale the Ethereum ecosystem through optimistic rollup technology. The Optimism network provides faster and cheaper transactions while maintaining Ethereum's security guarantees.
   visibility: public
 - key: arbitrum-one
-  name: Arbitrum protocol
+  name: Arbitrum One protocol
   org_id: null
   ticker: null
   description: Arbitrum is a Layer 2 scaling solution for Ethereum that uses optimistic rollups to achieve low costs, and Ethereum-level security guarantees. The Arbitrum network enables faster and cheaper transactions while maintaining compatibility with Arbitrum smart contracts.
@@ -33,4 +33,10 @@
   org_id: null
   ticker: null
   description: Shape is a Layer 2 blockchain built on top of OP that provides faster and cheaper transactions while maintaining OP's security guarantees.
+  visibility: public
+- key: arbitrum-nova
+  name: Arbitrum Nova protocol
+  org_id: null
+  ticker: null
+  description: Arbitrum is a Layer 2 scaling solution for Ethereum that uses optimistic rollups to achieve low costs, and Ethereum-level security guarantees. The Arbitrum network enables faster and cheaper transactions while maintaining compatibility with Arbitrum smart contracts.
   visibility: public
