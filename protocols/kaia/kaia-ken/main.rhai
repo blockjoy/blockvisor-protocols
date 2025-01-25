@@ -14,13 +14,11 @@ const BASE_CONFIG  = #{
 };
 
 const VARIANTS = #{
-    "kaia-ken-mainnet-full": #{
-        net_type: "main",
+    "ken-mainnet-full": #{
         network_name: "cypress",
         sync_type: "full",
     },
-    "kaia-ken-mainnet-archive": #{
-        net_type: "main",
+    "ken-mainnet-archive": #{
         network_name: "cypress",
         sync_type: "archive",
     },
@@ -28,7 +26,6 @@ const VARIANTS = #{
 
 const API_HOST = `http://127.0.0.1:${global::RPC_PORT}`;
 const HOME = node_env().protocol_data_path + "/kaia";
-const NET = VARIANTS[node_env().node_variant].net_type;
 const CHAIN = VARIANTS[node_env().node_variant].network_name;
 const SYNC_TYPE = VARIANTS[node_env().node_variant].sync_type;
 
