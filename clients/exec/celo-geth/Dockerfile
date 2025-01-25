@@ -1,24 +1,15 @@
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
-FROM ${BASE_IMAGE} as builder
-
-ENV DEBIAN_FRONTEND=noninteractive
+FROM golang:1.19-bookworm AS builder
 ENV CELO_GETH_VERSION=v1.8.4
-ENV PATH="/usr/local/go/bin:${PATH}"
-ENV GOROOT="/usr/local/go"
 
-RUN mkdir -p /root/bin
+WORKDIR /go-ethereum
+RUN git clone --depth 1 --branch $CELO_GETH_VERSION https://github.com/celo-org/celo-blockchain.git .
 
-# Clone and checkout in a separate layer
-WORKDIR /root
-RUN git clone --depth 1 --branch $CELO_GETH_VERSION https://github.com/celo-org/celo-blockchain.git
-
-# Build geth with Go caching
-WORKDIR /root/celo-blockchain
-RUN mkdir -p build/bin
-RUN --mount=type=cache,target=/root/.cache/go-build \
-    --mount=type=cache,target=/go/pkg/mod \
-    make geth && \
+RUN apt update && \
+    platform="$(dpkg --print-architecture)" && \
+    apt install -y build-essential git linux-headers-$platform && make geth && \
+    mkdir -p /root/bin && \
     cp build/bin/geth /root/bin/
 
 # Create minimal final image
