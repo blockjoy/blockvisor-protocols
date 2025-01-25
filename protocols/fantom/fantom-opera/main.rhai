@@ -14,8 +14,8 @@ const FANTOM_DIR = node_env().protocol_data_path + "/fantom";
 let FANTOM_OPERA_CONFIG = fantom_opera::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
 
 const BASE_CONFIG = #{
-    config_files: fantom_opera::BASE_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: fantom_opera::BASE_CONFIG.services + base::BASE_CONFIG.services,
+    config_files: FANTOM_OPERA_CONFIG.config_files + base::BASE_CONFIG.config_files,
+    services: FANTOM_OPERA_CONFIG.services + base::BASE_CONFIG.services,
 };
 
 const VARIANTS = #{
