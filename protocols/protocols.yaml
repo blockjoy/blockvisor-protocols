@@ -46,3 +46,9 @@
   ticker: null
   description: Blast is an Ethereum Layer 2 blockchain that uniquely offers built-in yield generation (4% for ETH, 5% for stablecoins) through ETH staking and real-world asset protocols, automatically passing these yields back to its users.
   visibility: public
+- key: Celo
+  name: Celo protocol
+  org_id: null
+  ticker: null
+  description: Celo is an Ethereum Layer-2 blockchain focused on accessibility and real-world adoption, designed to make blockchain technology more inclusive with low fees and high scalability, while aiming to build a regenerative digital economy that promotes universal prosperity.
+  visibility: public
