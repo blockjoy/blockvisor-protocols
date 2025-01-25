@@ -6,7 +6,7 @@ description: Polygon
 visibility: public
 protocol_key: polygon
 variants:
-  - key: polygon-bor-mainnet-full
+  - key: bor-mainnet-full
     min_cpu: 32
     min_memory_mb: 32768
     min_disk_gb: 2600

@@ -52,3 +52,45 @@
   ticker: null
   description: Celo is an Ethereum Layer-2 blockchain focused on accessibility and real-world adoption, designed to make blockchain technology more inclusive with low fees and high scalability, while aiming to build a regenerative digital economy that promotes universal prosperity.
   visibility: public
+- key: kaia
+  name: Kaia protocol
+  org_id: null
+  ticker: null
+  description: Kaia is an EVM-compatible blockchain using Istanbul BFT consensus, featuring 1-second block times and 4,000 TPS, with a three-tier network architecture (Core Cell Network, Endpoint Node Network, and Service Chain Network) and KAIA token economics designed to incentivize network participation and ecosystem growth.
+  visibility: public
+- key: polygon
+  name: Polygon protocol
+  org_id: null
+  ticker: null
+  description: Polygon PoS (Proof of Stake) is a Layer 2 scaling solution with a dual-layer architecture (Heimdall for consensus and Bor for execution), processing transactions with near-instant finality and periodic checkpoints to Ethereum mainnet every 30 minutes, with plans to evolve into a ZK-validium system adopting Polygon zkEVM's execution environment.
+  visibility: public
+- key: fantom
+  name: Fantom protocol
+  org_id: null
+  ticker: null
+  description: Fantom Opera is a high-performance blockchain platform using a DAG-based asynchronous Byzantine Fault Tolerant (aBFT) consensus mechanism called Lachesis, delivering ~1 second finality and sub-cent transaction costs, while maintaining EVM compatibility and allowing validators to process transactions non-linearly for increased efficiency.
+  visibility: public
+- key: axelar
+  name: Axelar protocol
+  org_id: null
+  ticker: null
+  description: Axelar is a decentralized interchain network built on Cosmos SDK that enables secure cross-chain communication through Gateway smart contracts controlled by validators using multi-party cryptography, where validators run nodes for multiple chains to verify cross-chain transactions and relayer services facilitate the execution of approved messages with gas management capabilities.
+  visibility: public
+- key: bnb
+  name: BNB protocol
+  org_id: null
+  ticker: null
+  description: BNB Smart Chain (BSC) is an EVM-compatible blockchain that uses a unique Proof of Staked Authority (PoSA) consensus mechanism combining DPoS and PoA, featuring 3-second block times and fast finality (~6s), where validators are elected through staking governance and share transaction fees, with no token inflation as rewards are collected from gas fees in BNB.
+  visibility: public
+- key: gnosis
+  name: Gnosis protocol
+  org_id: null
+  ticker: null
+  description: Gnosis Chain is an EVM-compatible sidechain that recently transitioned from Proof-of-Authority to Proof-of-Stake consensus using the Gasper protocol (like Ethereum), featuring unique xDai stablecoin-based transaction fees and community governance through a DAO, with over 200,000 validators securing the network and emphasizing resilience and credible neutrality as core values.
+  visibility: public
+- key: sqd
+  name: SQD protocol
+  org_id: null
+  ticker: null
+  description: SQD (Subsquid) is a decentralized data indexing protocol and query engine that enables efficient blockchain data access across 190+ networks through a peer-to-peer data lake architecture, offering developers high-performance tools to extract, process, and analyze on-chain data at near-zero cost compared to traditional RPC methods.
+  visibility: public
