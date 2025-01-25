@@ -26,7 +26,6 @@ const VARIANTS = #{
 };
 
 const API_HOST = "http://127.0.0.1:${global::RPC_PORT}";
-const NET =  VARIANTS[node_env().node_variant].net_type;
 const P2P_SEEDS = VARIANTS[node_env().node_variant].p2p_seeds;
 const BOOTNODES = VARIANTS[node_env().node_variant].bootnodes;
 const NETWORK = VARIANTS[node_env().node_variant].network;
