@@ -15,12 +15,10 @@ const BASE_CONFIG  = #{
 
 const VARIANTS = #{
     "kaia-ken-mainnet-full": #{
-        net_type: "main",
         network_name: "cypress",
         sync_type: "full",
     },
     "kaia-ken-mainnet-archive": #{
-        net_type: "main",
         network_name: "cypress",
         sync_type: "archive",
     },
