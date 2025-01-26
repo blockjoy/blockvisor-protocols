@@ -1,5 +1,5 @@
 version: 0.0.1
-container_uri: docker://ghcr.io/blockjoy/arbitrum-nova-nitro:v20250124.1
+container_uri: docker://ghcr.io/blockjoy/arbitrum-nova-nitro:v20250126.1
 sku_code: ARBNOVA-NITRO
 org_id: null
 description: Arbitrum Nova Archive Node

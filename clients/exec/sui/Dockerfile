@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250109.3
+ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250120.1
 ARG SUI_IMAGE=mysten/sui-node:mainnet-v1.19.1
 
 FROM ${SUI_IMAGE} AS sui_node
