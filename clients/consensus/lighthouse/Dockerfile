@@ -29,6 +29,6 @@ RUN git clone https://github.com/sigp/lighthouse.git && \
     git checkout $LIGHTHOUSE_VERSION
 
 WORKDIR /root/lighthouse
-RUN . "$HOME/.cargo/env" && cargo build --release --features portable && \
+RUN . "$HOME/.cargo/env" && cargo build --release --features portable,gnosis && \
     mkdir -p /root/bin && \
     cp  /root/lighthouse/target/release/lighthouse /root/bin/lighthouse

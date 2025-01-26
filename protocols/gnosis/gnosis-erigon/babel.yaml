@@ -1,0 +1,61 @@
+version: 0.0.3
+container_uri: docker://ghcr.io/blockjoy/gnosis-erigon:v20250126.1
+sku_code: GNO-ERG
+org_id: null
+description: Gnosis Chain Erigon node
+visibility: public
+protocol_key: gnosis
+variants:
+  - key: erigon-mainnet-archive
+    min_cpu: 12
+    min_memory_mb: 16384
+    min_disk_gb: 3000
+    sku_code: GNO-ERG-MA
+    archive_pointers:
+      - pointer: !store_key gnosis-erigon-mainnet-archive-v1
+  - key: erigon-mainnet-full
+    min_cpu: 12
+    min_memory_mb: 16384
+    min_disk_gb: 3000
+    sku_code: GNO-ERG-MF
+    archive_pointers:
+      - pointer: !store_key gnosis-erigon-mainnet-full-v1
+firewall_config:
+  default_in: deny
+  default_out: allow
+  rules:
+    - key: Allow incoming ports TCP
+      description: Allow TCP inbound traffic on port 80, 443
+      protocol: tcp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 80
+          name: HTTP port
+        - port: 443
+          name: HTTPS port
+        - port: 30303
+          name: P2P port 1
+        - port: 30304
+          name: P2P port 2
+        - port: 42069
+          name: Torrent port
+    - key: Allow P2P ports UDP
+      description: Allow UDP inbound traffic on P2P ports
+      protocol: udp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 30303
+          name: P2P port 1
+        - port: 30304
+          name: P2P port 2
+        - port: 42069
+          name: Torrent port
+properties: []

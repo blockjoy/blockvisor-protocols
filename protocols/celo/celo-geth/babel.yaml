@@ -1,0 +1,44 @@
+version: 0.0.1
+container_uri: docker://ghcr.io/blockjoy/celo-geth:v20250125.1
+sku_code: CELO-GETH
+org_id: null
+description: Celo Geth
+visibility: public
+protocol_key: celo
+variants:
+  - key: geth-mainnet-archive
+    min_cpu: 12
+    min_memory_mb: 16384
+    min_disk_gb: 6000
+    sku_code: CELO-GETH-MA
+    archive_pointers:
+      - pointer: !store_key celo-geth-mainnet-archive-v1
+firewall_config:
+  default_in: deny
+  default_out: allow
+  rules:
+    - key: Allow incoming ports TCP
+      description: Allow TCP inbound traffic on ports 80, 443
+      protocol: tcp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 80
+          name: HTTP port
+        - port: 443
+          name: HTTPS port
+    - key: Allow incoming ports UDP
+      description: Allow UDP inbound traffic on ports 30303
+      protocol: both
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 30303
+          name: P2P port
+properties: []
