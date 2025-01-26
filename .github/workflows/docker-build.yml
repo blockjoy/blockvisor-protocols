@@ -1093,7 +1093,7 @@ jobs:
           echo "status=success" >> $GITHUB_OUTPUT
 
   workflow-status:
-    needs: [detect-changes, test-nodes, build-base-images, build-clients, build-protocols, scan-dockerfiles]
+    needs: [detect-changes, test-nodes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols]
     if: always() && github.event_name == 'pull_request' && github.event.action != 'closed'
     runs-on: dev
     permissions:
@@ -1107,10 +1107,12 @@ jobs:
              [[ "${{ needs.build-clients.result }}" == "failure" ]] || \
              [[ "${{ needs.build-protocols.result }}" == "failure" ]] || \
              [[ "${{ needs.test-nodes.result }}" == "failure" ]] || \
-             [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]]; then
+             [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] || \
+             [[ "${{ needs.check-protocols.result }}" == "failure" ]]; then
             DESCRIPTION="Workflow failed"
             [[ "${{ needs.test-nodes.result }}" == "failure" ]] && DESCRIPTION="Node testing failed"
             [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] && DESCRIPTION="Dockerfile scanning failed"
+            [[ "${{ needs.check-protocols.result }}" == "failure" ]] && DESCRIPTION="Protocol validation failed"
             
             gh api \
               --method POST \
