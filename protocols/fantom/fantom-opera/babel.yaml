@@ -1,0 +1,44 @@
+version: 0.0.1
+container_uri: docker://ghcr.io/blockjoy/fantom-opera:v20250125.1
+sku_code: FANTOM-OPERA
+org_id: null
+description: Fantom Opera
+visibility: public
+protocol_key: fantom
+variants:
+  - key: opera-mainnet-archive
+    min_cpu: 16
+    min_memory_mb: 32768
+    min_disk_gb: 17500
+    sku_code: FANTOM-OPERA-MA
+    archive_pointers:
+      - pointer: !store_key fantom-opera-mainnet-archive-v1
+firewall_config:
+  default_in: deny
+  default_out: allow
+  rules:
+    - key: Allow incoming ports TCP
+      description: Allow TCP inbound traffic on ports 80, 443
+      protocol: tcp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 80
+          name: HTTP port
+        - port: 443
+          name: HTTPS port
+    - key: Allow incoming ports UDP
+      description: Allow UDP inbound traffic on ports 30303
+      protocol: both
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 5050
+          name: P2P port
+properties: []
