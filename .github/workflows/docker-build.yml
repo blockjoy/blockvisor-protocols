@@ -123,9 +123,9 @@ jobs:
           PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^protocols/[^/]\+/[^/]\+$" || true)
           PROTOCOL_CHANGES=$(for file in ${ALL_CHANGED_FILES}; do
             if [[ "$file" =~ ^protocols/ ]]; then
-              echo "$file"
+              dirname "$file" | cut -d/ -f1-3 | sort -u
             fi
-          done)
+          done | sort -u)
           DOCKERFILE_CHANGES=$(echo "$CHANGED_DIRS" | grep -E "^base-images/|^clients/|^protocols/" || true)
 
           echo "Base dirs: $BASE"
