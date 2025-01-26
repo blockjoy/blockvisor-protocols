@@ -49,7 +49,7 @@ jobs:
       base_matrix: ${{ steps.set-matrix.outputs.base_matrix }}
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
       protocols_matrix: ${{ steps.set-matrix.outputs.protocols_matrix }}
-      content_changes: ${{ steps.set-matrix.outputs.content_changes }}
+      protocol_changes: ${{ steps.set-matrix.outputs.protocol_changes }}
       all_changed_files: ${{ steps.changed-files.outputs.all_changed_files }}
       dockerfile_changes: ${{ steps.set-matrix.outputs.dockerfile_changes }}
       dockerfile_matrix: ${{ steps.set-matrix.outputs.dockerfile_matrix }}
@@ -121,13 +121,13 @@ jobs:
           BASE=$(echo "$CHANGED_DIRS" | grep "^base-images/" || true)
           CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
           PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^protocols/[^/]\+/[^/]\+$" || true)
-          CONTENT_CHANGES=$(echo "$CHANGED_DIRS" | grep "^protocols/" || true)
+          PROTOCOL_CHANGES=$(echo "$CHANGED_DIRS" | grep "^protocols/" || true)
           DOCKERFILE_CHANGES=$(echo "$CHANGED_DIRS" | grep -E "^base-images/|^clients/|^protocols/" || true)
           
           echo "Base dirs: $BASE"
           echo "Client dirs: $CLIENTS"
           echo "Protocol dirs: $PROTOCOLS"
-          echo "Content changes: $CONTENT_CHANGES"
+          echo "Protocol changes: $PROTOCOL_CHANGES"
           echo "Dockerfile changes: $DOCKERFILE_CHANGES"
           
           # Generate base image matrix from changed base-images directories
@@ -150,10 +150,10 @@ jobs:
             echo 'protocols_matrix={"include":[]}' >> $GITHUB_OUTPUT
           fi
           
-          if [[ -n "$CONTENT_CHANGES" ]]; then
-            echo "content_changes=$(echo "$CONTENT_CHANGES" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          if [[ -n "$PROTOCOL_CHANGES" ]]; then
+            echo "protocol_changes=$(echo "$PROTOCOL_CHANGES" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
           else
-            echo 'content_changes={"include":[]}' >> $GITHUB_OUTPUT
+            echo 'protocol_changes={"include":[]}' >> $GITHUB_OUTPUT
           fi
           
           if [[ -n "$DOCKERFILE_CHANGES" ]]; then
@@ -236,7 +236,7 @@ jobs:
     if: |
       github.event_name == 'pull_request' &&
       github.event.action != 'closed' &&
-      (fromJson(needs.detect-changes.outputs.content_changes).include[0] ||
+      (fromJson(needs.detect-changes.outputs.protocol_changes).include[0] ||
        needs.detect-changes.outputs.protocols_yaml_changed == 'true')
     runs-on: dev
     outputs:
@@ -250,7 +250,7 @@ jobs:
         id: check-protocol
         run: |
           # Get all changed protocols from detect-changes
-          CHANGED_PROTOCOLS='${{ needs.detect-changes.outputs.content_changes }}'
+          CHANGED_PROTOCOLS='${{ needs.detect-changes.outputs.protocol_changes }}'
           
           # Check each protocol key
           echo "$CHANGED_PROTOCOLS" | jq -r '.include[] | .image_path' | while read -r IMAGE_PATH; do
@@ -1116,7 +1116,7 @@ jobs:
           fi
 
           # All jobs either succeeded or were skipped
-          if [[ "${{ needs.detect-changes.outputs.content_changes }}" == '{"include":[]}' ]]; then
+          if [[ "${{ needs.detect-changes.outputs.protocol_changes }}" == '{"include":[]}' ]]; then
             DESCRIPTION="No protocol changes detected that require testing"
           else
             DESCRIPTION="All checks passed successfully"
