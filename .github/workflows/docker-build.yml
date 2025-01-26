@@ -122,7 +122,7 @@ jobs:
           CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
           PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^protocols/[^/]\+/[^/]\+$" || true)
           PROTOCOL_CHANGES=$(for file in ${ALL_CHANGED_FILES}; do
-            if [[ "$file" =~ ^protocols/ ]]; then
+            if [[ "$file" =~ ^protocols/ && ! "$file" =~ ^protocols/protocols.yaml$ ]]; then
               dirname "$file" | cut -d/ -f1-3 | sort -u
             fi
           done | sort -u)
