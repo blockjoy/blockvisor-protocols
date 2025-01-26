@@ -86,7 +86,7 @@
   name: Gnosis protocol
   org_id: null
   ticker: null
-  description: Gnosis Chain is an EVM-compatible sidechain that recently transitioned from Proof-of-Authority to Proof-of-Stake consensus using the Gasper protocol (like Ethereum), featuring unique xDai stablecoin-based transaction fees and community governance through a DAO, with over 200,000 validators securing the network and emphasizing resilience and credible neutrality as core values.
+  description: Gnosis Chain is an EVM-compatible sidechain that recently transitioned from Proof-of-Authority to Proof-of-Stake consensus using the Gasper protocol (like Ethereum), featuring unique xDai stablecoin-based transaction fees and community governance through a DAO with over 200,000 validators securing the network and emphasizing resilience and credible neutrality as core values.
   visibility: public
 - key: sqd
   name: SQD protocol
