@@ -20,6 +20,7 @@ ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 RUN mkdir -p /root/bin /root/lib /var/lib/babel/templates
 
 # Copy binaries from builds
+COPY --from=heimdall /home/heimdall/bin/heimdalld /root/bin/
 COPY --from=eri /root/bin/erigon /root/bin/
 
 # Copy templates and protocol files

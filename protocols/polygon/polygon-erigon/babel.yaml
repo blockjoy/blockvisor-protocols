@@ -1,16 +1,16 @@
 version: 0.0.1
 container_uri: docker://ghcr.io/blockjoy/polygon-erigon:20250123.1
-sku_code: POLY-ERI
+sku_code: POLY-ERIGON
 org_id: null
 description: Polygon
 visibility: public
 protocol_key: polygon
 variants:
-  - key: polygon-erigon-mainnet-archive
-    min_cpu: 32
-    min_memory_mb: 32768
-    min_disk_gb: 2600
-    sku_code: POLY-ERI-MA
+  - key: erigon-mainnet-archive
+    min_cpu: 16
+    min_memory_mb: 65536
+    min_disk_gb: 15000
+    sku_code: POLY-ERIGON-MA
     archive_pointers:
       - pointer: !store_key polygon-erigon-mainnet-archive-v1
 firewall_config:
@@ -30,17 +30,9 @@ firewall_config:
           name: HTTP port
         - port: 443
           name: HTTPS port
-        - port: 30303
-          name: P2P port
-        - port: 30304
-          name: P2P port
-        - port: 42069
-          name: Snapsync port
-        - port: 26656
-          name: Heimdall NLP port
     - key: Allow incoming ports UDP
-      description: Allow UDP inbound traffic on port 30303, 30304, 42069, 26656
-      protocol: udp
+      description: Allow TCP/UDP inbound traffic on port 30303, 30304, 42069, 26656
+      protocol: both
       direction: in
       action: allow
       ips:
