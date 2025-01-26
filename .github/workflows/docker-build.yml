@@ -151,8 +151,12 @@ jobs:
           fi
           
           if [[ -n "$PROTOCOL_CHANGES" ]]; then
-            echo "protocol_changes=$(echo "$PROTOCOL_CHANGES" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+            PROTOCOL_JSON=$(echo "$PROTOCOL_CHANGES" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')
+            echo "Debug - PROTOCOL_CHANGES JSON:"
+            echo "$PROTOCOL_JSON" | jq '.'
+            echo "protocol_changes=$PROTOCOL_JSON" >> $GITHUB_OUTPUT
           else
+            echo "Debug - PROTOCOL_CHANGES is empty"
             echo 'protocol_changes={"include":[]}' >> $GITHUB_OUTPUT
           fi
           
