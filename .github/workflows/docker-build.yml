@@ -117,6 +117,16 @@ jobs:
             echo "protocols_yaml_changed=false" >> $GITHUB_OUTPUT
           fi
 
+          # Function to check if directory has a Dockerfile
+          check_dockerfile() {
+            local dir=$1
+            local type=$2
+            if [[ ! -f "$dir/Dockerfile" ]]; then
+              echo "Error: $type directory $dir does not contain a Dockerfile"
+              exit 1
+            fi
+          }
+
           # Filter by component
           BASE=$(echo "$CHANGED_DIRS" | grep "^base-images/" || true)
           CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
@@ -127,13 +137,22 @@ jobs:
             fi
           done | sort -u)
 
-          # Verify that all protocol directories have a Dockerfile
+          # Verify that all component directories have a Dockerfile
+          if [[ -n "$BASE" ]]; then
+            echo "$BASE" | while read -r dir; do
+              check_dockerfile "$dir" "Base image"
+            done
+          fi
+
+          if [[ -n "$CLIENTS" ]]; then
+            echo "$CLIENTS" | while read -r dir; do
+              check_dockerfile "$dir" "Client"
+            done
+          fi
+
           if [[ -n "$PROTOCOL_CHANGES" ]]; then
-            echo "$PROTOCOL_CHANGES" | while read -r protocol_dir; do
-              if [[ ! -f "$protocol_dir/Dockerfile" ]]; then
-                echo "Error: Protocol directory $protocol_dir does not contain a Dockerfile"
-                exit 1
-              fi
+            echo "$PROTOCOL_CHANGES" | while read -r dir; do
+              check_dockerfile "$dir" "Protocol"
             done
           fi
 
@@ -1119,11 +1138,13 @@ jobs:
              [[ "${{ needs.build-protocols.result }}" == "failure" ]] || \
              [[ "${{ needs.test-nodes.result }}" == "failure" ]] || \
              [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] || \
+             [[ "${{ needs.detect-changes.result }}" == "failure" ]] || \
              [[ "${{ needs.check-protocols.result }}" == "failure" ]]; then
             DESCRIPTION="Workflow failed"
             [[ "${{ needs.test-nodes.result }}" == "failure" ]] && DESCRIPTION="Node testing failed"
             [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] && DESCRIPTION="Dockerfile scanning failed"
             [[ "${{ needs.check-protocols.result }}" == "failure" ]] && DESCRIPTION="Protocol validation failed"
+            [[ "${{ needs.detect-changes.result }}" == "failure" ]] && DESCRIPTION="Failed to detect changes"
             
             gh api \
               --method POST \
