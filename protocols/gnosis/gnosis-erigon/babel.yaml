@@ -1,4 +1,4 @@
-version: 0.0.4
+version: 0.0.3
 container_uri: docker://ghcr.io/blockjoy/gnosis-erigon:v20250126.1
 sku_code: GNO-ERG
 org_id: null

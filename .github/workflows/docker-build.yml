@@ -1071,13 +1071,25 @@ jobs:
           declare -a DEPLOYED_NODES=()
           declare -a ERROR_NODES=()
           
+          # Check if PR is from Renovate
+          IS_RENOVATE=false
+          if [[ "${{ github.event.pull_request.user.login }}" == "renovate[bot]" ]]; then
+            IS_RENOVATE=true
+            echo "PR is from Renovate, will use --cleanup and skip comments"
+          fi
+          
           # For each variant, start a node and capture info
           for variant in $VARIANTS; do
             echo "Testing variant: $variant"
             
-            # Run nib image check and tee output to both console and file
-            echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 | tee /tmp/nib_output.log
+            # Run nib image check with --cleanup for Renovate PRs
+            if [[ "$IS_RENOVATE" == "true" ]]; then
+              echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test --cleanup"
+              nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test --cleanup 2>&1 | tee /tmp/nib_output.log
+            else
+              echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
+              nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 | tee /tmp/nib_output.log
+            fi
             
             # Extract node name from the complete output
             NODE_NAME=$(cat /tmp/nib_output.log | grep -o "'[^']*'" | head -1 | tr -d "'")
@@ -1098,8 +1110,8 @@ jobs:
             fi
           done
 
-          # Post comment about deployed nodes
-          if [ ${#DEPLOYED_NODES[@]} -gt 0 ]; then
+          # Post comment about deployed nodes only if not Renovate
+          if [[ "$IS_RENOVATE" == "false" ]] && [ ${#DEPLOYED_NODES[@]} -gt 0 ]; then
             COMMENT="The following nodes have been deployed on \`${RUNNER_HOST}\`:"$'\n'
             for node in "${DEPLOYED_NODES[@]}"; do
               COMMENT="${COMMENT}${node}"$'\n'
@@ -1108,8 +1120,8 @@ jobs:
             echo -e "$COMMENT" | gh pr comment ${{ github.event.pull_request.number }} --body-file -
           fi
 
-          # Post comment about error nodes if any
-          if [ ${#ERROR_NODES[@]} -gt 0 ]; then
+          # Post comment about error nodes only if not Renovate
+          if [[ "$IS_RENOVATE" == "false" ]] && [ ${#ERROR_NODES[@]} -gt 0 ]; then
             ERROR_COMMENT="These nodes have errors:"$'\n'
             for node in "${ERROR_NODES[@]}"; do
               ERROR_COMMENT="${ERROR_COMMENT}${node}"$'\n'
