@@ -126,6 +126,17 @@ jobs:
               dirname "$file" | cut -d/ -f1-3 | sort -u
             fi
           done | sort -u)
+
+          # Verify that all protocol directories have a Dockerfile
+          if [[ -n "$PROTOCOL_CHANGES" ]]; then
+            echo "$PROTOCOL_CHANGES" | while read -r protocol_dir; do
+              if [[ ! -f "$protocol_dir/Dockerfile" ]]; then
+                echo "Error: Protocol directory $protocol_dir does not contain a Dockerfile"
+                exit 1
+              fi
+            done
+          fi
+
           DOCKERFILE_CHANGES=$(echo "$CHANGED_DIRS" | grep -E "^base-images/|^clients/|^protocols/" || true)
 
           echo "Base dirs: $BASE"
