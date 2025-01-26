@@ -14,7 +14,7 @@ jobs:
     if: github.event.pull_request.merged == true
     outputs:
       version_changes: ${{ steps.check-versions.outputs.version_changes }}
-      content_changes: ${{ steps.check-content.outputs.content_changes }}
+      protocol_changes: ${{ steps.check-content.outputs.protocol_changes }}
       protocols_yaml_changed: ${{ steps.check-content.outputs.protocols_yaml_changed }}
     steps:
       - name: Checkout
@@ -55,9 +55,9 @@ jobs:
           
           # Create content changes array using jq for proper JSON handling
           if [ ${#CONTENT_CHANGES[@]} -gt 0 ]; then
-            echo "content_changes=$(printf '%s\n' "${CONTENT_CHANGES[@]}" | jq -sc '.')" >> $GITHUB_OUTPUT
+            echo "protocol_changes={\"include\":[$(printf '%s,' "${CONTENT_CHANGES[@]}" | sed 's/,$//')],\"exclude\":[]}" >> $GITHUB_OUTPUT
           else
-            echo "content_changes=[]" >> $GITHUB_OUTPUT
+            echo "protocol_changes={\"include\":[],\"exclude\":[]}" >> $GITHUB_OUTPUT
           fi
           echo "protocols_yaml_changed=$PROTOCOLS_YAML_CHANGED" >> $GITHUB_OUTPUT
 
@@ -108,7 +108,7 @@ jobs:
     needs: [detect-changes]
     if: |
       github.event.pull_request.merged == true &&
-      (fromJson(needs.detect-changes.outputs.content_changes).include[0] ||
+      (fromJson(needs.detect-changes.outputs.protocol_changes).include[0] ||
        needs.detect-changes.outputs.protocols_yaml_changed == 'true')
     runs-on: dev
     outputs:
@@ -125,10 +125,10 @@ jobs:
         id: check-protocol
         run: |
           # Get all changed protocols from detect-changes
-          CHANGED_PROTOCOLS='${{ needs.detect-changes.outputs.content_changes }}'
+          CHANGED_PROTOCOLS='${{ needs.detect-changes.outputs.protocol_changes }}'
           
           # Check each protocol key
-          echo "$CHANGED_PROTOCOLS" | jq -r '.[] | .image_path' | while read -r IMAGE_PATH; do
+          echo "$CHANGED_PROTOCOLS" | jq -r '.include[] | .image_path' | while read -r IMAGE_PATH; do
             echo "Checking protocol in $IMAGE_PATH"
             
             # Get protocol key from babel.yaml
@@ -194,7 +194,7 @@ jobs:
   push-dev:
     environment: Dev
     needs: [detect-changes]
-    if: fromJson(needs.detect-changes.outputs.content_changes)[0]
+    if: fromJson(needs.detect-changes.outputs.protocol_changes).include[0]
     runs-on: dev
     permissions:
       contents: write
@@ -202,7 +202,7 @@ jobs:
       pull-requests: write
     strategy:
       matrix:
-        include: ${{ fromJson(needs.detect-changes.outputs.content_changes) }}
+        include: ${{ fromJson(needs.detect-changes.outputs.protocol_changes).include }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
