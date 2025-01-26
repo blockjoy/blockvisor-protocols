@@ -76,8 +76,8 @@
   ticker: null
   description: Axelar is a decentralized interchain network built on Cosmos SDK that enables secure cross-chain communication through Gateway smart contracts controlled by validators using multi-party cryptography, where validators run nodes for multiple chains to verify cross-chain transactions and relayer services facilitate the execution of approved messages with gas management capabilities.
   visibility: public
-- key: bnb
-  name: BNB protocol
+- key: bsc
+  name: BSC protocol
   org_id: null
   ticker: null
   description: BNB Smart Chain (BSC) is an EVM-compatible blockchain that uses a unique Proof of Staked Authority (PoSA) consensus mechanism combining DPoS and PoA, featuring 3-second block times and fast finality (~6s), where validators are elected through staking governance and share transaction fees, with no token inflation as rewards are collected from gas fees in BNB.
