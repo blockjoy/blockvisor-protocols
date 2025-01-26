@@ -62,7 +62,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@d6e91a2266cdb9d62096cebf1e8546899c6aa18f # v45
+        uses: tj-actions/changed-files@d6e91a2266cdb9d45b59e8c27de4bd072b392f5 # v45
         with:
           base_sha: ${{ github.event.pull_request.base.sha }}
           fetch_depth: 0
@@ -121,7 +121,7 @@ jobs:
           BASE=$(echo "$CHANGED_DIRS" | grep "^base-images/" || true)
           CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
           PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^protocols/[^/]\+/[^/]\+$" || true)
-          PROTOCOL_CHANGES=$(echo "$CHANGED_DIRS" | grep "^protocols/" || true)
+          PROTOCOL_CHANGES=$(echo "$ALL_CHANGED_FILES" | grep "^protocols/" || true)
           DOCKERFILE_CHANGES=$(echo "$CHANGED_DIRS" | grep -E "^base-images/|^clients/|^protocols/" || true)
           
           echo "Base dirs: $BASE"
