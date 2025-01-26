@@ -18,7 +18,7 @@ WORKDIR /root/bsc-erigon
 RUN mkdir -p distro /root/bin /root/lib
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
-    make bsc-erigon && make DIST=distro install
+    make erigon && make DIST=distro install
 
 # Create minimal final image
 FROM ${BASE_IMAGE}
