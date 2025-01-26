@@ -45,7 +45,7 @@ const PLUGIN_CONFIG = #{
     services: [
         #{
             name: "bsc-erigon",
-            run_sh: `export HOME=/root && /root/bin/bsc-erigon \
+            run_sh: `export HOME=/root && /root/bin/erigon \
                     --port 30303 \
                     --http.vhosts "*" \
                     --http.corsdomain "*" \
