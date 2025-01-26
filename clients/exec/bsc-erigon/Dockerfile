@@ -24,4 +24,3 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 FROM ${BASE_IMAGE}
 COPY --from=builder /root/bsc-erigon/distro/erigon /root/bin/
 COPY --from=builder /root/bsc-erigon/distro/libsilkworm_capi.so /root/lib/
-COPY --from=builder /root/bsc-erigon/distro/rpcdaemon /root/bin/
