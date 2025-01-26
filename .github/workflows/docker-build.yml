@@ -694,6 +694,7 @@ jobs:
       matrix: ${{ needs.detect-changes.outputs.protocols_matrix }}
       image_name: ${{ steps.version.outputs.image_name }}
       image_tag: ${{ steps.version.outputs.image_tag }}
+      version_tag: ${{ steps.version.outputs.version_tag }}
       runner_hostname: ${{ steps.get-hostname.outputs.hostname }}
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
@@ -877,7 +878,7 @@ jobs:
           cp ${{ matrix.image_path }}/babel.yaml ${{ matrix.image_path }}/babel.yaml-test
 
           # Update container_uri with newly built image
-          NEW_URI="docker://ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}"
+          NEW_URI="docker://ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}"
           TMPDIR=~/temp yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
 
           echo "test_file=${{ matrix.image_path }}/babel.yaml-test" >> $GITHUB_OUTPUT
@@ -1045,7 +1046,7 @@ jobs:
           IMAGE_NAME=$(echo "${{ matrix.image_path }}" | cut -d'/' -f3)
           
           # Update container_uri with newly built image
-          NEW_URI="docker://ghcr.io/blockjoy/${IMAGE_NAME}:${{ needs.build-protocols.outputs.image_tag }}"
+          NEW_URI="docker://ghcr.io/blockjoy/${IMAGE_NAME}:${{ needs.build-protocols.outputs.version_tag }}"
           yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
 
       - name: Test nodes
