@@ -83,6 +83,6 @@
   ],
   "prHourlyLimit": 2,
   "prConcurrentLimit": 1,
-  "schedule": ["0 5 * * * *"],
+  "schedule": ["* 5 * * *"],
   "groupName": "all"
 }
