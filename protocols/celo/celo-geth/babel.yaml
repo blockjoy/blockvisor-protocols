@@ -1,5 +1,5 @@
 version: 0.0.1
-container_uri: docker://ghcr.io/blockjoy/celo-geth:v20250125.1
+container_uri: docker://ghcr.io/blockjoy/celo-geth:v20250126.1
 sku_code: CELO-GETH
 org_id: null
 description: Celo Geth
