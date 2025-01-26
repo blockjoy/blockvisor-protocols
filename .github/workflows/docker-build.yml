@@ -1110,8 +1110,8 @@ jobs:
             fi
           done
 
-          # Post comment about deployed nodes only if not Renovate
-          if [[ "$IS_RENOVATE" == "false" ]] && [ ${#DEPLOYED_NODES[@]} -gt 0 ]; then
+          # Post comment about deployed nodes
+          if [ ${#DEPLOYED_NODES[@]} -gt 0 ]; then
             COMMENT="The following nodes have been deployed on \`${RUNNER_HOST}\`:"$'\n'
             for node in "${DEPLOYED_NODES[@]}"; do
               COMMENT="${COMMENT}${node}"$'\n'
@@ -1120,8 +1120,8 @@ jobs:
             echo -e "$COMMENT" | gh pr comment ${{ github.event.pull_request.number }} --body-file -
           fi
 
-          # Post comment about error nodes only if not Renovate
-          if [[ "$IS_RENOVATE" == "false" ]] && [ ${#ERROR_NODES[@]} -gt 0 ]; then
+          # Post comment about error nodes
+          if [ ${#ERROR_NODES[@]} -gt 0 ]; then
             ERROR_COMMENT="These nodes have errors:"$'\n'
             for node in "${ERROR_NODES[@]}"; do
               ERROR_COMMENT="${ERROR_COMMENT}${node}"$'\n'
