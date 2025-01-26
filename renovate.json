@@ -39,7 +39,12 @@
   ],
   "packageRules": [
     {
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ],
       "groupName": "all non-major dependencies",
       "groupSlug": "all-minor-patch"
     },
@@ -64,10 +69,10 @@
       "pinDigests": false,
       "separateMinorPatch": false,
       "separateMajorMinor": false,
-      "matchPackagePatterns": [
-        "^ghcr.io/blockjoy/"
-      ],
-      "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$"
+      "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$",
+      "matchPackageNames": [
+        "/^ghcr.io/blockjoy//"
+      ]
     },
     {
       "description": "Disable updates for Ubuntu base images",
@@ -83,6 +88,8 @@
   ],
   "prHourlyLimit": 2,
   "prConcurrentLimit": 1,
-  "schedule": ["0 5 * * *"],
+  "schedule": [
+    "* 5 * * *"
+  ],
   "groupName": "all"
 }
