@@ -22,6 +22,6 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 # Create minimal final image
 FROM ${BASE_IMAGE}
-COPY --from=builder /root/bsc-erigon/distro/bsc-erigon /root/bin/
+COPY --from=builder /root/bsc-erigon/distro/erigon /root/bin/
 COPY --from=builder /root/bsc-erigon/distro/libsilkworm_capi.so /root/lib/
-COPY --from=builder /root/bsc-erigon/distro/bsc-rpcdaemon /root/bin/
+COPY --from=builder /root/bsc-erigon/distro/rpcdaemon /root/bin/
