@@ -26,6 +26,7 @@ fn base_config(metrics_port, p2p_port, rpc_port, rest_port, grpc_web_port, grpc_
                     data_dir: `${caddy_dir}`,
                     metrics_path: `${metrics_path}`,
                     metrics_port: `${metrics_port}`,
+                }
             },
             #{
                 template: "/var/lib/babel/templates/config-toml.template",
@@ -36,6 +37,7 @@ fn base_config(metrics_port, p2p_port, rpc_port, rest_port, grpc_web_port, grpc_
                     metrics_port: `${metrics_port}`,
                     hostname: node_env().node_name,
                     node_ip: node_env().node_ip,
+                }
             },
             #{
                 template: "/var/lib/babel/templates/app-toml.template",
