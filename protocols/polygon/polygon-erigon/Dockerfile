@@ -4,7 +4,7 @@ ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
 FROM ${HEIMDALL_IMAGE} AS heimdall
 
-FROM ${ERI_IMAGE} AS eri
+FROM ${ERI_IMAGE} AS erigon
 
 FROM ${BASE_IMAGE}
 
@@ -21,7 +21,8 @@ RUN mkdir -p /root/bin /root/lib /var/lib/babel/templates
 
 # Copy binaries from builds
 COPY --from=heimdall /home/heimdall/bin/heimdalld /root/bin/
-COPY --from=eri /root/bin/erigon /root/bin/
+COPY --from=erigon /root/bin/erigon /root/bin/
+COPY --from=erigon /root/lib/libsilkworm_capi.so /root/lib/
 
 # Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/

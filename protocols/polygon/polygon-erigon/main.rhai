@@ -2,8 +2,8 @@ import "base" as base;
 import "polygon-erigon" as polygon_erigon;
 
 
-const HEIMDALL_DIR = BLOCKCHAIN_DATA_PATH + "/heimdall";
-const ERI_DIR = BLOCKCHAIN_DATA_PATH + "/erigon";
+const HEIMDALL_DIR = node_env().data_mount_point + "/heimdall";
+const ERI_DIR = node_env().data_mount_point + "/erigon";
 const CADDY_DIR = node_env().data_mount_point + "caddy";
 const RPC_PORT = 8545;
 const WS_PORT = 8546;
