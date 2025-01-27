@@ -1,4 +1,4 @@
-version: 0.0.2
+version: 0.0.3
 container_uri: docker://ghcr.io/blockjoy/shape-geth:v20250126.1
 sku_code: SHAPE-GETH
 org_id: null
