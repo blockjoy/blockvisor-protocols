@@ -8,18 +8,32 @@ protocol_key: shape
 variants:
   - key: geth-mainnet-archive
     min_cpu: 12
-    min_memory_mb: 65536
-    min_disk_gb: 9000
+    min_memory_mb: 16384
+    min_disk_gb: 200
     sku_code: SHAPE-GETH-MA
     archive_pointers:
       - pointer: !store_key shape-geth-mainnet-archive-v1
   - key: geth-sepolia-archive
     min_cpu: 12
-    min_memory_mb: 65536
-    min_disk_gb: 9000
+    min_memory_mb: 16384
+    min_disk_gb: 100
     sku_code: SHAPE-GETH-TA
     archive_pointers:
       - pointer: !store_key shape-geth-sepolia-archive-v1
+  - key: geth-mainnet-full
+    min_cpu: 12
+    min_memory_mb: 16384
+    min_disk_gb: 100
+    sku_code: SHAPE-GETH-MF
+    archive_pointers:
+      - pointer: !store_key shape-geth-mainnet-full-v1
+  - key: geth-sepolia-full
+    min_cpu: 12
+    min_memory_mb: 16384
+    min_disk_gb: 100
+    sku_code: SHAPE-GETH-TF
+    archive_pointers:
+      - pointer: !store_key shape-geth-sepolia-full-v1
 firewall_config:
   default_in: deny
   default_out: allow
