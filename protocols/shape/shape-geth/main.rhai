@@ -1,5 +1,5 @@
 import "base" as base;
-import "shape-geth" as shape_geth;
+import "op-geth" as op_geth;
 
 const CADDY_DIR = node_env().data_mount_point + "caddy";
 const RPC_PORT = 8545;
@@ -15,7 +15,7 @@ const GETH_API = `http://127.0.0.1:${global::RPC_PORT}`;
 const SHAPE_API = "http://127.0.0.1:8547";
 const SHAPE_DIR = node_env().protocol_data_path + "/shape";
 
-let SHAPE_GETH_CONFIG = shape_geth::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::OP_NODE_RPC_PORT, global::AUTHRPC_PORT, global::CADDY_DIR, global::METRICS_PATH);
+let SHAPE_GETH_CONFIG = op_geth::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::OP_NODE_RPC_PORT, global::AUTHRPC_PORT, global::CADDY_DIR, global::METRICS_PATH);
 
 const BASE_CONFIG = #{
     config_files: SHAPE_GETH_CONFIG.config_files + base::BASE_CONFIG.config_files,
@@ -23,7 +23,7 @@ const BASE_CONFIG = #{
 };
 
 const VARIANTS = #{
-    "geth-mainnet-archive": #{
+    "geth-mainnet-full": #{
         sequencer_url: "https://shape-mainnet-sequencer.g.alchemy.com",
         l1_url: "https://eth-l1.blkjy.io",
         beacon_url: "https://lighthouse.blkjy.io",
@@ -31,7 +31,7 @@ const VARIANTS = #{
         bootnodes: "enode://ae31be7c6596f4bc3657f90b65a1569c7b0db10c976649f06fe5cfb26139064d78d22b41aede293aa7358fc336d086051ac7fce78f063dce89e1da19c7b88aee@34.228.226.23:0?discport=30301,enode://0bea78f02c9bee58326b3a612dae63dc5a0193fb3dfc9be687c9757d25606405ef9f87810157598fce35688bdb5b3834dc6283afab6dc5774abbd6c5a7b17cea@3.85.27.162:0?discport=30301",
         network: "mainnet",
     },
-    "geth-sepolia-archive": #{
+    "geth-sepolia-full": #{
         sequencer_url: "https://shape-sepolia-sequencer.g.alchemy.com",
         l1_url: "https://eth-l1-sepolia.blkjy.io",
         beacon_url: "https://lighthouse-sepolia.blkjy.io",

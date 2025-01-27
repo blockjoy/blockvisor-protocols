@@ -1,4 +1,4 @@
-version: 0.0.1
+version: 0.0.2
 container_uri: docker://ghcr.io/blockjoy/shape-geth:v20250126.1
 sku_code: SHAPE-GETH
 org_id: null
@@ -6,20 +6,20 @@ description: Shape Geth
 visibility: public
 protocol_key: shape
 variants:
-  - key: geth-mainnet-archive
+  - key: geth-mainnet-full
     min_cpu: 12
-    min_memory_mb: 65536
-    min_disk_gb: 9000
-    sku_code: SHAPE-GETH-MA
+    min_memory_mb: 16384
+    min_disk_gb: 100
+    sku_code: SHAPE-GETH-MF
     archive_pointers:
-      - pointer: !store_key shape-geth-mainnet-archive-v1
-  - key: geth-sepolia-archive
+      - pointer: !store_key shape-geth-mainnet-full-v1
+  - key: geth-sepolia-full
     min_cpu: 12
-    min_memory_mb: 65536
-    min_disk_gb: 9000
-    sku_code: SHAPE-GETH-TA
+    min_memory_mb: 16384
+    min_disk_gb: 100
+    sku_code: SHAPE-GETH-TF
     archive_pointers:
-      - pointer: !store_key shape-geth-sepolia-archive-v1
+      - pointer: !store_key shape-geth-sepolia-full-v1
 firewall_config:
   default_in: deny
   default_out: allow
