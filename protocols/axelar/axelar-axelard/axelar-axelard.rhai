@@ -1,4 +1,4 @@
-fn base_config(metrics_port, p2p_port, rpc_port, rest_port, grpc_web_port, grpc_port, caddy_dir, metrics_path) { 
+fn base_config(axelar_dir, metrics_port, p2p_port, rpc_port, rest_port, grpc_web_port, grpc_port, caddy_dir, metrics_path) { 
     #{   
         config_files: [
             #{
@@ -30,7 +30,7 @@ fn base_config(metrics_port, p2p_port, rpc_port, rest_port, grpc_web_port, grpc_
             },
             #{
                 template: "/var/lib/babel/templates/config-toml.template",
-                destination: "/root/configs/config.toml",
+                destination: `${axelar_dir}/.axelar/config/config.toml`,
                 params: #{
                     rpc_port: `${rpc_port}`,
                     p2p_port: `${p2p_port}`,
@@ -41,17 +41,17 @@ fn base_config(metrics_port, p2p_port, rpc_port, rest_port, grpc_web_port, grpc_
             },
             #{
                 template: "/var/lib/babel/templates/app-toml.template",
-                destination: "/root/configs/app.toml",
+                destination: `${axelar_dir}/.axelar/config/app.toml`,
                 params: #{},
             },
             #{
                 template: "/var/lib/babel/templates/addrbook-json.template",
-                destination: "/root/configs/addrbook.json",
+                destination: `${axelar_dir}/.axelar/config/addrbook.json`,
                 params: #{},
             },
             #{
                 template: "/var/lib/babel/templates/genesis-json.template",
-                destination: "/root/configs/genesis.json",
+                destination: `${axelar_dir}/.axelar/config/genesis.json`,
                 params: #{},
             },
         ],
