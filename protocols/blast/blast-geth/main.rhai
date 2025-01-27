@@ -29,7 +29,7 @@ const VARIANTS = #{
         l1_url: "https://eth-l1.blkjy.io",
         beacon_url: "https://lighthouse.blkjy.io",
         p2p_nodes: "enr:-J64QGwHl9uYLfC_cnmxSA6wQH811nkOWJDWjzxqkEUlJoZHWvI66u-BXgVcPCeMUmg0dBpFQAPotFchG67FHJMZ9OSGAY3d6wevgmlkgnY0gmlwhANizeSHb3BzdGFja4Sx_AQAiXNlY3AyNTZrMaECg4pk0cskPAyJ7pOmo9E6RqGBwV-Lex4VS9a3MQvu7PWDdGNwgnZhg3VkcIJ2YQ,enr:-J64QDge2jYBQtcNEpRqmKfci5E5BHAhNBjgv4WSdwH1_wPqbueq2bDj38-TSW8asjy5lJj1Xftui6Or8lnaYFCqCI-GAY3d6wf3gmlkgnY0gmlwhCO2D9yHb3BzdGFja4Sx_AQAiXNlY3AyNTZrMaEDo4aCTq7pCEN8om9U5n_VyWdambGnQhwHNwKc8o-OicaDdGNwgnZhg3VkcIJ2YQ",
-        name: "mainnet"
+        network: "mainnet"
     },
 };
 
@@ -38,6 +38,7 @@ const SEQUENCER_URL = VARIANTS[node_env().node_variant].sequencer_url;
 const L1_URL = VARIANTS[node_env().node_variant].l1_url;
 const BEACON_URL = VARIANTS[node_env().node_variant].beacon_url;
 const P2P_NODES = VARIANTS[node_env().node_variant].p2p_nodes;
+const CONFIG_DIR = "/root/config/" + global::VARIANT.network;
 
 const BABEL_VERSION = "0.9.0";
 
@@ -46,6 +47,7 @@ const PLUGIN_CONFIG = #{
         commands: [
             `mkdir -p ${global::BLAST_DIR}/geth`,
             `mkdir -p ${global::CADDY_DIR}`,
+            `cp -a ${global::CONFIG_DIR}/* ${global::BLAST_DIR}`,
         ],
         jobs: [
             #{

@@ -17,7 +17,7 @@ ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
 ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 
 # Create necessary directories
-RUN mkdir -p /root/bin /root/config/{mainnet,sepolia} /var/lib/babel/templates
+RUN mkdir -p /root/bin /root/config/mainnet /root/config/sepolia /var/lib/babel/templates
 
 # Copy binaries from builds
 COPY --from=blast-op-node /root/bin/blast-node /root/bin/
@@ -26,7 +26,7 @@ COPY --from=blast-op-geth /root/bin/blast-geth /root/bin/
 # Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
-COPY templates/genesis-json.template /var/lib/babel/templates/
-COPY templates/rollup-json.template /var/lib/babel/templates/
+COPY config/mainnet/genesis.json /root/config/mainnet
+COPY config/mainnet/rollup.json /root/config/mainnet
 COPY blast-geth.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/
