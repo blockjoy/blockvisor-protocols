@@ -4,7 +4,7 @@ FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV LIGHTHOUSE_VERSION=v5.3.0
+ENV LIGHTHOUSE_VERSION=v6.0.1
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 # Install system dependencies including libclang
