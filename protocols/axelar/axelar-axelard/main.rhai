@@ -65,29 +65,41 @@ const PLUGIN_CONFIG = #{
 };
 
 fn application_status() {
-    let resp = parse_hex(run_jrpc(#{host: global::CELO_API, method: "eth_chainId"}).expect(200).result);
-  
-    if resp == 42220 {
+    /// "uploading", "downloading", "initializing" statuses are automatically handled by BV if BABEL_CONFIG const is defined
+    let result = run_jrpc(#{
+            host: global::API_HOST,
+            method: "status",
+            headers: [["content-type", "application/json"]]
+        }).expect(200);
+
+    if result.result.sync_info.catching_up == false {
         "broadcasting"
     } else {
         "delinquent"
     }
-  }
-  
-  fn height() {
-    let resp = run_jrpc(#{host: global::CELO_API, method: "eth_blockNumber"});
-    if resp.status_code != 200 {
-      throw resp;
+}
+
+/// Returns the height of the blockchain (in blocks).
+fn height() {
+    parse_int(run_jrpc(#{ 
+        host: global::API_HOST, 
+        method: "status",
+        headers: [["content-type", "application/json"]]
+    }).expect(200).result.sync_info.latest_block_height)
+}
+
+/// Returns blockchain synchronization status.
+fn sync_status() {
+    let result = run_jrpc(#{
+            host: global::API_HOST,
+            method: "status",
+            headers: [["content-type", "application/json"]]
+        }).expect(200);
+
+    if result.result.sync_info.catching_up == false {
+        "synced"
+    } else if result.result.sync_info.catching_up == true {
+        "syncing"
     }
-    let h = parse_json(resp.body);
-    parse_int(sub_string(h.result,2),16)
-  }
-  
-  fn sync_status() {
-      let resp = run_jrpc(#{host: global::CELO_API, method: "eth_syncing"}).expect(200);
-      if resp.result == false {
-          "synced"
-      } else {
-          "syncing"
-      }
-  }
+    
+}
