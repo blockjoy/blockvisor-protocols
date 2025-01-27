@@ -1,4 +1,4 @@
-fn base_config(metrics_port, rpc_port, ws_port, caddy_dir, metrics_path) { 
+fn base_config(metrics_port, p2p_port, rpc_port, rest_port, grpc_web_port, grpc_port, caddy_dir, metrics_path) { 
     #{   
         config_files: [
             #{
@@ -17,14 +17,40 @@ fn base_config(metrics_port, rpc_port, ws_port, caddy_dir, metrics_path) {
                 destination: "/etc/caddy/Caddyfile",
                 params: #{
                     rpc_port: `${rpc_port}`,
-                    ws_port: `${ws_port}`,
+                    rest_port: `${rest_port}`,
+                    grpc_web_port: `${grpc_web_port}`,
+                    grpc_port: `${grpc_port}`,
                     hostname: node_env().node_name,
                     node_ip: node_env().node_ip,
                     tld: ".n0des.xyz",
                     data_dir: `${caddy_dir}`,
                     metrics_path: `${metrics_path}`,
                     metrics_port: `${metrics_port}`,
-                },
+            },
+            #{
+                template: "/var/lib/babel/templates/config-toml.template",
+                destination: "/root/configs/config.toml",
+                params: #{
+                    rpc_port: `${rpc_port}`,
+                    p2p_port: `${p2p_port}`,
+                    metrics_port: `${metrics_port}`,
+                    hostname: node_env().node_name,
+                    node_ip: node_env().node_ip,
+            },
+            #{
+                template: "/var/lib/babel/templates/app-toml.template",
+                destination: "/root/configs/app.toml",
+                params: #{},
+            },
+            #{
+                template: "/var/lib/babel/templates/addrbook-json.template",
+                destination: "/root/configs/addrbook.json",
+                params: #{},
+            },
+            #{
+                template: "/var/lib/babel/templates/genesis-json.template",
+                destination: "/root/configs/genesis.json",
+                params: #{},
             },
         ],
         services: [
