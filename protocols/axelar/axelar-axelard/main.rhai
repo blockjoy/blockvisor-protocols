@@ -34,7 +34,9 @@ const BABEL_VERSION = "0.9.0";
 const PLUGIN_CONFIG = #{
     init: #{
         commands: [
-            `mkdir -p ${global::AXELAR_DIR}`,
+            `mkdir -p ${global::AXELAR_DIR}/.axelar/config`,
+            `mkdir -p ${global::AXELAR_DIR}/.axelar/logs`,
+            `mkdir -p ${global::AXELAR_DIR}/.axelar/lib`,
             `mkdir -p ${global::CADDY_DIR}`,
         ],
         jobs: [
