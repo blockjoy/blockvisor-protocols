@@ -1,7 +1,7 @@
-ARG AXELAR_AXELARD_IMAGE=ghcr.io/blockjoy/axelard:v20250126.1
+ARG AXELARD_IMAGE=ghcr.io/blockjoy/axelard:v20250127.4
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
-FROM ${AXELAR_AXELARD_IMAGE} AS axelar-axelard
+FROM ${AXELARD_IMAGE} AS axelard
 
 FROM ${BASE_IMAGE}
 
@@ -17,7 +17,7 @@ ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 RUN mkdir -p /root/bin /var/lib/babel/templates
 
 # Copy binaries from builds
-COPY --from=axelar-axelard /root/bin/axelard /root/bin/
+COPY --from=axelard /root/bin/axelard /root/bin/
 
 # Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/
