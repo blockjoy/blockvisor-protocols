@@ -30,7 +30,7 @@ fn base_config(axelar_dir, metrics_port, p2p_port, rpc_port, rest_port, grpc_web
             },
             #{
                 template: "/var/lib/babel/templates/config-toml.template",
-                destination: `/root/config.toml`,
+                destination: "/root/config.toml",
                 params: #{
                     rpc_port: `${rpc_port}`,
                     p2p_port: `${p2p_port}`,
@@ -41,17 +41,17 @@ fn base_config(axelar_dir, metrics_port, p2p_port, rpc_port, rest_port, grpc_web
             },
             #{
                 template: "/var/lib/babel/templates/app-toml.template",
-                destination: `root/app.toml`,
+                destination: "/root/app.toml",
                 params: #{},
             },
             #{
                 template: "/var/lib/babel/templates/addrbook-json.template",
-                destination: `root/addrbook.json`,
+                destination: "/root/addrbook.json",
                 params: #{},
             },
             #{
                 template: "/var/lib/babel/templates/genesis-json.template",
-                destination: `root/genesis.json`,
+                destination: "/root/genesis.json",
                 params: #{},
             },
         ],
