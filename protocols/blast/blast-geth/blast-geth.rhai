@@ -26,16 +26,6 @@ fn base_config(blast_dir,metrics_port, rpc_port, ws_port, caddy_dir, metrics_pat
                     metrics_port: `${metrics_port}`,
                 },
             },
-            #{
-                template: "/var/lib/babel/templates/genesis-json.template",
-                destination: `${blast_dir}/genesis.json`,
-                params: #{},
-            },
-            #{
-                template: "/var/lib/babel/templates/rollup-json.template",
-                destination: `${blast_dir}/rollup.json`,
-                params: #{},
-            },
         ],
         services: [
             #{
