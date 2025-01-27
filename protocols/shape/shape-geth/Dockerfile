@@ -30,5 +30,5 @@ COPY templates/mainnet-rollup-json.template /root/config/mainnet/rollup.json
 COPY templates/mainnet-genesis-json.template /root/config/mainnet/genesis.json
 COPY templates/sepolia-rollup-json.template /root/config/sepolia/rollup.json
 COPY templates/sepolia-genesis-json.template /root/config/sepolia/genesis.json
-COPY shape-geth.rhai /var/lib/babel/plugin/
+COPY op-geth.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/

@@ -1,5 +1,5 @@
 import "base" as base;
-import "geth" as geth;
+import "op-geth" as op_geth;
 
 const CADDY_DIR = node_env().data_mount_point + "caddy";
 const RPC_PORT = 8545;
@@ -15,7 +15,7 @@ const GETH_API = `http://127.0.0.1:${global::RPC_PORT}`;
 const SHAPE_API = "http://127.0.0.1:8547";
 const SHAPE_DIR = node_env().protocol_data_path + "/shape";
 
-let SHAPE_GETH_CONFIG = geth::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::OP_NODE_RPC_PORT, global::AUTHRPC_PORT, global::CADDY_DIR, global::METRICS_PATH);
+let SHAPE_GETH_CONFIG = op_geth::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::OP_NODE_RPC_PORT, global::AUTHRPC_PORT, global::CADDY_DIR, global::METRICS_PATH);
 
 const BASE_CONFIG = #{
     config_files: SHAPE_GETH_CONFIG.config_files + base::BASE_CONFIG.config_files,
