@@ -47,7 +47,7 @@ const PLUGIN_CONFIG = #{
         },
         #{
             name: "erigon",
-            run_sh: `/root/bin/erigon --datadir ${global::ERI_DIR} --chain ${global::NETWORK} --snapshots=false --bootnodes=${global::BOOTNODES} --trustedpeers=${global::P2P_SEEDS}  --staticpeers=${global::P2P_SEEDS}  --maxpeers=400 --snap.stop --http.addr 127.0.0.1 --http.port 8545 --http.compression --http.vhosts=* --http.corsdomain=* --http.api=eth,debug,net,trace,web3,erigon,bor --ws --ws.port 8546 --ws.compression --rpc.gascap=300000000 --metrics --metrics.addr=127.0.0.1 --metrics.port=6969 --bodies.cache=5G --rpc.batch.limit=200000 --db.pagesize=16k --batchSize=2048MB --p2p.protocol=66 --db.size.limit=14TB --rpc.returndata.limit=1000000 --downloader.disable.ipv6 --bor.heimdall=http://127.0.0.1:1317`,
+            run_sh: `/root/bin/erigon --datadir ${global::ERI_DIR} --chain ${global::NETWORK} --snapshots=false --bootnodes=${global::BOOTNODES} --trustedpeers=${global::P2P_SEEDS}  --staticpeers=${global::P2P_SEEDS}  --maxpeers=400 --snap.stop --http.addr 127.0.0.1 --http.port ${global::RPC_PORT} --http.compression --http.vhosts=* --http.corsdomain=* --http.api=eth,debug,net,trace,web3,erigon,bor --ws --ws.port ${global::WS_PORT} --ws.compression --rpc.gascap=300000000 --metrics --metrics.addr=127.0.0.1 --metrics.port=${global::METRICS_PORT} --bodies.cache=5G --rpc.batch.limit=200000 --db.pagesize=16k --batchSize=2048MB --p2p.protocol=66 --db.size.limit=14TB --rpc.returndata.limit=1000000 --downloader.disable.ipv6 --bor.heimdall=http://127.0.0.1:${global::HEIMDALL_PORT}`,
         },
     ],
     upload: #{
