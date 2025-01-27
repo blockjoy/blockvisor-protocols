@@ -49,7 +49,7 @@ const OP_NETWORK = VARIANTS[node_env().node_variant].op_network;
 const BOOTNODES = VARIANTS[node_env().node_variant].bootnodes;
 const NETWORK = VARIANTS[node_env().node_variant].network;
 
-const CONFIG_DIR = "/root/config/${global::NETWORK}";
+const CONFIG_DIR = `/root/config/${global::NETWORK}`;
 
 const BABEL_VERSION = "0.9.0";
 
