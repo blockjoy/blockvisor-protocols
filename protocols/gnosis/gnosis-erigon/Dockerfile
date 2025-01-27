@@ -1,10 +1,10 @@
-ARG OP_NODE_IMAGE=ghcr.io/blockjoy/op-node:v20250125.1
-ARG OP_RETH_IMAGE=ghcr.io/blockjoy/op-reth:v20250123.1
+ARG ERIGON_IMAGE=ghcr.io/blockjoy/erigon:v20250123.1
+ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v20250126.2
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
-FROM ${OP_NODE_IMAGE} AS op-node
+FROM ${ERIGON_IMAGE} AS erigon
 
-FROM ${OP_RETH_IMAGE} AS op-reth
+FROM ${LIGHTHOUSE_IMAGE} AS lighthouse
 
 FROM ${BASE_IMAGE}
 
@@ -16,15 +16,12 @@ ENV CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
 ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
 ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 
-# Create necessary directories
-RUN mkdir -p /root/bin /root/lib /var/lib/babel/templates
+RUN mkdir -p /root/bin /root/lib
+COPY --from=erigon /root/bin/erigon /root/bin/
+COPY --from=erigon /root/lib/libsilkworm_capi.so /root/lib/
+COPY --from=lighthouse /root/bin/lighthouse /root/bin/
 
-# Copy binaries from builds
-COPY --from=op-node /root/bin/op-node /root/bin/
-COPY --from=op-reth /root/bin/op-reth /root/bin/
-
-# Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
-COPY op-reth.rhai /var/lib/babel/plugin/
+COPY erigon.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/

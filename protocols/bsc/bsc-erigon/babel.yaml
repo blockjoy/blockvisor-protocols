@@ -1,0 +1,54 @@
+version: 1.12.0
+container_uri: docker://ghcr.io/blockjoy/bsc-erigon:v20250126.15
+sku_code: BSC-ERG
+org_id: null
+description: Binance Smart Chain
+visibility: public
+protocol_key: bsc
+variants:
+  - key: erigon-mainnet-archive
+    min_cpu: 16
+    min_memory_mb: 32768
+    min_disk_gb: 16000
+    sku_code: BSC-ERG-MA
+    archive_pointers:
+      - pointer: !store_key bsc-erigon-mainnet-archive-v1
+firewall_config:
+  default_in: deny
+  default_out: allow
+  rules:
+    - key: Allow incoming ports TCP
+      description: Allow TCP inbound traffic on ports 80, 443, 30303-30307
+      protocol: tcp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 80
+          name: HTTP port
+        - port: 443
+          name: HTTPS port
+        - port: 30303
+          name: P2P port 1
+        - port: 30304
+          name: P2P port 2
+        - port: 30305
+          name: P2P port 3
+        - port: 30306
+          name: P2P port 4
+        - port: 30307
+          name: P2P port 5
+    - key: Allow P2P UDP ports
+      description: Allow UDP inbound traffic on P2P port
+      protocol: udp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 30303
+          name: P2P UDP port
+properties: []

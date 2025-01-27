@@ -49,7 +49,7 @@ jobs:
       base_matrix: ${{ steps.set-matrix.outputs.base_matrix }}
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
       protocols_matrix: ${{ steps.set-matrix.outputs.protocols_matrix }}
-      content_changes: ${{ steps.set-matrix.outputs.content_changes }}
+      protocol_changes: ${{ steps.set-matrix.outputs.protocol_changes }}
       all_changed_files: ${{ steps.changed-files.outputs.all_changed_files }}
       dockerfile_changes: ${{ steps.set-matrix.outputs.dockerfile_changes }}
       dockerfile_matrix: ${{ steps.set-matrix.outputs.dockerfile_matrix }}
@@ -117,17 +117,51 @@ jobs:
             echo "protocols_yaml_changed=false" >> $GITHUB_OUTPUT
           fi
 
+          # Function to check if directory has a Dockerfile
+          check_dockerfile() {
+            local dir=$1
+            local type=$2
+            if [[ ! -f "$dir/Dockerfile" ]]; then
+              echo "Error: $type directory $dir does not contain a Dockerfile"
+              exit 1
+            fi
+          }
+
           # Filter by component
           BASE=$(echo "$CHANGED_DIRS" | grep "^base-images/" || true)
           CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
           PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^protocols/[^/]\+/[^/]\+$" || true)
-          CONTENT_CHANGES=$(echo "$CHANGED_DIRS" | grep "^protocols/" || true)
+          PROTOCOL_CHANGES=$(for file in ${ALL_CHANGED_FILES}; do
+            if [[ "$file" =~ ^protocols/ && ! "$file" =~ ^protocols/protocols.yaml$ ]]; then
+              dirname "$file" | cut -d/ -f1-3 | sort -u
+            fi
+          done | sort -u)
+
+          # Verify that all component directories have a Dockerfile
+          if [[ -n "$BASE" ]]; then
+            echo "$BASE" | while read -r dir; do
+              check_dockerfile "$dir" "Base image"
+            done
+          fi
+
+          if [[ -n "$CLIENTS" ]]; then
+            echo "$CLIENTS" | while read -r dir; do
+              check_dockerfile "$dir" "Client"
+            done
+          fi
+
+          if [[ -n "$PROTOCOL_CHANGES" ]]; then
+            echo "$PROTOCOL_CHANGES" | while read -r dir; do
+              check_dockerfile "$dir" "Protocol"
+            done
+          fi
+
           DOCKERFILE_CHANGES=$(echo "$CHANGED_DIRS" | grep -E "^base-images/|^clients/|^protocols/" || true)
-          
+
           echo "Base dirs: $BASE"
           echo "Client dirs: $CLIENTS"
           echo "Protocol dirs: $PROTOCOLS"
-          echo "Content changes: $CONTENT_CHANGES"
+          echo "Protocol changes: $PROTOCOL_CHANGES"
           echo "Dockerfile changes: $DOCKERFILE_CHANGES"
           
           # Generate base image matrix from changed base-images directories
@@ -150,10 +184,14 @@ jobs:
             echo 'protocols_matrix={"include":[]}' >> $GITHUB_OUTPUT
           fi
           
-          if [[ -n "$CONTENT_CHANGES" ]]; then
-            echo "content_changes=$(echo "$CONTENT_CHANGES" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          if [[ -n "$PROTOCOL_CHANGES" ]]; then
+            PROTOCOL_JSON=$(echo "$PROTOCOL_CHANGES" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')
+            echo "Debug - PROTOCOL_CHANGES JSON:"
+            echo "$PROTOCOL_JSON" | jq '.'
+            echo "protocol_changes=$PROTOCOL_JSON" >> $GITHUB_OUTPUT
           else
-            echo 'content_changes={"include":[]}' >> $GITHUB_OUTPUT
+            echo "Debug - PROTOCOL_CHANGES is empty"
+            echo 'protocol_changes={"include":[]}' >> $GITHUB_OUTPUT
           fi
           
           if [[ -n "$DOCKERFILE_CHANGES" ]]; then
@@ -236,7 +274,7 @@ jobs:
     if: |
       github.event_name == 'pull_request' &&
       github.event.action != 'closed' &&
-      (fromJson(needs.detect-changes.outputs.content_changes).include[0] ||
+      (fromJson(needs.detect-changes.outputs.protocol_changes).include[0] ||
        needs.detect-changes.outputs.protocols_yaml_changed == 'true')
     runs-on: dev
     outputs:
@@ -250,7 +288,7 @@ jobs:
         id: check-protocol
         run: |
           # Get all changed protocols from detect-changes
-          CHANGED_PROTOCOLS='${{ needs.detect-changes.outputs.content_changes }}'
+          CHANGED_PROTOCOLS='${{ needs.detect-changes.outputs.protocol_changes }}'
           
           # Check each protocol key
           echo "$CHANGED_PROTOCOLS" | jq -r '.include[] | .image_path' | while read -r IMAGE_PATH; do
@@ -656,6 +694,7 @@ jobs:
       matrix: ${{ needs.detect-changes.outputs.protocols_matrix }}
       image_name: ${{ steps.version.outputs.image_name }}
       image_tag: ${{ steps.version.outputs.image_tag }}
+      version_tag: ${{ steps.version.outputs.version_tag }}
       runner_hostname: ${{ steps.get-hostname.outputs.hostname }}
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
@@ -839,7 +878,7 @@ jobs:
           cp ${{ matrix.image_path }}/babel.yaml ${{ matrix.image_path }}/babel.yaml-test
 
           # Update container_uri with newly built image
-          NEW_URI="docker://ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}"
+          NEW_URI="docker://ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}"
           TMPDIR=~/temp yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
 
           echo "test_file=${{ matrix.image_path }}/babel.yaml-test" >> $GITHUB_OUTPUT
@@ -1007,7 +1046,7 @@ jobs:
           IMAGE_NAME=$(echo "${{ matrix.image_path }}" | cut -d'/' -f3)
           
           # Update container_uri with newly built image
-          NEW_URI="docker://ghcr.io/blockjoy/${IMAGE_NAME}:${{ needs.build-protocols.outputs.image_tag }}"
+          NEW_URI="docker://ghcr.io/blockjoy/${IMAGE_NAME}:${{ needs.build-protocols.outputs.version_tag }}"
           yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
 
       - name: Test nodes
@@ -1033,13 +1072,25 @@ jobs:
           declare -a DEPLOYED_NODES=()
           declare -a ERROR_NODES=()
           
+          # Check if PR is from Renovate
+          IS_RENOVATE=false
+          if [[ "${{ github.event.pull_request.user.login }}" == "renovate[bot]" ]]; then
+            IS_RENOVATE=true
+            echo "PR is from Renovate, will use --cleanup and skip comments"
+          fi
+          
           # For each variant, start a node and capture info
           for variant in $VARIANTS; do
             echo "Testing variant: $variant"
             
-            # Run nib image check and tee output to both console and file
-            echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-            nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 | tee /tmp/nib_output.log
+            # Run nib image check with --cleanup for Renovate PRs
+            if [[ "$IS_RENOVATE" == "true" ]]; then
+              echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test --cleanup"
+              nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test --cleanup 2>&1 | tee /tmp/nib_output.log
+            else
+              echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
+              nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 | tee /tmp/nib_output.log
+            fi
             
             # Extract node name from the complete output
             NODE_NAME=$(cat /tmp/nib_output.log | grep -o "'[^']*'" | head -1 | tr -d "'")
@@ -1070,7 +1121,7 @@ jobs:
             echo -e "$COMMENT" | gh pr comment ${{ github.event.pull_request.number }} --body-file -
           fi
 
-          # Post comment about error nodes if any
+          # Post comment about error nodes
           if [ ${#ERROR_NODES[@]} -gt 0 ]; then
             ERROR_COMMENT="These nodes have errors:"$'\n'
             for node in "${ERROR_NODES[@]}"; do
@@ -1085,7 +1136,7 @@ jobs:
           echo "status=success" >> $GITHUB_OUTPUT
 
   workflow-status:
-    needs: [detect-changes, test-nodes, build-base-images, build-clients, build-protocols, scan-dockerfiles]
+    needs: [detect-changes, test-nodes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols]
     if: always() && github.event_name == 'pull_request' && github.event.action != 'closed'
     runs-on: dev
     permissions:
@@ -1099,10 +1150,14 @@ jobs:
              [[ "${{ needs.build-clients.result }}" == "failure" ]] || \
              [[ "${{ needs.build-protocols.result }}" == "failure" ]] || \
              [[ "${{ needs.test-nodes.result }}" == "failure" ]] || \
-             [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]]; then
+             [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] || \
+             [[ "${{ needs.detect-changes.result }}" == "failure" ]] || \
+             [[ "${{ needs.check-protocols.result }}" == "failure" ]]; then
             DESCRIPTION="Workflow failed"
             [[ "${{ needs.test-nodes.result }}" == "failure" ]] && DESCRIPTION="Node testing failed"
             [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] && DESCRIPTION="Dockerfile scanning failed"
+            [[ "${{ needs.check-protocols.result }}" == "failure" ]] && DESCRIPTION="Protocol validation failed"
+            [[ "${{ needs.detect-changes.result }}" == "failure" ]] && DESCRIPTION="Failed to detect changes"
             
             gh api \
               --method POST \
@@ -1116,7 +1171,7 @@ jobs:
           fi
 
           # All jobs either succeeded or were skipped
-          if [[ "${{ needs.detect-changes.outputs.content_changes }}" == '{"include":[]}' ]]; then
+          if [[ "${{ needs.detect-changes.outputs.protocol_changes }}" == '{"include":[]}' ]]; then
             DESCRIPTION="No protocol changes detected that require testing"
           else
             DESCRIPTION="All checks passed successfully"

@@ -1,4 +1,4 @@
-ARG OP_NODE_IMAGE=ghcr.io/blockjoy/op-node:v20250123.1
+ARG OP_NODE_IMAGE=ghcr.io/blockjoy/op-node:v20250125.1
 ARG OP_GETH_IMAGE=ghcr.io/blockjoy/op-geth:v20250123.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
@@ -30,5 +30,5 @@ COPY templates/mainnet-rollup-json.template /root/config/mainnet/rollup.json
 COPY templates/mainnet-genesis-json.template /root/config/mainnet/genesis.json
 COPY templates/sepolia-rollup-json.template /root/config/sepolia/rollup.json
 COPY templates/sepolia-genesis-json.template /root/config/sepolia/genesis.json
-COPY shape-geth.rhai /var/lib/babel/plugin/
+COPY op-geth.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/
