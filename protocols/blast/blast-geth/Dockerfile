@@ -17,7 +17,7 @@ ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
 ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 
 # Create necessary directories
-RUN mkdir -p /root/bin /root/config/{mainnet,sepolia} /var/lib/babel/templates
+RUN mkdir -p /root/bin /root/config/mainnet /root/config/sepolia /var/lib/babel/templates
 
 # Copy binaries from builds
 COPY --from=blast-op-node /root/bin/blast-node /root/bin/
