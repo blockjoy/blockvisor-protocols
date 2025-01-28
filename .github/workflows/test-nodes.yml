@@ -161,8 +161,7 @@ jobs:
   test-nodes:
     needs: [get-host, cleanup]
     if: |
-      github.event_name == 'pull_request' &&
-      github.event.action != 'closed'
+      !inputs.pr_closed
     runs-on: ${{ needs.get-host.outputs.target_host }}
     environment: Dev
     strategy:
