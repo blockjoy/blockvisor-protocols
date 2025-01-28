@@ -14,7 +14,7 @@ ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
 ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 
 # Create necessary directories
-RUN mkdir -p /root/bin /var/lib/babel/templates
+RUN mkdir -p /root/bin /var/lib/babel/templates /root/configs
 
 # Copy binaries from builds
 COPY --from=axelard /root/bin/axelard /root/bin/
