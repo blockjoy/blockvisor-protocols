@@ -160,8 +160,6 @@ jobs:
 
   test-nodes:
     needs: [get-host, cleanup]
-    if: |
-      !inputs.pr_closed
     runs-on: ${{ needs.get-host.outputs.target_host }}
     environment: Dev
     strategy:
