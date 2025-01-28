@@ -1,5 +1,5 @@
 import "base" as base;
-import "base-op-reth" as base_op_reth;
+import "aux" as aux;
 
 const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8545;
@@ -9,10 +9,10 @@ const OP_RPC_PORT = 7000;
 const METRICS_PORT = 6665;
 const METRICS_PATH = "/debug/metrics/prometheus";
 
-let BASE_OP_RETH_CONFIG = base_op_reth::base_config(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::AUTHRPC_PORT,global::OP_RPC_PORT,global::CADDY_DIR);
+let AUX_CONFIG = aux::base_config(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::AUTHRPC_PORT,global::OP_RPC_PORT,global::CADDY_DIR);
 const BASE_CONFIG  = #{
-    config_files: BASE_OP_RETH_CONFIG.config_files+base::BASE_CONFIG.config_files,
-    services: BASE_OP_RETH_CONFIG.services+base::BASE_CONFIG.services,
+    config_files: AUX_CONFIG.config_files+base::BASE_CONFIG.config_files,
+    services: AUX_CONFIG.services+base::BASE_CONFIG.services,
 };
 
 const VARIANTS = #{

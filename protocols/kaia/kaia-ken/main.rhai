@@ -1,5 +1,5 @@
 import "base" as base;
-import "kaia-ken" as kaia_ken;
+import "aux" as aux;
 
 const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8551;
@@ -7,10 +7,10 @@ const WS_PORT = 8552;
 const METRICS_PORT = 61001;
 const METRICS_PATH = "/metrics";
 
-let KAIA_KEN_CONFIG = kaia_ken::base_config(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
+let AUX_CONFIG = aux::base_config(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
 const BASE_CONFIG  = #{
-    config_files: KAIA_KEN_CONFIG.config_files+base::BASE_CONFIG.config_files,
-    services: KAIA_KEN_CONFIG.services+base::BASE_CONFIG.services,
+    config_files: AUX_CONFIG.config_files+base::BASE_CONFIG.config_files,
+    services: AUX_CONFIG.services+base::BASE_CONFIG.services,
 };
 
 const VARIANTS = #{
