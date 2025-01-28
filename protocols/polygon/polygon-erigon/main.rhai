@@ -2,9 +2,9 @@ import "base" as base;
 import "polygon-erigon" as polygon_erigon;
 
 
-const HEIMDALL_DIR = node_env().data_mount_point + "/heimdall";
-const ERI_DIR = node_env().data_mount_point + "/erigon";
-const CADDY_DIR = node_env().data_mount_point + "caddy";
+const HEIMDALL_DIR = node_env().protocol_data_path + "/heimdall";
+const ERI_DIR = node_env().protocol_data_path + "/erigon";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const HEIMDALL_PORT = 1317;

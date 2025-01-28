@@ -1,7 +1,7 @@
 import "base" as base;
 import "blast-geth" as blast_geth;
 
-const CADDY_DIR = node_env().data_mount_point + "caddy";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const OP_NODE_RPC_PORT = 8547;

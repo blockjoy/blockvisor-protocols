@@ -1,7 +1,7 @@
 import "base" as base;
 import "celo-geth" as celo_geth;
 
-const CADDY_DIR = node_env().data_mount_point + "caddy";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const P2P_PORT = 30303;

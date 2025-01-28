@@ -2,9 +2,9 @@ import "base" as base;
 import "polygon-bor" as polygon_bor;
 
 
-const HEIMDALL_DIR = node_env().data_mount_point + "/heimdall";
+const HEIMDALL_DIR = node_env().protocol_data_path + "/heimdall";
 const BOR_DIR = node_env().protocol_data_path + "/bor";
-const CADDY_DIR = node_env().data_mount_point + "caddy";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const HEIMDALL_PORT = 1317;

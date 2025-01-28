@@ -1,7 +1,7 @@
 import "base" as base;
 import "kaia-ken" as kaia_ken;
 
-const CADDY_DIR = node_env().data_mount_point + "caddy";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8551;
 const WS_PORT = 8552;
 const METRICS_PORT = 61001;
