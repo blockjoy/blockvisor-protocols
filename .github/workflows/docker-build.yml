@@ -914,10 +914,11 @@ jobs:
   test-nodes:
     needs: [build-protocols]
     if: |
-      success() &&
-      github.event_name == 'pull_request' &&
-      github.event.action != 'closed' &&
-      needs.build-protocols.outputs.matrix != '{"include":[]}'
+      github.event_name == 'pull_request' && (
+        needs.build-protocols.result == 'success' ||
+        github.event.pull_request.merged == true ||
+        github.event.action == 'closed'
+      )
     uses: ./.github/workflows/test-nodes.yml
     with:
       matrix: ${{ needs.build-protocols.outputs.matrix }}
@@ -926,7 +927,7 @@ jobs:
       pr_sha: ${{ github.event.pull_request.head.sha }}
       event_action: ${{ github.event.action }}
       pr_merged: ${{ github.event.pull_request.merged }}
-      pr_closed: ${{ github.event.action == 'closed' }}
+      pr_closed: ${{ needs.build-protocols.result != 'success' && github.event.action == 'closed' }}
     secrets: inherit
     permissions:
       contents: read
