@@ -21,7 +21,6 @@ fn base_config(axelar_dir, metrics_port, p2p_port, rpc_port, rest_port, grpc_web
                     grpc_web_port: `${grpc_web_port}`,
                     grpc_port: `${grpc_port}`,
                     hostname: node_env().node_name,
-                    node_ip: node_env().node_ip,
                     tld: ".n0des.xyz",
                     data_dir: `${caddy_dir}`,
                     metrics_path: `${metrics_path}`,
@@ -30,7 +29,7 @@ fn base_config(axelar_dir, metrics_port, p2p_port, rpc_port, rest_port, grpc_web
             },
             #{
                 template: "/var/lib/babel/templates/config-toml.template",
-                destination: "/root/config.toml",
+                destination: "/root/configs/config.toml",
                 params: #{
                     rpc_port: `${rpc_port}`,
                     p2p_port: `${p2p_port}`,
@@ -41,17 +40,17 @@ fn base_config(axelar_dir, metrics_port, p2p_port, rpc_port, rest_port, grpc_web
             },
             #{
                 template: "/var/lib/babel/templates/app-toml.template",
-                destination: "/root/app.toml",
+                destination: "/root/configs/app.toml",
                 params: #{},
             },
             #{
                 template: "/var/lib/babel/templates/addrbook-json.template",
-                destination: "/root/addrbook.json",
+                destination: "/root/configs/addrbook.json",
                 params: #{},
             },
             #{
                 template: "/var/lib/babel/templates/genesis-json.template",
-                destination: "/root/genesis.json",
+                destination: "/root/configs/genesis.json",
                 params: #{},
             },
         ],

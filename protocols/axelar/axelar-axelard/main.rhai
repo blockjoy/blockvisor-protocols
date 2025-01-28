@@ -38,6 +38,7 @@ const PLUGIN_CONFIG = #{
             `mkdir -p ${global::AXELAR_DIR}/.axelar/logs`,
             `mkdir -p ${global::AXELAR_DIR}/.axelar/lib`,
             `mkdir -p ${global::CADDY_DIR}`,
+            `mv /root/configs/* ${global::AXELAR_DIR}/.axelar/config/`,
         ],
         jobs: [
             #{
