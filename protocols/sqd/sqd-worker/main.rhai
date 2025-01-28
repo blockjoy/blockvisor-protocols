@@ -6,6 +6,8 @@ const WORKDIR = "/root/worker-rs";
 const DATADIR = node_env().protocol_data_path + "/subsquid";
 const KEYPATH = DATADIR + "/.subsquid-key";
 const METRICS_API = "http://127.0.0.1:8000/metrics";
+const METRICS_PORT = 4141;
+const METRICS_PATH = "/debug/metrics/prometheus";
 const ENV = node_env();
 const CADDY_DIR = DATADIR + "/caddy";
 
