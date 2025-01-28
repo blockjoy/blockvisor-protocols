@@ -1,7 +1,7 @@
 import "base" as base;
 import "fantom-opera" as fantom_opera;
 
-const CADDY_DIR = node_env().data_mount_point + "caddy";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8080;
 const WS_PORT = 8081;
 const P2P_PORT = 5050;
@@ -39,7 +39,7 @@ const PLUGIN_CONFIG = #{
     services: [
         #{
             name: "opera",
-            run_sh: `/usr/bin/opera --genesis=${global::FANTOM_DIR}/mainnet-5577-full-mpt.g --datadir=${global::FANTOM_DIR}/.opera --http --http.addr=127.0.0.1 --http.port=${global::RPC_PORT} --http.corsdomain=* --http.api=eth,web3,net,txpool,ftm,trace --ws --ws.addr=127.0.0.1 --ws.port=${global::WS_PORT} --ws.origins=* --ws.api=eth,web3,net,txpool,ftm,trace --port ${global::P2P_PORT} --maxpeers 165 --cache 32000 --tracenode --metrics --metrics.addr 127.0.0.1 --metrics.port ${global::METRICS_PORT} --db.preset pbl-1`,
+            run_sh: `/root/bin/opera --genesis=${global::FANTOM_DIR}/mainnet-5577-full-mpt.g --datadir=${global::FANTOM_DIR}/.opera --http --http.addr=127.0.0.1 --http.port=${global::RPC_PORT} --http.corsdomain=* --http.api=eth,web3,net,txpool,ftm,trace --ws --ws.addr=127.0.0.1 --ws.port=${global::WS_PORT} --ws.origins=* --ws.api=eth,web3,net,txpool,ftm,trace --port ${global::P2P_PORT} --maxpeers 165 --cache 32000 --tracenode --metrics --metrics.addr 127.0.0.1 --metrics.port ${global::METRICS_PORT} --db.preset pbl-1`,
             shutdown_timeout_secs: 300,
         },
     ],
