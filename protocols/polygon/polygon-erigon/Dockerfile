@@ -1,4 +1,4 @@
-ARG HEIMDALL_IMAGE=ghcr.io/blockjoy/heimdall:v20250123.1
+ARG HEIMDALL_IMAGE=ghcr.io/blockjoy/heimdall:v20250126.3
 ARG ERIGON_IMAGE=ghcr.io/blockjoy/erigon:v20250123.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 

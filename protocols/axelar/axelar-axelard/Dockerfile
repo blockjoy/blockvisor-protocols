@@ -1,4 +1,4 @@
-ARG AXELARD_IMAGE=ghcr.io/blockjoy/axelard:v20250127.4
+ARG AXELARD_IMAGE=ghcr.io/blockjoy/axelard:v20250128.3
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
 FROM ${AXELARD_IMAGE} AS axelard
