@@ -1,7 +1,7 @@
 import "base" as base;
-import "celo-geth" as celo_geth;
+import "aux" as aux;
 
-const CADDY_DIR = node_env().data_mount_point + "caddy";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const P2P_PORT = 30303;
@@ -11,11 +11,11 @@ const METRICS_PATH = "/debug/metrics/prometheus";
 const CELO_API = "http://127.0.0.1:${global::RPC_PORT}";
 const CELO_DIR = node_env().protocol_data_path + "/celo";
 
-let CELO_GETH_CONFIG = celo_geth::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
+let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
 
 const BASE_CONFIG = #{
-    config_files: CELO_GETH_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: CELO_GETH_CONFIG.services + base::BASE_CONFIG.services,
+    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
+    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
 };
 
 const VARIANTS = #{

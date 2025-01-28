@@ -31,9 +31,7 @@ COPY --from=arb-node /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /usr/lib/x86_64-li
 COPY --from=arb-node /usr/lib/x86_64-linux-gnu/libatomic.so.1 /usr/lib/x86_64-linux-gnu/
 COPY --from=arb-node /root/bin/arb-node /root/bin/
 COPY --from=nitro /root/bin/nitro /root/bin/
-
-# Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
-COPY nitro.rhai /var/lib/babel/plugin/
+COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/

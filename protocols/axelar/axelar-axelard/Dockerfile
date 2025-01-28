@@ -26,5 +26,5 @@ COPY templates/app-toml.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
 COPY templates/config-toml.template /var/lib/babel/templates/
 COPY templates/genesis-json.template /var/lib/babel/templates/
-COPY axelar-axelard.rhai /var/lib/babel/plugin/
+COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/

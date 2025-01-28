@@ -1,5 +1,5 @@
 import "base" as base;
-import "op-reth" as op_reth;
+import "aux" as aux;
 
 const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8545;
@@ -14,11 +14,11 @@ const L1_RPCKIND = "standard";
 const RETH_API = `http://127.0.0.1:${global::RPC_PORT}`;
 const OPTIMISM_API = "http://127.0.0.1:7000";
 
-let OP_RETH_CONFIG = op_reth::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
+let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
 
 const BASE_CONFIG = #{
-    config_files: OP_RETH_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: OP_RETH_CONFIG.services + base::BASE_CONFIG.services,
+    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
+    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
 };
 
 const VARIANTS = #{

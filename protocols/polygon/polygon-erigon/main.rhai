@@ -1,20 +1,20 @@
 import "base" as base;
-import "polygon-erigon" as polygon_erigon;
+import "aux" as aux;
 
 
-const HEIMDALL_DIR = node_env().data_mount_point + "/heimdall";
-const ERI_DIR = node_env().data_mount_point + "/erigon";
-const CADDY_DIR = node_env().data_mount_point + "caddy";
+const HEIMDALL_DIR = node_env().protocol_data_path + "/heimdall";
+const ERIGON_DIR = node_env().protocol_data_path + "/erigon";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const HEIMDALL_PORT = 1317;
 const METRICS_PORT = 7071;
 const METRICS_PATH = "/debug/metrics/prometheus";
 
-let POLYGON_ERI_CONFIG = polygon_erigon::base_config(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
+let AUX_CONFIG = aux::base_config(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
 const BASE_CONFIG  = #{
-    config_files: POLYGON_ERI_CONFIG.config_files+base::BASE_CONFIG.config_files,
-    services: POLYGON_ERI_CONFIG.services+base::BASE_CONFIG.services,
+    config_files: AUX_CONFIG.config_files+base::BASE_CONFIG.config_files,
+    services: AUX_CONFIG.services+base::BASE_CONFIG.services,
 };
 
 const VARIANTS = #{
@@ -25,7 +25,7 @@ const VARIANTS = #{
     },
 };
 
-const POLYGON_RPC_URL = "http://127.0.0.1:${global::RPC_PORT}";
+const API_HOST = "http://127.0.0.1:${global::RPC_PORT}";
 const P2P_SEEDS = VARIANTS[node_env().node_variant].p2p_seeds;
 const BOOTNODES = VARIANTS[node_env().node_variant].bootnodes;
 const NETWORK = VARIANTS[node_env().node_variant].network;
@@ -35,7 +35,7 @@ const PLUGIN_CONFIG = #{
     init: #{
         commands: [
             `mkdir -p ${global::CADDY_DIR}`,
-            `mkdir -p ${global::ERI_DIR}`,
+            `mkdir -p ${global::ERIGON_DIR}`,
             `mkdir -p ${global::HEIMDALL_DIR}`,
         ],
         jobs: []
@@ -43,11 +43,11 @@ const PLUGIN_CONFIG = #{
     services: [
         #{
             name: "heimdall",
-            run_sh: `/root/bin/heimdalld start --home=${global::HEIMDALL_DIR} --chain=${global::NETWORK} --bor_rpc_url ${global::POLYGON_RPC_URL} --rest-server --seeds ${global::P2P_SEEDS} --node tcp://127.0.0.1:26657`,
+            run_sh: `/root/bin/heimdalld start --home=${global::HEIMDALL_DIR} --chain=${global::NETWORK} --bor_rpc_url ${global::API_HOST} --rest-server --seeds ${global::P2P_SEEDS} --node tcp://127.0.0.1:26657`,
         },
         #{
             name: "erigon",
-            run_sh: `/root/bin/erigon --datadir ${global::ERI_DIR} --chain ${global::NETWORK} --snapshots=false --bootnodes=${global::BOOTNODES} --trustedpeers=${global::P2P_SEEDS}  --staticpeers=${global::P2P_SEEDS}  --maxpeers=400 --snap.stop --http.addr 127.0.0.1 --http.port ${global::RPC_PORT} --http.compression --http.vhosts=* --http.corsdomain=* --http.api=eth,debug,net,trace,web3,erigon,bor --ws --ws.port ${global::WS_PORT} --ws.compression --rpc.gascap=300000000 --metrics --metrics.addr=127.0.0.1 --metrics.port=${global::METRICS_PORT} --bodies.cache=5G --rpc.batch.limit=200000 --db.pagesize=16k --batchSize=2048MB --p2p.protocol=66 --db.size.limit=14TB --rpc.returndata.limit=1000000 --downloader.disable.ipv6 --bor.heimdall=http://127.0.0.1:${global::HEIMDALL_PORT}`,
+            run_sh: `/root/bin/erigon --datadir ${global::ERIGON_DIR} --chain ${global::NETWORK} --snapshots=false --bootnodes=${global::BOOTNODES} --trustedpeers=${global::P2P_SEEDS}  --staticpeers=${global::P2P_SEEDS}  --maxpeers=400 --snap.stop --http.addr 127.0.0.1 --http.port ${global::RPC_PORT} --http.compression --http.vhosts=* --http.corsdomain=* --http.api=eth,debug,net,trace,web3,erigon,bor --ws --ws.port ${global::WS_PORT} --ws.compression --rpc.gascap=300000000 --metrics --metrics.addr=127.0.0.1 --metrics.port=${global::METRICS_PORT} --bodies.cache=5G --rpc.batch.limit=200000 --db.pagesize=16k --batchSize=2048MB --p2p.protocol=66 --db.size.limit=14TB --rpc.returndata.limit=1000000 --downloader.disable.ipv6 --bor.heimdall=http://127.0.0.1:${global::HEIMDALL_PORT}`,
         },
     ],
     upload: #{
@@ -58,7 +58,7 @@ const PLUGIN_CONFIG = #{
 
 fn application_status() {
     let res = run_jrpc(#{
-        host: `${global::POLYGON_RPC_URL}`,
+        host: `${global::API_HOST}`,
         method: "eth_blockNumber",
         params: [],
         headers: #{"Content-Type" : "application/json"},
@@ -72,7 +72,7 @@ fn application_status() {
 
 fn height(){
     let res = run_jrpc(#{
-        host: `${global::POLYGON_RPC_URL}`,
+        host: `${global::API_HOST}`,
         method: "eth_blockNumber",
         params: [],
         headers: #{"Content-Type" : "application/json"},
@@ -85,7 +85,7 @@ fn height(){
 }
 
 fn sync_status() {
-    let data1 = #{url: global::POLYGON_RPC_URL+"/health",
+    let data1 = #{url: global::API_HOST+"/health",
             method: "eth_getBlockByNumber",
             headers: [
                 ["X-ERIGON-HEALTHCHECK", "synced"],
@@ -95,7 +95,7 @@ fn sync_status() {
 
     let resp1 = run_rest(data1);
 
-    let data2 =  #{host: global::POLYGON_RPC_URL,
+    let data2 =  #{host: global::API_HOST,
             method: "eth_getBlockByNumber",
             params: ["latest", true],
             headers: [["content-type", "application/json"]],

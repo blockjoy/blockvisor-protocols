@@ -1,7 +1,7 @@
 import "base" as base;
-import "blast-geth" as blast_geth;
+import "aux" as aux;
 
-const CADDY_DIR = node_env().data_mount_point + "caddy";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const OP_NODE_RPC_PORT = 8547;
@@ -16,11 +16,11 @@ const GETH_API = "http://127.0.0.1:${global::RPC_PORT}";
 const BLAST_API = "http://127.0.0.1:${global::OP_NODE_RPC_PORT}";
 const BLAST_DIR = node_env().protocol_data_path + "/blast";
 
-let BLAST_GETH_CONFIG = blast_geth::base_config(global::BLAST_DIR, global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
+let AUX_CONFIG = aux::base_config(global::BLAST_DIR, global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
 
 const BASE_CONFIG = #{
-    config_files: BLAST_GETH_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: BLAST_GETH_CONFIG.services + base::BASE_CONFIG.services,
+    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
+    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
 };
 
 const VARIANTS = #{

@@ -1,5 +1,5 @@
 import "base" as base;
-import "axelar-axelard" as axelar_axelard;
+import "aux" as aux;
 
 const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const AXELAR_DIR = node_env().protocol_data_path + "/axelar";
@@ -13,11 +13,11 @@ const METRICS_PATH = "/metrics";
 const API_HOST = "http://127.0.0.1:${global::RPC_PORT}";
 
 
-let AXELAR_AXELARD_CONFIG = axelar_axelard::base_config(global::AXELAR_DIR, global::METRICS_PORT, global::P2P_PORT, global::RPC_PORT, global::REST_PORT, global::GRPC_WEB_PORT, global::GRPC_PORT, global::CADDY_DIR, global::METRICS_PATH);
+let AUX_CONFIG = aux::base_config(global::AXELAR_DIR, global::METRICS_PORT, global::P2P_PORT, global::RPC_PORT, global::REST_PORT, global::GRPC_WEB_PORT, global::GRPC_PORT, global::CADDY_DIR, global::METRICS_PATH);
 
 const BASE_CONFIG = #{
-    config_files: AXELAR_AXELARD_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: AXELAR_AXELARD_CONFIG.services + base::BASE_CONFIG.services,
+    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
+    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
 };
 
 const VARIANTS = #{

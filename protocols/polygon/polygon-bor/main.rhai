@@ -1,20 +1,20 @@
 import "base" as base;
-import "polygon-bor" as polygon_bor;
+import "aux" as aux;
 
 
-const HEIMDALL_DIR = node_env().data_mount_point + "/heimdall";
+const HEIMDALL_DIR = node_env().protocol_data_path + "/heimdall";
 const BOR_DIR = node_env().protocol_data_path + "/bor";
-const CADDY_DIR = node_env().data_mount_point + "caddy";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const HEIMDALL_PORT = 1317;
 const METRICS_PORT = 7071;
 const METRICS_PATH = "/debug/metrics/prometheus";
 
-let POLYGON_BOR_CONFIG = polygon_bor::base_config(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
+let AUX_CONFIG = aux::base_config(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
 const BASE_CONFIG  = #{
-    config_files: POLYGON_BOR_CONFIG.config_files+base::BASE_CONFIG.config_files,
-    services: POLYGON_BOR_CONFIG.services+base::BASE_CONFIG.services,
+    config_files: AUX_CONFIG.config_files+base::BASE_CONFIG.config_files,
+    services: AUX_CONFIG.services+base::BASE_CONFIG.services,
 };
 
 const VARIANTS = #{
