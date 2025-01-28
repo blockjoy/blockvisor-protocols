@@ -983,7 +983,11 @@ jobs:
               -f state="$STATE" \
               -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
               -f description="$DESCRIPTION" \
-              -f context="workflow-status"
+              -f context="workflow-status" \
+              -f owner="${{ github.repository_owner }}" \
+              -f repo="${{ github.event.repository.name }}" \
+              -f sha="${{ github.event.pull_request.head.sha }}" \
+              -f token="${{ secrets.GITHUB_TOKEN }}"
             exit 1
           fi
 
@@ -1001,7 +1005,11 @@ jobs:
             -f state='success' \
             -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             -f description="$DESCRIPTION" \
-            -f context="workflow-status"
+            -f context="workflow-status" \
+            -f owner="${{ github.repository_owner }}" \
+            -f repo="${{ github.event.repository.name }}" \
+            -f sha="${{ github.event.pull_request.head.sha }}" \
+            -f token="${{ secrets.GITHUB_TOKEN }}"
 
   push-protocols:
     environment: Dev

@@ -148,7 +148,7 @@ jobs:
           fi
 
   test-nodes:
-    needs: [cleanup]
+    needs: [get-host, cleanup]
     if: |
       github.event_name == 'pull_request' &&
       github.event.action != 'closed'
