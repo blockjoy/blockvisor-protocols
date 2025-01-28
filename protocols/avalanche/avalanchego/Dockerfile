@@ -21,7 +21,5 @@ COPY --from=avalanchego /root/bin/avalanchego /root/bin/
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
 COPY configs /root/avalanche/configs
-
-# Copy protocol files
-COPY avalanche.rhai /var/lib/babel/plugin/
+COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/

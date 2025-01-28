@@ -27,5 +27,5 @@ COPY --from=erigon /root/lib/libsilkworm_capi.so /root/lib/
 # Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
-COPY polygon-erigon.rhai /var/lib/babel/plugin/
+COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/

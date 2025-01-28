@@ -28,5 +28,5 @@ COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
 COPY config/mainnet/genesis.json /root/config/mainnet
 COPY config/mainnet/rollup.json /root/config/mainnet
-COPY blast-geth.rhai /var/lib/babel/plugin/
+COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/

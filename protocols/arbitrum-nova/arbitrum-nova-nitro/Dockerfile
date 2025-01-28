@@ -18,9 +18,7 @@ RUN mkdir -p /root/bin /var/lib/babel/templates
 
 # Copy libs and binaries from builds
 COPY --from=nitro /root/bin/nitro /root/bin/
-
-# Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
-COPY nitro.rhai /var/lib/babel/plugin/
+COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/
