@@ -1,7 +1,7 @@
 import "base" as base;
 import "axelar-axelard" as axelar_axelard;
 
-const CADDY_DIR = node_env().data_mount_point + "caddy";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const AXELAR_DIR = node_env().protocol_data_path + "/axelar";
 const RPC_PORT = 26657;
 const P2P_PORT = 26656;
