@@ -927,7 +927,7 @@ jobs:
       pr_sha: ${{ github.event.pull_request.head.sha }}
       event_action: ${{ github.event.action }}
       pr_merged: ${{ github.event.pull_request.merged }}
-      pr_closed: ${{ needs.build-protocols.result != 'success' && github.event.action == 'closed' }}
+      pr_closed: ${{ github.event.action == 'closed' }}
     secrets: inherit
     permissions:
       contents: read
