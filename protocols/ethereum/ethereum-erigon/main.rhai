@@ -6,7 +6,7 @@ const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const METRICS_PORT = 6161;
 
-let ERIGON_CONFIG = aux::base_config(global::METRICS_PORT,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
+let AUX_CONFIG = aux::base_config(global::METRICS_PORT,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
 
 const BASE_CONFIG  = #{
     config_files: AUX_CONFIG.config_files+base::BASE_CONFIG.config_files,

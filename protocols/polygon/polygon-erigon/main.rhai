@@ -11,7 +11,7 @@ const HEIMDALL_PORT = 1317;
 const METRICS_PORT = 7071;
 const METRICS_PATH = "/debug/metrics/prometheus";
 
-let AUX_CONFIG = polygon_erigon::base_config(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
+let AUX_CONFIG = aux::base_config(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
 const BASE_CONFIG  = #{
     config_files: AUX_CONFIG.config_files+base::BASE_CONFIG.config_files,
     services: AUX_CONFIG.services+base::BASE_CONFIG.services,
