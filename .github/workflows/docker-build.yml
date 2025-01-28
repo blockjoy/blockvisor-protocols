@@ -934,7 +934,7 @@ jobs:
 
   cleanup-nodes:
     if: |
-      github.event_name == 'pull_request' && (
+      (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && (
         github.event.pull_request.merged == true ||
         github.event.action == 'closed'
       )
