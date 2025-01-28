@@ -86,8 +86,6 @@ jobs:
   cleanup:
     needs: [get-host]
     runs-on: ${{ needs.get-host.outputs.target_host }}
-    if: |
-      always()
     steps:
       - name: Cleanup nodes
         env:
