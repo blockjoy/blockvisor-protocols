@@ -28,6 +28,11 @@ on:
         type: boolean
         default: false
         description: "Whether the PR was merged"
+      pr_closed:
+        required: false
+        type: boolean
+        default: false
+        description: "Whether the PR was closed"
     outputs:
       status:
         description: "Workflow execution status"
@@ -56,27 +61,36 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PREV_HOST=$(gh pr view ${{ inputs.pr_number }} --json comments --jq '
-            .comments
-            | map(select(.author.login == "github-actions"))
-            | map(select(.body | test("The following nodes have been deployed on")))
-            | sort_by(.createdAt)
-            | last
-            | if . == null then "" else
-              (.body | capture("The following nodes have been deployed on `(?<host>[^`]+)`:\\n").host)
-              end
-          ')
-          if [ -z "$PREV_HOST" ]; then
-            echo "No previous host found, using runner host"
-            echo "target_host=${{ runner.name }}" >> $GITHUB_OUTPUT
+          if [[ "${{ inputs.pr_closed }}" == "true" ]]; then
+            echo "target_host=$(hostname)" >> $GITHUB_OUTPUT
           else
-            echo "Found previous host: $PREV_HOST"
-            echo "target_host=$PREV_HOST" >> $GITHUB_OUTPUT
+            PREV_HOST=$(gh pr view ${{ inputs.pr_number }} --json comments --jq '
+              .comments
+              | map(select(.author.login == "github-actions"))
+              | map(select(.body | test("The following nodes have been deployed on")))
+              | sort_by(.createdAt)
+              | last
+              | if . == null then "" else
+                (.body | capture("The following nodes have been deployed on `(?<host>[^`]+)`:\\n").host)
+                end
+            ')
+            if [ -z "$PREV_HOST" ]; then
+              echo "No previous host found, using runner host"
+              echo "target_host=${{ runner.name }}" >> $GITHUB_OUTPUT
+            else
+              echo "Found previous host: $PREV_HOST"
+              echo "target_host=$PREV_HOST" >> $GITHUB_OUTPUT
+            fi
           fi
 
   cleanup:
     needs: [get-host]
     runs-on: ${{ needs.get-host.outputs.target_host }}
+    if: |
+      always() && (
+        inputs.pr_merged == true ||
+        inputs.pr_closed == true
+      )
     steps:
       - name: Cleanup nodes
         env:
