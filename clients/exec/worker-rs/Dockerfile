@@ -5,7 +5,7 @@ ARG WORKER_VERSION=v2.0.3
 FROM rust:1.81-slim-bookworm AS builder
 WORKDIR /build
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends\
     git \
     protobuf-compiler \
     pkg-config \
@@ -25,7 +25,7 @@ RUN git clone https://github.com/subsquid/worker-rs.git . && \
 # Create minimal final image
 FROM ${BASE_IMAGE}
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends\
     sysstat \
     libsqlite3-dev \
     net-tools && \
