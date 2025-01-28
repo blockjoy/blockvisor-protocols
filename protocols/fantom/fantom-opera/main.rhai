@@ -1,7 +1,7 @@
 import "base" as base;
 import "fantom-opera" as fantom_opera;
 
-const CADDY_DIR = node_env().data_mount_point + "caddy";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8080;
 const WS_PORT = 8081;
 const P2P_PORT = 5050;
