@@ -915,6 +915,7 @@ jobs:
     needs: [build-protocols]
     if: |
       github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
       needs.build-protocols.result == 'success'
     uses: ./.github/workflows/test-nodes.yml
     with:
