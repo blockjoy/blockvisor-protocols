@@ -1,0 +1,42 @@
+version: 0.0.1
+container_uri: docker://ghcr.io/blockjoy/sqd:20250127.1
+sku_code: SQD-WORKER
+org_id: null
+description: Sqd
+visibility: public
+protocol_key: sqd
+variants:
+  - key: sqd-mainnet
+    min_cpu: 2
+    min_memory_mb: 9216
+    min_disk_gb: 900
+    sku_code: SQD-WORKER-M
+    archive_pointers:
+      - pointer: !store_key sqd-mainnet-v1
+firewall_config:
+  default_in: deny
+  default_out: allow
+  rules:
+    - key: Allow incoming ports TCP
+      description: Allow TCP inbound traffic on ports 80
+      protocol: tcp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 80
+          name: HTTP port
+    - key: Allow incoming ports UDP
+      description: Allow UDP inbound traffic on port 12345
+      protocol: udp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 12345
+          name: SQD port
+properties: []

@@ -1,0 +1,15 @@
+export DATA_DIR={{ data_dir }}
+export KEY_PATH={{ key_path }}
+export NETWORK=mainnet
+export RPC_URL=https://arb1.arbitrum.io/rpc  # RPC node of the Arbitrum network
+export L1_RPC_URL=https://eth-l1.blkjy.io
+export P2P_PUBLIC_ADDRS=/ip4/{{ ip }}/udp/12345/quic-v1
+export P2P_LISTEN_ADDRS=/ip4/0.0.0.0/udp/12345/quic-v1
+export SCHEDULER_ID=12D3KooWS5N8ygU6fRy4EZtzdHf4QZnkCaZrwCha9eYKH3LwNvsP
+export LOGS_COLLECTOR_ID=12D3KooWFnRhNqgsKtsDDhsozaWuyrTvtQA2Eu4XWvSPRd4UZynd
+export BOOT_NODES="12D3KooW9tLMANc4Vnxp27Ypyq8m8mUv45nASahj3eSnMbGWSk1b /dns4/mainnet.subsquid.io/udp/22445/quic-v1,12D3KooWEhPC7rsHAcifstVwJ3Cj55sWn7zXWuHrtAQUCGhGYnQz /dns4/mainnet.subsquid.io/udp/22446/quic-v1,12D3KooWS5N8ygU6fRy4EZtzdHf4QZnkCaZrwCha9eYKH3LwNvsP /dns4/mainnet.subsquid.io/udp/32445/quic-v1"
+export SENTRY_DSN=https://f97ffef7e96eb533d4c527ce62e4cfbf@o1149243.ingest.us.sentry.io/4507056936779776
+export CONCURRENT_DOWNLOADS=2
+export S3_TIMEOUT=60
+export S3_READ_TIMEOUT=30
+export PING_INTERVAL_SEC=55
