@@ -1,14 +1,20 @@
 import "base" as base;
-import "sqd-worker" as sqd_worker;
+import "aux" as aux;
 
 const BABEL_VERSION = "1.11.0";
 const WORKDIR = "/root/worker-rs";
-const DATADIR = node_env().data_mount_point + "/subsquid";
-const KEYPATH = node_env().data_mount_point + "/.subsquid-key";
+const DATADIR = node_env().protocol_data_path + "/subsquid";
+const KEYPATH = DATADIR + "/.subsquid-key";
 const METRICS_API = "http://127.0.0.1:8000/metrics";
 const ENV = node_env();
-const ENV_FILE = global::VARIANTS[node_params().NETWORK].env_file;
-const CADDY_DIR = node_env().data_mount_point + "caddy";
+const CADDY_DIR = DATADIR + "/caddy";
+
+let AUX_CONFIG = aux::base_config(global::DATADIR, global::KEYPATH, global::METRICS_PATH,  global::CADDY_DIR);
+
+const BASE_CONFIG = #{
+    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
+    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
+};
 
 const VARIANTS = #{
     "mainnet": #{
@@ -22,6 +28,8 @@ const VARIANTS = #{
         env_file: ".tethys.env"
     },
 };
+
+const ENV_FILE = global::VARIANTS[node_params().network].env_file;
 
 const PLUGIN_CONFIG = #{
     init: #{
@@ -39,7 +47,7 @@ const PLUGIN_CONFIG = #{
     services: [
         #{
             name: "sqd",
-            run_sh: `. ${global::WORKDIR}/${global::ENV_FILE} && ${global::WORKDIR}/target/release/worker | tee ${global::DATADIR}/subsquid.log`,
+            run_sh: `. /root/${global::ENV_FILE} && /root/bin/worker | tee ${global::DATADIR}/subsquid.log`,
         },
     ],
     alternative_download: #{
