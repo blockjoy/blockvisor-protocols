@@ -913,10 +913,7 @@ jobs:
 
   test-nodes:
     needs: [build-protocols]
-    if: |
-      github.event_name == 'pull_request' &&
-      github.event.action != 'closed' &&
-      needs.build-protocols.result == 'success'
+    if: needs.build-protocols.result == 'success'
     uses: ./.github/workflows/test-nodes.yml
     with:
       matrix: ${{ needs.build-protocols.outputs.matrix }}
@@ -934,9 +931,7 @@ jobs:
       pull-requests: write
 
   cleanup-nodes:
-    if: |
-      (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') &&
-      github.event.action == 'closed'
+    if: github.event.action == 'closed'
     uses: ./.github/workflows/test-nodes.yml
     with:
       matrix: '{"include":[]}'
