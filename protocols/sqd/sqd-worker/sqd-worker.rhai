@@ -1,5 +1,5 @@
 fn base_config(metrics_port, metrics_path, rpc_port, ws_port, caddy_dir) {
-   #{
+    #{
         config_files: [
             #{
                 template: "/var/lib/babel/templates/config-alloy.template",
@@ -25,7 +25,7 @@ fn base_config(metrics_port, metrics_path, rpc_port, ws_port, caddy_dir) {
                     tld: ".n0des.xyz",
                     data_dir: `${caddy_dir}`,
                 }
-            }
+            },
             #{
                 template: "/var/lib/babel/templates/mainnet-env.template",
                 destination: "/root/worker-rs/.mainnet.env",
