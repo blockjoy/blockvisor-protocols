@@ -87,10 +87,7 @@ jobs:
     needs: [get-host]
     runs-on: ${{ needs.get-host.outputs.target_host }}
     if: |
-      always() && (
-        inputs.pr_merged == true ||
-        inputs.pr_closed == true
-      )
+      always()
     steps:
       - name: Cleanup nodes
         env:
