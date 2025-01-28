@@ -933,7 +933,6 @@ jobs:
       pull-requests: write
 
   cleanup-nodes:
-    needs: [detect-changes]
     if: |
       github.event_name == 'pull_request' && (
         github.event.pull_request.merged == true ||
@@ -957,9 +956,10 @@ jobs:
 
   workflow-status:
     needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes, cleanup-nodes]
-    if: always() && github.event_name == 'pull_request' && github.event.action != 'closed'
+    if: always() && github.event_name == 'pull_request'
     runs-on: dev
     permissions:
+      contents: read
       statuses: write
     steps:
       - name: Report Status
