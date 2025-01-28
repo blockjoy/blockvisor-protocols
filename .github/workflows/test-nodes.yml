@@ -86,8 +86,6 @@ jobs:
   cleanup:
     needs: [get-host]
     runs-on: ${{ needs.get-host.outputs.target_host }}
-    if: |
-      always()
     steps:
       - name: Cleanup nodes
         env:
@@ -160,9 +158,6 @@ jobs:
 
   test-nodes:
     needs: [get-host, cleanup]
-    if: |
-      github.event_name == 'pull_request' &&
-      github.event.action != 'closed'
     runs-on: ${{ needs.get-host.outputs.target_host }}
     environment: Dev
     strategy:
