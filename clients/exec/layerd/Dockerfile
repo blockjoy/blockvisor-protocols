@@ -5,11 +5,6 @@ FROM golang:1.23-bookworm AS builder
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PROTOCOL_VERSION=v2.0.1-fix
 
-# Install build dependencies
-RUN apt-get update && \
-    apt-get install -y build-essential git make gcc g++ pkg-config llvm-dev libclang-dev clang --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
-
 RUN mkdir -p /root/bin
 
 # Build Layerd
