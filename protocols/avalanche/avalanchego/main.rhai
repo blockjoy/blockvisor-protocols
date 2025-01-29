@@ -25,7 +25,7 @@ const NETS = #{
 
 const API_HOST = "http://localhost:9650/";
 const EXTERNAL_API_HOST = "https://api.avax.network/";
-const DATA_DIRECTORY = node_env().protocol_data_path + "/avalanchego";
+const DATA_DIRECTORY = node_env().protocol_data_path + "/avalanche";
 const CONFIG_DIR = "/root/avalanche";
 
 const BABEL_VERSION = "0.9.0";
@@ -34,7 +34,7 @@ const PLUGIN_CONFIG = #{
     init: #{
         commands: [
             `mkdir -p ${global::DATA_DIRECTORY}`,
-            `cp -a ${global::CONFIG_DIR}/* ${global::DATA_DIRECTORY};`,
+            `cp -a ${global::CONFIG_DIR}/* ${global::DATA_DIRECTORY}`,
         ],
         jobs: []
     },
