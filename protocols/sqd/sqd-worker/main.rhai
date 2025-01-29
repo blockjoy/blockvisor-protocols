@@ -2,7 +2,7 @@ import "base" as base;
 import "aux" as aux;
 
 const BABEL_VERSION = "1.11.0";
-const WORKDIR = "/root/worker-rs";
+const WORKDIR = "/root";
 const DATADIR = node_env().protocol_data_path + "/subsquid";
 const KEYPATH = DATADIR + "/.subsquid-key";
 const METRICS_API = "http://127.0.0.1:8000/metrics";

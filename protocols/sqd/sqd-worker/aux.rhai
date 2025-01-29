@@ -26,7 +26,7 @@ fn base_config(data_dir, key_path, metrics_port, metrics_path, caddy_dir) {
             },
             #{
                 template: "/var/lib/babel/templates/mainnet-env.template",
-                destination: "/root/worker-rs/.mainnet.env",
+                destination: "/root/.mainnet.env",
                 params: #{
                     data_dir: `${data_dir}`,
                     key_path: `${key_path}`,
@@ -35,7 +35,7 @@ fn base_config(data_dir, key_path, metrics_port, metrics_path, caddy_dir) {
             },
             #{
                 template: "/var/lib/babel/templates/tethys-env.template",
-                destination: "/root/worker-rs/.tethys.env",
+                destination: "/root/.tethys.env",
                 params: #{
                     data_dir: `${data_dir}`,
                     key_path: `${key_path}`,
