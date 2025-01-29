@@ -12,30 +12,6 @@ const CADDY_DIR = DATADIR + "/caddy";
 const API_HOST = "http://127.0.0.1:9000/";
 
 const VARIANTS = #{
-    testnet: #{
-        url: "https://docs.sui.io/guides/operator",
-        net_type: "test",
-        network: "testnet",
-        rpc: "https://rpc-testnet.suiscan.xyz"
-    },
-    mainnet: #{
-        url: "https://docs.sui.io/guides/operator",
-        net_type: "main",
-        network: "mainnet",
-        rpc: "https://rpc-mainnet.suiscan.xyz",
-    },
-};
-
-const NET = VARIANTS[node_env().node_variant].network;
-
-let AUX_CONFIG = aux::base_config(global::DATA_DIR, global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::CADDY_DIR, global::NET);
-
-const BASE_CONFIG = #{
-    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
-};
-
-const VARIANTS = #{
     sui-testnet: #{
         url: "https://docs.sui.io/guides/operator",
         net_type: "test",
@@ -51,6 +27,13 @@ const VARIANTS = #{
 };
 
 const NET = VARIANTS[node_env().node_variant].network;
+
+let AUX_CONFIG = aux::base_config(global::DATA_DIR, global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::CADDY_DIR, global::NET);
+
+const BASE_CONFIG = #{
+    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
+    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
+};
 
 const PLUGIN_CONFIG = #{
     init: #{
