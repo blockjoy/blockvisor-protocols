@@ -1,4 +1,4 @@
-version: 0.1.0
+version: 0.1.1
 container_uri: docker://ghcr.io/blockjoy/tellor-layerd:v20250128.1
 sku_code: TELLOR-LAYERD
 org_id: null
