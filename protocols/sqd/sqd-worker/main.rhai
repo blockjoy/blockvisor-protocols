@@ -19,12 +19,12 @@ const BASE_CONFIG = #{
 };
 
 const VARIANTS = #{
-    "mainnet": #{
+    "sqd-worker-mainnet": #{
         url: "https://testnet-api.helium.wtf/v1/",
         network: "main",
         env_file: ".mainnet.env"
     },
-    "tethys": #{
+    "sqd-worker-testnet": #{
         url: "https://testnet-api.helium.wtf/v1/",
         network: "test",
         env_file: ".tethys.env"
