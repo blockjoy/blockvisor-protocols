@@ -245,12 +245,18 @@ jobs:
 
       - name: Create version tag
         if: steps.push-dev.outputs.protocol != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ steps.push-dev.outputs.tag_name }}"
           if ! git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Creating tag $TAG"
-            git tag $TAG
-            git push origin $TAG
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              /repos/${{ github.repository }}/git/refs \
+              -f ref="refs/tags/$TAG" \
+              -f sha="${{ github.sha }}"
           else
             echo "Tag $TAG already exists, skipping creation"
           fi
@@ -321,13 +327,19 @@ jobs:
           fi
 
       - name: Create version tag
-        if: steps.push-staging.outputs.tag != ''
+        if: steps.push-staging.outputs.protocol != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ steps.push-staging.outputs.tag }}"
           if ! git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Creating tag $TAG"
-            git tag $TAG
-            git push origin $TAG
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              /repos/${{ github.repository }}/git/refs \
+              -f ref="refs/tags/$TAG" \
+              -f sha="${{ github.sha }}"
           else
             echo "Tag $TAG already exists, skipping creation"
           fi
