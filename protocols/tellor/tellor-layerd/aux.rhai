@@ -44,8 +44,8 @@ fn base_config(axelar_dir, metrics_port, p2p_port, rpc_port, rest_port, grpc_web
                 params: #{},
             },
             #{
-                template: "/var/lib/babel/templates/addrbook-json.template",
-                destination: "/root/configs/addrbook.json",
+                template: "/var/lib/babel/templates/client-toml.template",
+                destination: "/root/configs/client.toml",
                 params: #{},
             },
             #{
