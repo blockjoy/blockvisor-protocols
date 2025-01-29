@@ -23,7 +23,7 @@ const NETS = #{
     },
 };
 
-const API_HOST = "http://localhost:9650/";
+const API_HOST = "http://127.0.0.1:9650/";
 const EXTERNAL_API_HOST = "https://api.avax.network/";
 const DATA_DIRECTORY = node_env().protocol_data_path + "/avalanche";
 const CONFIG_DIR = "/root/avalanche";
