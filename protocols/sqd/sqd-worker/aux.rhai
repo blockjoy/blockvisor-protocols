@@ -16,8 +16,6 @@ fn base_config(data_dir, key_path, metrics_port, metrics_path, caddy_dir) {
                 template: "/var/lib/babel/templates/Caddyfile.template",
                 destination: "/etc/caddy/Caddyfile",
                 params: #{
-                    rpc_port: `${rpc_port}`,
-                    ws_port: `${ws_port}`,
                     metrics_port: `${metrics_port}`,
                     metrics_path: `${metrics_path}`,
                     hostname: node_env().node_name,
