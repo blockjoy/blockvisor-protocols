@@ -31,6 +31,7 @@ const VARIANTS = #{
     },
 };
 
+print(`Debug - network value: ${node_params().network}`);
 const ENV_FILE = global::VARIANTS[node_params().network].env_file;
 
 const PLUGIN_CONFIG = #{
