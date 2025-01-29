@@ -243,7 +243,7 @@ jobs:
             COMMENT="${COMMENT}"$'\n'"Please fix the underlying issues."
             echo -e "$COMMENT" | gh pr comment ${{ inputs.pr_number }} --body-file -
           else
-            echo "All nodes were deployed successfully and cleaned up." | gh pr comment ${{ inputs.pr_number }} --body-file -
+            echo "All test nodes were deployed successfully and cleaned up." | gh pr comment ${{ inputs.pr_number }} --body-file -
           fi
 
           # Save node names for cleanup
