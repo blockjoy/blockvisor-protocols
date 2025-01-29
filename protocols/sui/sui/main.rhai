@@ -46,7 +46,7 @@ const PLUGIN_CONFIG = #{
         jobs: [
             #{
                 name: "init",
-                run_sh: `curl -fLJO https://github.com/MystenLabs/sui-genesis/raw/main/${global::NET.network}/genesis.blob --output-dir ${global::DATA_DIR}/config/`,
+                run_sh: `curl -fLJO https://github.com/MystenLabs/sui-genesis/raw/main/${global::NET}/genesis.blob --output-dir ${global::DATA_DIR}/config/`,
             }
         ]
     },
