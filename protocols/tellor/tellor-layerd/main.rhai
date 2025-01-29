@@ -23,11 +23,13 @@ const BASE_CONFIG = #{
 const VARIANTS = #{
     "layerd-testnet-full": #{
         hostname: node_env().node_name,
+        chain_id: "layertest-2",
     },
 };
 
 const VARIANT = VARIANTS[node_env().node_variant];
 const HOSTNAME = VARIANT.hostname;
+const CHAIN_ID = VARIANT.chain_id;
 
 const BABEL_VERSION = "0.9.0";
 
@@ -42,7 +44,7 @@ const PLUGIN_CONFIG = #{
             #{
                 name: "init",
                 run_sh: `export HOME=${global::PROTOCOL_DIR} && \
-                /root/bin/layerd init ${global::HOSTNAME} --home ${global::PROTOCOL_DIR}/ --chain-id layertest-2`,
+                /root/bin/layerd init ${global::HOSTNAME} --overwrite --home ${global::PROTOCOL_DIR}/ --chain-id ${global::CHAIN_ID}`,
             }
         ]
     },
