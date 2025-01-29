@@ -1,4 +1,4 @@
-version: 0.0.2
+version: 0.1.0
 container_uri: docker://ghcr.io/blockjoy/polygon-erigon:v20250129.1
 sku_code: POLY-ERIGON
 org_id: null
