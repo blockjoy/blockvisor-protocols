@@ -231,6 +231,14 @@ jobs:
               ERROR_MSG=$(grep "Error: " /tmp/nib_output.log)
               echo "Error found in nib output for $NODE_NAME: $ERROR_MSG"
               ERROR_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`:"$'\n'"  \`\`\`"$'\n'"  $ERROR_MSG"$'\n'"  \`\`\`")
+              
+              # Check if error matches the job restart pattern
+              if echo "$ERROR_MSG" | grep -q "Error: job '[^']*' has been restarted [0-9]* times"; then
+                echo "Non-critical job restart detected. Continuing..."
+              else
+                echo "Critical error detected. Exiting..."
+                exit 1
+              fi
             fi
           done
 
