@@ -40,12 +40,7 @@ const PLUGIN_CONFIG = #{
             `mkdir -p ${global::CADDY_DIR}`,
             `mkdir -p ${global::DATADIR}`,
         ],
-        jobs: [
-            #{
-                name: "init",
-                run_sh: `echo`,
-            }
-        ]
+        jobs: []
     },
     services: [
         #{
@@ -117,10 +112,6 @@ fn address() {
 
 fn clear_log() {
     run_sh(`head -n 2 ${global::DATADIR}/subsquid.log > /tmp/ss.log && mv /tmp/ss.log ${global::DATADIR}/subsquid.log`);
-}
-
-fn netdata_update() {
-    run_sh(`wget -O /tmp/netdata-kickstart.sh https://get.netdata.cloud/kickstart.sh && sh /tmp/netdata-kickstart.sh --stable-channel --disable-telemetry --non-interactive --dont-start-it --native-only --disable-cloud`);
 }
 
 fn sync_status() {
