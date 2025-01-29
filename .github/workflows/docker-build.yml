@@ -14,17 +14,6 @@ on:
       - opened      # PR is created
       - synchronize # New commits pushed
       - reopened    # Closed PR is reopened
-  pull_request_target:
-    branches: [ main ]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.gitignore'
-      - 'LICENSE'
-      - '.github/**'
-      - '!.github/workflows/**'
-    types:
-      - closed  # PR is merged or closed
 
 permissions:
   contents: read
