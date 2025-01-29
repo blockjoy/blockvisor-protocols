@@ -11,7 +11,7 @@ const METRICS_PATH = "/debug/metrics/prometheus";
 const ENV = node_env();
 const CADDY_DIR = DATADIR + "/caddy";
 
-let AUX_CONFIG = aux::base_config(global::DATADIR, global::KEYPATH, global::METRICS_PATH,  global::CADDY_DIR);
+let AUX_CONFIG = aux::base_config(global::DATADIR, global::KEYPATH, global::METRICS_PORT, global::METRICS_PATH, global::CADDY_DIR);
 
 const BASE_CONFIG = #{
     config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
