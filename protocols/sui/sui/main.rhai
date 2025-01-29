@@ -4,12 +4,13 @@ import "aux" as aux;
 const BABEL_VERSION = "1.13.1";
 const WORKDIR = "/root";
 const DATA_DIR = node_env().protocol_data_path + "/sui";
+const RPC_PORT = 9000;
 const METRICS_API = "http://127.0.0.1:8000/metrics";
 const METRICS_PORT = 4141;
 const METRICS_PATH = "/debug/metrics/prometheus";
 const ENV = node_env();
-const CADDY_DIR = DATADIR + "/caddy";
-const API_HOST = "http://127.0.0.1:9000/";
+const CADDY_DIR = DATA_DIR + "/caddy";
+const API_HOST = "http://127.0.0.1:${RPC_PORT}/";
 
 const VARIANTS = #{
     "sui-testnet": #{
@@ -52,7 +53,7 @@ const PLUGIN_CONFIG = #{
     services: [
         #{
             name: "sui",
-            run_sh: `/root/bin/${global::NET.network}/sui-node --config-path /root/bin/fullnode.yaml`,
+            run_sh: `/root/bin/${global::NET}/sui-node --config-path /root/bin/fullnode.yaml`,
         },
     ],
     upload: #{
