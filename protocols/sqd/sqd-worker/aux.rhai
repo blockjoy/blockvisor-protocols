@@ -28,8 +28,8 @@ fn base_config(data_dir, key_path, metrics_port, metrics_path, caddy_dir) {
                 template: "/var/lib/babel/templates/mainnet-env.template",
                 destination: "/root/worker-rs/.mainnet.env",
                 params: #{
-                    data_dir: `${global::DATADIR}`,
-                    key_path: `${global::KEYPATH}`,
+                    data_dir: `${data_dir}`,
+                    key_path: `${key_path}`,
                     ip: node_env().node_ip,
                 }
             },
