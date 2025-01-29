@@ -931,7 +931,7 @@ jobs:
       pull-requests: write
 
   workflow-status:
-    needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes, cleanup-nodes]
+    needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes]
     if: always() && github.event_name == 'pull_request'
     runs-on: dev
     permissions:
@@ -946,7 +946,6 @@ jobs:
              [[ "${{ needs.build-clients.result }}" == "failure" ]] || \
              [[ "${{ needs.build-protocols.result }}" == "failure" ]] || \
              [[ "${{ needs.test-nodes.result }}" == "failure" ]] || \
-             [[ "${{ needs.cleanup-nodes.result }}" == "failure" ]] || \
              [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] || \
              [[ "${{ needs.detect-changes.result }}" == "failure" ]] || \
              [[ "${{ needs.check-protocols.result }}" == "failure" ]] || \
@@ -954,20 +953,17 @@ jobs:
              [[ "${{ needs.build-clients.result }}" == "cancelled" ]] || \
              [[ "${{ needs.build-protocols.result }}" == "cancelled" ]] || \
              [[ "${{ needs.test-nodes.result }}" == "cancelled" ]] || \
-             [[ "${{ needs.cleanup-nodes.result }}" == "cancelled" ]] || \
              [[ "${{ needs.scan-dockerfiles.result }}" == "cancelled" ]] || \
              [[ "${{ needs.detect-changes.result }}" == "cancelled" ]] || \
              [[ "${{ needs.check-protocols.result }}" == "cancelled" ]]; then
             DESCRIPTION="Workflow failed"
             [[ "${{ needs.test-nodes.result }}" == "failure" ]] && DESCRIPTION="Node testing failed"
-            [[ "${{ needs.cleanup-nodes.result }}" == "failure" ]] && DESCRIPTION="Node cleanup failed"
             [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] && DESCRIPTION="Dockerfile scanning failed"
             [[ "${{ needs.check-protocols.result }}" == "failure" ]] && DESCRIPTION="Protocol validation failed"
             [[ "${{ needs.detect-changes.result }}" == "failure" ]] && DESCRIPTION="Failed to detect changes"
             
             # Add cancelled status descriptions
             [[ "${{ needs.test-nodes.result }}" == "cancelled" ]] && DESCRIPTION="Node testing was cancelled"
-            [[ "${{ needs.cleanup-nodes.result }}" == "cancelled" ]] && DESCRIPTION="Node cleanup was cancelled"
             [[ "${{ needs.scan-dockerfiles.result }}" == "cancelled" ]] && DESCRIPTION="Dockerfile scanning was cancelled"
             [[ "${{ needs.check-protocols.result }}" == "cancelled" ]] && DESCRIPTION="Protocol validation was cancelled"
             [[ "${{ needs.detect-changes.result }}" == "cancelled" ]] && DESCRIPTION="Change detection was cancelled"
@@ -998,7 +994,6 @@ jobs:
              [[ "${{ needs.build-clients.result }}" == "skipped" ]] && \
              [[ "${{ needs.build-protocols.result }}" == "skipped" ]] && \
              [[ "${{ needs.test-nodes.result }}" == "skipped" ]] && \
-             [[ "${{ needs.cleanup-nodes.result }}" == "skipped" ]] && \
              [[ "${{ needs.scan-dockerfiles.result }}" == "skipped" ]] && \
              [[ "${{ needs.detect-changes.result }}" == "skipped" ]] && \
              [[ "${{ needs.check-protocols.result }}" == "skipped" ]]; then
