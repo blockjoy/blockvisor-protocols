@@ -38,7 +38,7 @@ const PLUGIN_CONFIG = #{
         commands: [
             `mkdir -p ${global::PROTOCOL_DIR}/.layer/config`,
             `mkdir -p ${global::CADDY_DIR}`,
-            `mv /root/configs/* ${global::PROTOCOL_DIR}/.layer/config/`,
+            `cp -f /root/configs/* ${global::PROTOCOL_DIR}/.layer/config/`,
         ],
         jobs: [
             #{
