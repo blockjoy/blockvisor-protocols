@@ -1,5 +1,5 @@
-ARG HEIMDALL_IMAGE=ghcr.io/blockjoy/heimdall:v20250126.1
-ARG BOR_IMAGE=ghcr.io/blockjoy/bor:v20250126.1
+ARG HEIMDALL_IMAGE=ghcr.io/blockjoy/heimdall:v20250126.3
+ARG BOR_IMAGE=ghcr.io/blockjoy/bor:v20250126.3
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
 FROM ${HEIMDALL_IMAGE} AS heimdall
@@ -27,5 +27,5 @@ COPY --from=bor /home/bor/bin/bor /root/bin/
 # Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
-COPY polygon-bor.rhai /var/lib/babel/plugin/
+COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/

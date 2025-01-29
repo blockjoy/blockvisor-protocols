@@ -94,3 +94,9 @@
   ticker: null
   description: SQD (Subsquid) is a decentralized data indexing protocol and query engine that enables efficient blockchain data access across 190+ networks through a peer-to-peer data lake architecture, offering developers high-performance tools to extract, process, and analyze on-chain data at near-zero cost compared to traditional RPC methods.
   visibility: public
+- key: tellor
+  name: Tellor
+  org_id: null
+  ticker: null
+  description: Tellor is a decentralized oracle protocol that provides on-chain data about the real-world, with the power of community to verify and validate it.
+  visibility: public

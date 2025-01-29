@@ -1,5 +1,5 @@
 import "base" as base;
-import "nitro" as nitro;
+import "aux" as aux;
 
 const METRICS_PORT = "6070";
 const ARB_NODE_RPC_PORT = "8546";
@@ -9,11 +9,11 @@ const METRICS_PATH = "/debug/metrics/prometheus";
 const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const CLASSIC_RPC = "http://127.0.0.1:8546";
 
-let NITRO_CONFIG = nitro::base_config(global::METRICS_PORT, global::ARB_NODE_RPC_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
+let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::ARB_NODE_RPC_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
 
 const BASE_CONFIG = #{
-    config_files: NITRO_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: NITRO_CONFIG.services + base::BASE_CONFIG.services,
+    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
+    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
 };
 
 const VARIANTS = #{

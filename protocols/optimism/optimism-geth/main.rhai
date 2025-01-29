@@ -1,5 +1,5 @@
 import "base" as base;
-import "op-geth" as op_geth;
+import "aux" as aux;
 
 const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8545;
@@ -16,11 +16,11 @@ const OPTIMISM_API = "http://127.0.0.1:8547";
 const DATADIR = node_env().protocol_data_path;
 const OP_DIR = node_env().protocol_data_path + "/optimism";
 
-let OP_GETH_CONFIG = op_geth::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
+let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
 
 const BASE_CONFIG = #{
-    config_files: OP_GETH_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: OP_GETH_CONFIG.services + base::BASE_CONFIG.services,
+    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
+    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
 };
 
 const VARIANTS = #{

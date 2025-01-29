@@ -1,15 +1,15 @@
 import "base" as base;
-import "avalanche" as avalanche;
+import "aux" as aux;
 
 const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 9650;
 const METRICS_PORT = 9651;
 
-let AVALANCHE_CONFIG = avalanche::base_config(global::METRICS_PORT, global::RPC_PORT, global::CADDY_DIR);
+let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::CADDY_DIR);
 
 const BASE_CONFIG = #{
-    config_files: AVALANCHE_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: AVALANCHE_CONFIG.services + base::BASE_CONFIG.services,
+    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
+    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
 };
 
 const NETS = #{
@@ -25,7 +25,7 @@ const NETS = #{
 
 const API_HOST = "http://localhost:9650/";
 const EXTERNAL_API_HOST = "https://api.avax.network/";
-const DATA_DIRECTORY = node_env().protocol_data_path + "/avalanchego";
+const DATA_DIRECTORY = node_env().protocol_data_path + "/avalanche";
 const CONFIG_DIR = "/root/avalanche";
 
 const BABEL_VERSION = "0.9.0";
@@ -34,7 +34,7 @@ const PLUGIN_CONFIG = #{
     init: #{
         commands: [
             `mkdir -p ${global::DATA_DIRECTORY}`,
-            `cp -a ${global::CONFIG_DIR}/* ${global::DATA_DIRECTORY};`,
+            `cp -a ${global::CONFIG_DIR}/* ${global::DATA_DIRECTORY}`,
         ],
         jobs: []
     },

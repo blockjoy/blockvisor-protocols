@@ -1,4 +1,4 @@
-ARG FANTOM_OPERA_IMAGE=ghcr.io/blockjoy/opera:v20250125.5
+ARG FANTOM_OPERA_IMAGE=ghcr.io/blockjoy/opera:v20250128.3
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
 FROM ${FANTOM_OPERA_IMAGE} AS fantom-opera
@@ -22,5 +22,5 @@ COPY --from=fantom-opera /root/bin/opera /root/bin/
 # Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
-COPY fantom-opera.rhai /var/lib/babel/plugin/
+COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/

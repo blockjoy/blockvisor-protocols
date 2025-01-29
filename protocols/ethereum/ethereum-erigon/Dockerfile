@@ -1,5 +1,5 @@
 ARG ERIGON_IMAGE=ghcr.io/blockjoy/erigon:v20250123.1
-ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v20250126.2
+ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v20250127.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
 FROM ${ERIGON_IMAGE} AS erigon
@@ -23,5 +23,5 @@ COPY --from=lighthouse-build /root/bin/lighthouse /root/bin/
 
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
-COPY erigon.rhai /var/lib/babel/plugin/
+COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/

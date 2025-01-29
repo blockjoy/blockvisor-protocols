@@ -1,7 +1,7 @@
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
 FROM golang:1.22-bookworm AS builder
-ENV OPERA_VERSION=v1.1.3-rc.5
+ENV OPERA_VERSION="release/txtracing/1.1.3-rc.5"
 
 WORKDIR /go-opera
 RUN git clone --depth 1 --branch $OPERA_VERSION https://github.com/Fantom-foundation/go-opera.git .

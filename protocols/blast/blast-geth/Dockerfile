@@ -1,5 +1,5 @@
 ARG BLAST_OP_NODE_IMAGE=ghcr.io/blockjoy/blast-node:v20250125.1
-ARG BLAST_OP_GETH_IMAGE=ghcr.io/blockjoy/blast-geth:v20250126.1
+ARG BLAST_OP_GETH_IMAGE=ghcr.io/blockjoy/blast-geth:v20250129.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
 FROM ${BLAST_OP_NODE_IMAGE} AS blast-op-node
@@ -28,5 +28,5 @@ COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
 COPY config/mainnet/genesis.json /root/config/mainnet
 COPY config/mainnet/rollup.json /root/config/mainnet
-COPY blast-geth.rhai /var/lib/babel/plugin/
+COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/

@@ -1,4 +1,4 @@
-ARG CELO_GETH_IMAGE=ghcr.io/blockjoy/celo-geth:v20250126.1
+ARG CELO_GETH_IMAGE=ghcr.io/blockjoy/celo-geth:v20250129.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
 FROM ${CELO_GETH_IMAGE} AS celo-geth
@@ -22,5 +22,5 @@ COPY --from=celo-geth /root/bin/geth /root/bin/
 # Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
-COPY celo-geth.rhai /var/lib/babel/plugin/
+COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/

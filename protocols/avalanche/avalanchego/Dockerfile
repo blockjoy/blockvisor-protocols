@@ -1,4 +1,4 @@
-ARG AVALANCHEGO_IMAGE=ghcr.io/blockjoy/avalanchego:v20250126.1
+ARG AVALANCHEGO_IMAGE=ghcr.io/blockjoy/avalanchego:v20250129.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
 FROM ${AVALANCHEGO_IMAGE} AS avalanchego
@@ -21,7 +21,5 @@ COPY --from=avalanchego /root/bin/avalanchego /root/bin/
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
 COPY configs /root/avalanche/configs
-
-# Copy protocol files
-COPY avalanche.rhai /var/lib/babel/plugin/
+COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/
