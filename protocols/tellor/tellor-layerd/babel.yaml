@@ -1,0 +1,44 @@
+version: 0.1.1
+container_uri: docker://ghcr.io/blockjoy/tellor-layerd:v20250128.1
+sku_code: TELLOR-LAYERD
+org_id: null
+description: Tellor Layerd
+visibility: public
+protocol_key: tellor
+variants:
+  - key: layerd-testnet-full
+    min_cpu: 16
+    min_memory_mb: 24576
+    min_disk_gb: 2000
+    sku_code: TELLOR-LAYERD-MF
+    archive_pointers:
+      - pointer: !store_key tellor-layerd-testnet-full-v1
+firewall_config:
+  default_in: deny
+  default_out: allow
+  rules:
+    - key: Allow incoming ports TCP
+      description: Allow TCP inbound traffic on ports 80, 443
+      protocol: tcp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 80
+          name: HTTP port
+        - port: 443
+          name: HTTPS port
+    - key: Allow incoming ports UDP
+      description: Allow UDP inbound traffic on ports 26656
+      protocol: both
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 26656
+          name: P2P port
+properties: []
