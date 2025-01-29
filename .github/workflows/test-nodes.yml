@@ -97,7 +97,7 @@ jobs:
           LAST_CLEANUP=$(gh pr view ${{ inputs.pr_number }} --json comments --jq '
             .comments
             | map(select(.author.login == "github-actions"))
-            | map(select(.body | test("All nodes have been cleaned up")))
+            | map(select(.body | test("All nodes were deployed successfully and cleaned up")))
             | sort_by(.createdAt)
             | last
             | if . == null then "" else .createdAt end
@@ -139,25 +139,13 @@ jobs:
                 echo "Warning: Failed to delete node '$node'"
               fi
             done <<< "$NODES"
-            
-            # Only post message if we actually cleaned up nodes
-            if [ $CLEANED_NODES -gt 0 ]; then
-              if [[ "${{ inputs.pr_merged }}" == "true" ]]; then
-                gh pr comment ${{ inputs.pr_number }} --body " All nodes have been cleaned up after merge."
-              elif [[ "${{ inputs.event_action }}" == "closed" ]]; then
-                gh pr comment ${{ inputs.pr_number }} --body " All nodes have been cleaned up after PR close."
-              elif [[ "${{ inputs.event_action }}" == "synchronize" ]]; then
-                gh pr comment ${{ inputs.pr_number }} --body " All nodes have been cleaned up after PR update."
-              else
-                gh pr comment ${{ inputs.pr_number }} --body " All nodes have been cleaned up."
-              fi
-            fi
           else
             echo "No nodes found to clean up, exiting cleanly"
           fi
 
   test-nodes:
     needs: [get-host, cleanup]
+    if: inputs.pr_closed == false
     runs-on: ${{ needs.get-host.outputs.target_host }}
     environment: Dev
     strategy:
@@ -206,7 +194,6 @@ jobs:
           
           # Initialize arrays for node info
           declare -a NODE_NAMES=()
-          declare -a DEPLOYED_NODES=()
           declare -a ERROR_NODES=()
           
           # Check if PR is from Renovate
@@ -222,11 +209,11 @@ jobs:
             
             # Run nib image check with --cleanup for Renovate PRs
             if [[ "$IS_RENOVATE" == "true" ]]; then
-              echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test --cleanup"
-              nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test --cleanup 2>&1 | tee /tmp/nib_output.log
+              echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test --cleanup jobs-status"
+              nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test --cleanup jobs-status 2>&1 | tee /tmp/nib_output.log
             else
-              echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test"
-              nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test 2>&1 | tee /tmp/nib_output.log
+              echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test --cleanup jobs-restarts"
+              nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test --cleanup jobs-restarts 2>&1 | tee /tmp/nib_output.log
             fi
             
             # Extract node name from the complete output
@@ -236,36 +223,35 @@ jobs:
               exit 1
             fi
             
-            # Store node info
+            # Store node name for cleanup
             NODE_NAMES+=("$NODE_NAME")
-            DEPLOYED_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`")
             
             # Check for errors in the output
             if grep -q "Error: " /tmp/nib_output.log; then
               ERROR_MSG=$(grep "Error: " /tmp/nib_output.log)
               echo "Error found in nib output for $NODE_NAME: $ERROR_MSG"
               ERROR_NODES+=("- \`${NODE_NAME}\`, running variant \`${variant}\`:"$'\n'"  \`\`\`"$'\n'"  $ERROR_MSG"$'\n'"  \`\`\`")
+              
+              # Check if error matches the job restart pattern
+              if echo "$ERROR_MSG" | grep -q "Error: job '[^']*' has been restarted [0-9]* times"; then
+                echo "Non-critical job restart detected. Continuing..."
+              else
+                echo "Critical error detected. Exiting..."
+                exit 1
+              fi
             fi
           done
 
-          # Post comment about deployed nodes
-          if [ ${#DEPLOYED_NODES[@]} -gt 0 ]; then
-            COMMENT="The following nodes have been deployed on \`${RUNNER_HOST}\`:"$'\n'
-            for node in "${DEPLOYED_NODES[@]}"; do
+          # Post comment based on results
+          if [ ${#ERROR_NODES[@]} -gt 0 ]; then
+            COMMENT="The following nodes have been deployed on \`${RUNNER_HOST}\` and return errors:"$'\n'
+            for node in "${ERROR_NODES[@]}"; do
               COMMENT="${COMMENT}${node}"$'\n'
             done
-            COMMENT="${COMMENT}"$'\n'"These nodes will be cleaned up on PR merge or close and replaced on PR update."
+            COMMENT="${COMMENT}"$'\n'"Please fix the underlying issues."
             echo -e "$COMMENT" | gh pr comment ${{ inputs.pr_number }} --body-file -
-          fi
-
-          # Post comment about error nodes
-          if [ ${#ERROR_NODES[@]} -gt 0 ]; then
-            ERROR_COMMENT="These nodes have errors:"$'\n'
-            for node in "${ERROR_NODES[@]}"; do
-              ERROR_COMMENT="${ERROR_COMMENT}${node}"$'\n'
-            done
-            ERROR_COMMENT="${ERROR_COMMENT}"$'\n'"Please verify these nodes for errors that can be corrected now. We will allow the PR to be merged since some execution clients won't start properly without a valid dataset. "
-            echo -e "$ERROR_COMMENT" | gh pr comment ${{ inputs.pr_number }} --body-file -
+          else
+            echo "All test nodes were deployed successfully and cleaned up." | gh pr comment ${{ inputs.pr_number }} --body-file -
           fi
 
           # Save node names for cleanup
