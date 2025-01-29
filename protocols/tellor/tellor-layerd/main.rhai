@@ -35,8 +35,6 @@ const PLUGIN_CONFIG = #{
     init: #{
         commands: [
             `mkdir -p ${global::PROTOCOL_DIR}/.layer/config`,
-            `mkdir -p ${global::PROTOCOL_DIR}/.layer/logs`,
-            `mkdir -p ${global::PROTOCOL_DIR}/.layer/lib`,
             `mkdir -p ${global::CADDY_DIR}`,
             `mv /root/configs/* ${global::PROTOCOL_DIR}/.layer/config/`,
         ],
@@ -63,12 +61,13 @@ const PLUGIN_CONFIG = #{
         max_connections: 5,
     },
     upload: #{
-        exclude: [],
+        exclude: [
+            "tellor/.layer/config/**",
+        ],
     },
 };
 
 fn application_status() {
-    /// "uploading", "downloading", "initializing" statuses are automatically handled by BV if BABEL_CONFIG const is defined
     let result = run_jrpc(#{
             host: global::API_HOST,
             method: "status",
@@ -82,7 +81,7 @@ fn application_status() {
     }
 }
 
-/// Returns the height of the blockchain (in blocks).
+
 fn height() {
     parse_int(run_jrpc(#{ 
         host: global::API_HOST, 
@@ -91,7 +90,6 @@ fn height() {
     }).expect(200).result.sync_info.latest_block_height)
 }
 
-/// Returns blockchain synchronization status.
 fn sync_status() {
     let result = run_jrpc(#{
             host: global::API_HOST,
