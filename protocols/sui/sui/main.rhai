@@ -12,13 +12,13 @@ const CADDY_DIR = DATADIR + "/caddy";
 const API_HOST = "http://127.0.0.1:9000/";
 
 const VARIANTS = #{
-    sui-testnet: #{
+    "sui-testnet": #{
         url: "https://docs.sui.io/guides/operator",
         net_type: "test",
         network: "testnet",
         rpc: "https://rpc-testnet.suiscan.xyz"
     },
-    sui-mainnet: #{
+    "sui-mainnet": #{
         url: "https://docs.sui.io/guides/operator",
         net_type: "main",
         network: "mainnet",
