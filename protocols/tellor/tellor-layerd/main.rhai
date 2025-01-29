@@ -10,7 +10,7 @@ const GRPC_WEB_PORT = 9091;
 const GRPC_PORT = 9090;
 const METRICS_PORT = 26660;
 const METRICS_PATH = "/metrics";
-const API_HOST = "http://127.0.0.1:${global::RPC_PORT}";
+const API_HOST = "http://127.0.0.1:" + global::RPC_PORT;
 
 
 let AUX_CONFIG = aux::base_config(global::PROTOCOL_DIR, global::METRICS_PORT, global::P2P_PORT, global::RPC_PORT, global::REST_PORT, global::GRPC_WEB_PORT, global::GRPC_PORT, global::CADDY_DIR, global::METRICS_PATH);
@@ -34,11 +34,11 @@ const BABEL_VERSION = "0.9.0";
 const PLUGIN_CONFIG = #{
     init: #{
         commands: [
-            `mkdir -p ${global::PROTOCOL_DIR}/.layerd/config`,
-            `mkdir -p ${global::PROTOCOL_DIR}/.layerd/logs`,
-            `mkdir -p ${global::PROTOCOL_DIR}/.layerd/lib`,
+            `mkdir -p ${global::PROTOCOL_DIR}/.layer/config`,
+            `mkdir -p ${global::PROTOCOL_DIR}/.layer/logs`,
+            `mkdir -p ${global::PROTOCOL_DIR}/.layer/lib`,
             `mkdir -p ${global::CADDY_DIR}`,
-            `mv /root/configs/* ${global::PROTOCOL_DIR}/.layerd/config/`,
+            `mv /root/configs/* ${global::PROTOCOL_DIR}/.layer/config/`,
         ],
         jobs: [
             #{
