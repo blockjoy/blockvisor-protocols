@@ -148,6 +148,9 @@ jobs:
     if: inputs.pr_closed == false
     runs-on: ${{ needs.get-host.outputs.target_host }}
     environment: Dev
+    permissions:
+      contents: write
+      pull-requests: write
     strategy:
       matrix: ${{ fromJson(inputs.matrix) }}
     outputs:
@@ -163,6 +166,7 @@ jobs:
         run: |
           echo '${{ secrets.NIB_AUTH }}' > ~/.nib.json
       - name: Create test babel file
+        id: test-babel
         run: |
           # Copy babel.yaml to test file
           cp ${{ matrix.image_path }}/babel.yaml ${{ matrix.image_path }}/babel.yaml-test
@@ -173,6 +177,7 @@ jobs:
           # Update container_uri with newly built image using version from matrix
           NEW_URI="docker://ghcr.io/blockjoy/${IMAGE_NAME}:${{ matrix.version_tag }}"
           yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
+          echo "new_uri=${NEW_URI}" >> $GITHUB_OUTPUT
 
       - name: Test nodes
         id: test-nodes
@@ -257,3 +262,29 @@ jobs:
           # Save node names for cleanup
           echo "node_names=${NODE_NAMES[*]}" >> $GITHUB_OUTPUT
           echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: Update original babel.yaml
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Update container_uri in the original babel.yaml
+          yq -i e ".container_uri = \"${{ steps.test-babel.outputs.new_uri }}\"" ${{ matrix.image_path }}/babel.yaml
+          
+          # Configure git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          # Fetch and checkout PR branch
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch origin
+          git checkout -B pr-branch ${{ inputs.pr_sha }}
+          
+          # Commit and push changes
+          git add "${{ matrix.image_path }}/babel.yaml"
+          git commit -m "chore: update container_uri in ${{ matrix.image_path }}/babel.yaml to version ${{ matrix.version_tag }} [skip ci]"
+          
+          if ! git push origin pr-branch; then
+            echo "Error: Failed to push changes"
+            exit 1
+          fi
