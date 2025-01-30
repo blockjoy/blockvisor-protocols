@@ -52,7 +52,7 @@ const PLUGIN_CONFIG = #{
 };
 
 fn application_status() {
-    let resp = run_jrpc(#{host: global::FANTOM_API, method: "/"});
+    let resp = run_jrpc(#{host: `${global::FANTOM_API}`, method: "/"});
     
     if resp.status_code == 200 {
         "broadcasting"
@@ -62,7 +62,7 @@ fn application_status() {
 }
 
 fn height() {
-    let resp = run_jrpc(#{host: global::FANTOM_API, method: "eth_blockNumber"});
+    let resp = run_jrpc(#{host: `${global::FANTOM_API}`, method: "eth_blockNumber"});
     if resp.status_code != 200 {
       throw resp;
     }
@@ -71,7 +71,7 @@ fn height() {
 }
 
 fn sync_status() {
-    let resp = run_jrpc(#{host: global::FANTOM_API, method: "eth_syncing"}).expect(200);
+    let resp = run_jrpc(#{host: `${global::FANTOM_API}`, method: "eth_syncing"}).expect(200);
     if resp.result == false {
         "synced"
     } else {
