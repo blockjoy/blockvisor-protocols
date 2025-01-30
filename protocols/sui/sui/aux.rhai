@@ -22,6 +22,8 @@ fn base_config(data_dir, metrics_port, metrics_path, rpc_port, caddy_dir, networ
                     node_ip: node_env().node_ip,
                     tld: ".n0des.xyz",
                     data_dir: `${caddy_dir}`,
+                    rpc_port: `${rpc_port}`,
+                    ws_port: `${rpc_port}`,  // Using same port for WebSocket
                 }
             },
             #{
