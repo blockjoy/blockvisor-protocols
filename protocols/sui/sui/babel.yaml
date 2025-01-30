@@ -1,4 +1,4 @@
-version: 0.0.1
+version: 0.0.2
 container_uri: docker://ghcr.io/blockjoy/sui-sui-node:20250126.3
 sku_code: SUI-SUI-NODE
 org_id: null
