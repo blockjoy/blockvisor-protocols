@@ -154,7 +154,6 @@ COPY --from=builder /src/build/example-node /usr/bin/
 COPY . /var/lib/babel/
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 
-ENTRYPOINT ["/usr/bin/babel"]
 ```
 
 ## BlockJoy API Integration
@@ -446,8 +445,6 @@ FROM ghcr.io/blockjoy/node-base:latest
 COPY --from=builder /src/build/example-node /usr/bin/
 COPY . /var/lib/babel/
 COPY templates/Caddyfile.template /var/lib/babel/templates/
-
-ENTRYPOINT ["/usr/bin/babel"]
 ```
 
 ### Required Functions
