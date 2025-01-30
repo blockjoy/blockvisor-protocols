@@ -47,9 +47,12 @@ jobs:
               DIR=$(dirname "$file")
               PROTOCOL=$(basename "$DIR")
               
-              # Check if file content has changed
-              if ! git diff --quiet ${{ github.event.pull_request.base.sha }} HEAD -- "$file"; then
-                echo "Content changed in $file"
+              # Check if container_uri has changed
+              OLD_URI=$(git show ${{ github.event.pull_request.base.sha }}:"$file" | yq e '.container_uri' -)
+              NEW_URI=$(yq e '.container_uri' "$file")
+              
+              if [ "$OLD_URI" != "$NEW_URI" ]; then
+                echo "Container URI changed in $file from $OLD_URI to $NEW_URI"
                 CONTENT_CHANGES+=("{\"image_path\":\"$DIR\",\"protocol\":\"$PROTOCOL\"}")
               fi
             elif [[ "$file" == "protocols/protocols.yaml" ]]; then

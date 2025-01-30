@@ -937,6 +937,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Get the latest commit SHA from the PR
+          LATEST_SHA=$(gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq .head.sha)
+          
           if [[ "${{ needs.build-base-images.result }}" == "failure" ]] || \
              [[ "${{ needs.build-clients.result }}" == "failure" ]] || \
              [[ "${{ needs.build-protocols.result }}" == "failure" ]] || \
@@ -972,19 +975,18 @@ jobs:
             gh api \
               --method POST \
               -H "Accept: application/vnd.github+json" \
-              "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
+              "/repos/${{ github.repository }}/statuses/$LATEST_SHA" \
               -f state="$STATE" \
               -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
               -f description="$DESCRIPTION" \
               -f context="workflow-status" \
               -f owner="${{ github.repository_owner }}" \
               -f repo="${{ github.event.repository.name }}" \
-              -f sha="${{ github.event.pull_request.head.sha }}" \
+              -f sha="$LATEST_SHA" \
               -f token="${{ secrets.GITHUB_TOKEN }}"
             exit 1
           fi
 
-          # All jobs either succeeded or were skipped
           if [[ "${{ needs.build-base-images.result }}" == "skipped" ]] && \
              [[ "${{ needs.build-clients.result }}" == "skipped" ]] && \
              [[ "${{ needs.build-protocols.result }}" == "skipped" ]] && \
@@ -1000,14 +1002,14 @@ jobs:
           gh api \
             --method POST \
             -H "Accept: application/vnd.github+json" \
-            "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
+            "/repos/${{ github.repository }}/statuses/$LATEST_SHA" \
             -f state='success' \
             -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             -f description="$DESCRIPTION" \
             -f context="workflow-status" \
             -f owner="${{ github.repository_owner }}" \
             -f repo="${{ github.event.repository.name }}" \
-            -f sha="${{ github.event.pull_request.head.sha }}" \
+            -f sha="$LATEST_SHA" \
             -f token="${{ secrets.GITHUB_TOKEN }}"
 
   push-protocols:

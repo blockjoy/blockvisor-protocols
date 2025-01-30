@@ -45,7 +45,7 @@ on:
         value: ${{ jobs.test-nodes.outputs.runner_host }}
 
 permissions:
-  contents: read
+  contents: write
   packages: write
   statuses: write
   pull-requests: write
@@ -269,23 +269,27 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOME: /home/github-runner
         run: |
-          # Update container_uri in the original babel.yaml
-          yq -i e ".container_uri = \"${{ steps.test-babel.outputs.new_uri }}\"" ${{ matrix.image_path }}/babel.yaml
-          
-          # Configure git
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          
           # Fetch and checkout PR branch
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git fetch origin
           git checkout -B pr-branch ${{ inputs.pr_sha }}
           
+          # Configure git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          # Create a new branch from the PR's head ref
+          git fetch origin ${{ github.event.pull_request.head.ref }}
+          git checkout -B update-babel origin/${{ github.event.pull_request.head.ref }}
+          
+          # Update container_uri in the original babel.yaml
+          yq -i e ".container_uri = \"${{ steps.test-babel.outputs.new_uri }}\"" ${{ matrix.image_path }}/babel.yaml
+          
           # Commit and push changes
           git add "${{ matrix.image_path }}/babel.yaml"
           git commit -m "chore: update container_uri in ${{ matrix.image_path }}/babel.yaml to version ${{ matrix.version_tag }} [skip ci]"
           
-          if ! git push origin pr-branch; then
+          if ! git push origin update-babel:${{ github.event.pull_request.head.ref }}; then
             echo "Error: Failed to push changes"
             exit 1
           fi
