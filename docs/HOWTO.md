@@ -158,7 +158,49 @@ variants:
     sku_code: EXPL-MF
 ```
 
-### 2. main.rhai - Main protocol configuration
+### 2. base.rhai - Common protocol functions
+
+The `base.rhai` file is part of the base image and provides common utility functions used by all protocols. It is located at `/usr/lib/babel/base.rhai` in the container:
+
+```rhai
+// Empty base configuration that protocols can extend
+const BASE_CONFIG = #{
+    config_files: [],
+    services: [],
+};
+
+// Convert hexadecimal strings to integers
+fn parse_hex(hex_str) {
+    if hex_str == null {
+        return 0;
+    }
+    if hex_str.starts_with("0x") {
+        hex_str.substr(2).parse_int(16)
+    } else {
+        hex_str.parse_int(16)
+    }
+}
+
+// Make JSON-RPC calls to the node
+fn run_jrpc(params) {
+    let host = params.host;
+    let method = params.method;
+    let result = http::post(host, #{
+        jsonrpc: "2.0",
+        method: method,
+        params: [],
+        id: 1,
+    });
+    result
+}
+```
+
+These functions are imported in `main.rhai` using:
+```rhai
+import "base" as base;
+```
+
+### 3. main.rhai - Main protocol configuration
 ```rhai
 import "base" as base;
 import "aux" as aux;
@@ -237,7 +279,7 @@ fn sync_status() {
 }
 ```
 
-### 3. aux.rhai - Auxiliary configurations
+### 4. aux.rhai - Auxiliary configurations
 ```rhai
 fn base_config(metrics_port, rpc_port, ws_port, caddy_dir) { 
     #{   
@@ -266,7 +308,7 @@ fn base_config(metrics_port, rpc_port, ws_port, caddy_dir) {
 }
 ```
 
-### 4. Dockerfile - Protocol image configuration
+### 5. Dockerfile - Protocol image configuration
 ```dockerfile
 FROM golang:1.21-alpine AS builder
 RUN apk add --no-cache make gcc musl-dev linux-headers git
@@ -283,7 +325,7 @@ COPY templates/Caddyfile.template /var/lib/babel/templates/
 
 ```
 
-### 5. Templates and Configuration Files
+### 6. Templates and Configuration Files
 
 The protocol implementation includes template files that are processed during node initialization:
 
