@@ -58,7 +58,7 @@ const PLUGIN_CONFIG = #{
 
 fn application_status() {
     let res = run_jrpc(#{
-        host: `${global::API_HOST}`,
+        host: global::API_HOST,
         method: "eth_blockNumber",
         params: [],
         headers: #{"Content-Type" : "application/json"},
@@ -72,7 +72,7 @@ fn application_status() {
 
 fn height(){
     let res = run_jrpc(#{
-        host: `${global::API_HOST}`,
+        host: global::API_HOST,
         method: "eth_blockNumber",
         params: [],
         headers: #{"Content-Type" : "application/json"},
@@ -85,7 +85,7 @@ fn height(){
 }
 
 fn sync_status() {
-    let data1 = #{url: global::API_HOST+"/health",
+    let data1 = #{url: global::API_HOST +"/health",
             method: "eth_getBlockByNumber",
             headers: [
                 ["X-ERIGON-HEALTHCHECK", "synced"],
