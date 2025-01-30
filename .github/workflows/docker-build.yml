@@ -979,19 +979,38 @@ jobs:
               -f state="$STATE" \
               -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
               -f description="$DESCRIPTION" \
-              -f context="workflow-status"
+              -f context="workflow-status" \
+              -f owner="${{ github.repository_owner }}" \
+              -f repo="${{ github.event.repository.name }}" \
+              -f sha="$LATEST_SHA" \
+              -f token="${{ secrets.GITHUB_TOKEN }}"
             exit 1
           fi
 
-          # All jobs either succeeded or were skipped
+          if [[ "${{ needs.build-base-images.result }}" == "skipped" ]] && \
+             [[ "${{ needs.build-clients.result }}" == "skipped" ]] && \
+             [[ "${{ needs.build-protocols.result }}" == "skipped" ]] && \
+             [[ "${{ needs.test-nodes.result }}" == "skipped" ]] && \
+             [[ "${{ needs.scan-dockerfiles.result }}" == "skipped" ]] && \
+             [[ "${{ needs.detect-changes.result }}" == "skipped" ]] && \
+             [[ "${{ needs.check-protocols.result }}" == "skipped" ]]; then
+            DESCRIPTION="No changes detected"
+          else
+            DESCRIPTION="All checks passed successfully"
+          fi
+          
           gh api \
             --method POST \
             -H "Accept: application/vnd.github+json" \
             "/repos/${{ github.repository }}/statuses/$LATEST_SHA" \
-            -f state="success" \
+            -f state='success' \
             -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            -f description="All checks passed" \
-            -f context="workflow-status"
+            -f description="$DESCRIPTION" \
+            -f context="workflow-status" \
+            -f owner="${{ github.repository_owner }}" \
+            -f repo="${{ github.event.repository.name }}" \
+            -f sha="$LATEST_SHA" \
+            -f token="${{ secrets.GITHUB_TOKEN }}"
 
   push-protocols:
     environment: Dev
