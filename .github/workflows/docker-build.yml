@@ -15,7 +15,7 @@ permissions:
   pull-requests: write
 
 env:
-  HOME: /github/home
+  HOME: /home/github-runner
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

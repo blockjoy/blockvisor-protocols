@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  HOME: /github/home
+  HOME: /home/github-runner
 
 jobs:
   detect-changes:
