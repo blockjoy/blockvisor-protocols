@@ -40,7 +40,7 @@ const PLUGIN_CONFIG = #{
         jobs: [
             #{
                 name: "init",
-                run_sh: `/root/bin/neard --home=${global::DATA_DIR} init --chain-id ${global::NET} --download-genesis --boot-nodes ${global::VARIANTS[global::NET].bootnodes} && rm ${global::DATA_DIR}/config.json && mv /root/bin/config.json ${global::DATA_DIR}/config.json`,
+                run_sh: `/root/bin/neard --home=${global::DATA_DIR} init --chain-id ${global::NET} --download-genesis --boot-nodes ${global::VARIANTS[node_env().node_variant].bootnodes} && rm ${global::DATA_DIR}/config.json && mv /root/bin/config.json ${global::DATA_DIR}/config.json`,
             }
         ]
     },
