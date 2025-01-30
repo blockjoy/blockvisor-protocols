@@ -1,4 +1,4 @@
-ARG PROTOCOL_IMAGE=ghcr.io/blockjoy/sui:v20250129.6
+ARG PROTOCOL_IMAGE=ghcr.io/blockjoy/sui-node:v20250130.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
 FROM ${PROTOCOL_IMAGE} AS protocol
@@ -17,7 +17,7 @@ ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 RUN mkdir -p /root/bin /root/lib /var/lib/babel/templates
 
 # Copy binaries from builds
-COPY --from=protocol /root/bin/mainnet /root/bin/mainnet
+COPY --from=protocol /root/bin/sui-node /root/bin/
 
 # Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/

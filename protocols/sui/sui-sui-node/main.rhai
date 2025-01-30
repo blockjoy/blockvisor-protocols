@@ -45,7 +45,7 @@ const PLUGIN_CONFIG = #{
     services: [
         #{
             name: "sui",
-            run_sh: `/root/bin/${global::NET}/sui-node --config-path /root/bin/fullnode.yaml`,
+            run_sh: `/root/bin/sui-node --config-path /root/bin/fullnode.yaml`,
         },
     ],
     upload: #{
