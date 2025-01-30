@@ -269,17 +269,20 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOME: /home/github-runner
         run: |
+          # Fetch and checkout PR branch
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch origin
+          git checkout -B pr-branch ${{ inputs.pr_sha }}
+          
+          # Pull any recent changes
+          git pull origin ${{ github.event.pull_request.head.ref }} --rebase
+          
           # Update container_uri in the original babel.yaml
           yq -i e ".container_uri = \"${{ steps.test-babel.outputs.new_uri }}\"" ${{ matrix.image_path }}/babel.yaml
           
           # Configure git
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          
-          # Fetch and checkout PR branch
-          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git fetch origin
-          git checkout -B pr-branch ${{ inputs.pr_sha }}
           
           # Commit and push changes
           git add "${{ matrix.image_path }}/babel.yaml"
