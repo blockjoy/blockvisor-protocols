@@ -8,7 +8,6 @@ This repository contains Docker configurations for blockchain protocol nodes and
 .
 ├── base-images/              # Base images with common utilities
 │   ├── debian-bookworm/      # Debian Bookworm base image
-│   ├── alpine/               # Alpine-based base image
 │   └── ...                   # Other base images
 ├── clients/                  # Client-specific Dockerfiles and configurations
 │   ├── consensus/            # Consensus client implementations
