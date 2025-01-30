@@ -45,7 +45,7 @@ on:
         value: ${{ jobs.test-nodes.outputs.runner_host }}
 
 permissions:
-  contents: read
+  contents: write
   packages: write
   statuses: write
   pull-requests: write
@@ -299,6 +299,7 @@ jobs:
           gh api \
             --method POST \
             -H "Accept: application/vnd.github+json" \
+            -H "Authorization: token ${GH_TOKEN}" \
             "/repos/${{ github.repository }}/statuses/$NEW_SHA" \
             -f state="success" \
             -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
