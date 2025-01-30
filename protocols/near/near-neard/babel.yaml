@@ -1,5 +1,5 @@
 version: 0.0.3
-container_uri: docker://ghcr.io/blockjoy/near-neard:v20250130.1
+container_uri: docker://ghcr.io/blockjoy/near-neard:v20250130.4
 sku_code: NEAR-NEARD
 org_id: null
 description: Near
