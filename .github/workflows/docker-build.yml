@@ -911,6 +911,11 @@ jobs:
     needs: [build-protocols]
     if: needs.build-protocols.result == 'success'
     uses: ./.github/workflows/test-nodes.yml
+    permissions:
+      contents: write
+      pull-requests: write
+      packages: write
+      statuses: write
     with:
       matrix: ${{ needs.build-protocols.outputs.matrix }}
       pr_number: ${{ github.event.pull_request.number }}
@@ -919,11 +924,6 @@ jobs:
       pr_merged: false
       pr_closed: false
     secrets: inherit
-    permissions:
-      contents: read
-      packages: write
-      statuses: write
-      pull-requests: write
 
   workflow-status:
     needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes]
