@@ -32,7 +32,6 @@ jobs:
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
       protocols_matrix: ${{ steps.set-matrix.outputs.protocols_matrix }}
       protocol_changes: ${{ steps.set-matrix.outputs.protocol_changes }}
-      all_changed_files: ${{ steps.changed-files.outputs.changes }}
       dockerfile_changes: ${{ steps.set-matrix.outputs.dockerfile_changes }}
       dockerfile_matrix: ${{ steps.set-matrix.outputs.dockerfile_matrix }}
       protocols_yaml_changed: ${{ steps.set-matrix.outputs.protocols_yaml_changed }}
