@@ -8,7 +8,7 @@ on:
         type: string
         description: "JSON string containing the test matrix"
       version_tag:
-        required: true
+        required: false
         type: string
         description: "Version tag for the container image"
       pr_number:
@@ -170,8 +170,8 @@ jobs:
           # Extract image name the same way as build-protocols
           IMAGE_NAME=$(echo "${{ matrix.image_path }}" | cut -d'/' -f3)
           
-          # Update container_uri with newly built image
-          NEW_URI="docker://ghcr.io/blockjoy/${IMAGE_NAME}:${{ inputs.version_tag }}"
+          # Update container_uri with newly built image using version from matrix
+          NEW_URI="docker://ghcr.io/blockjoy/${IMAGE_NAME}:${{ matrix.version_tag }}"
           yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
 
       - name: Test nodes

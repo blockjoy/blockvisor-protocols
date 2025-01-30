@@ -674,7 +674,7 @@ jobs:
       (needs.scan-dockerfiles.result == 'success' || needs.scan-dockerfiles.result == 'skipped')
     runs-on: dev
     outputs:
-      matrix: ${{ needs.detect-changes.outputs.protocols_matrix }}
+      matrix: ${{ steps.matrix-with-versions.outputs.matrix }}
       image_name: ${{ steps.version.outputs.image_name }}
       image_tag: ${{ steps.version.outputs.image_tag }}
       version_tag: ${{ steps.version.outputs.version_tag }}
@@ -771,6 +771,19 @@ jobs:
           
           # Script should succeed even if API call failed
           exit 0
+      - name: Update matrix with version tag
+        id: matrix-with-versions
+        run: |
+          # Get the current matrix and version tag
+          MATRIX='${{ needs.detect-changes.outputs.protocols_matrix }}'
+          VERSION_TAG="${{ steps.version.outputs.version_tag }}"
+          
+          # Add version_tag to each item in the matrix
+          UPDATED_MATRIX=$(echo "$MATRIX" | jq -c --arg version "$VERSION_TAG" '.include |= map(. + {version_tag: $version})')
+          
+          # Output the updated matrix
+          echo "matrix=${UPDATED_MATRIX}" >> $GITHUB_OUTPUT
+
       - name: Generate build contexts
         id: build-contexts
         run: |
@@ -900,7 +913,6 @@ jobs:
     uses: ./.github/workflows/test-nodes.yml
     with:
       matrix: ${{ needs.build-protocols.outputs.matrix }}
-      version_tag: ${{ needs.build-protocols.outputs.version_tag }}
       pr_number: ${{ github.event.pull_request.number }}
       pr_sha: ${{ github.event.pull_request.head.sha }}
       event_action: ${{ github.event.action }}

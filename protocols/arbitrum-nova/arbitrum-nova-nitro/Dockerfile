@@ -1,3 +1,4 @@
+#1
 ARG NITRO_IMAGE=ghcr.io/blockjoy/nitro:v20250123.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
