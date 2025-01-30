@@ -293,3 +293,14 @@ jobs:
             echo "Error: Failed to push changes"
             exit 1
           fi
+          
+          # Update workflow status for the new commit
+          NEW_SHA=$(git rev-parse HEAD)
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/statuses/$NEW_SHA" \
+            -f state="success" \
+            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            -f description="All checks passed" \
+            -f context="workflow-status"
