@@ -134,8 +134,9 @@ The BlockJoy API uses the metadata from `babel.yaml` to plan and create node dep
 Each protocol should follow this structure:
 ```bash
 protocols/
-└── your-protocol/
-    └── your-protocol-client/
+└── your_protocol/
+    └── your_protocol-client/
+        └── templates/
         ├── babel.yaml    # Protocol configuration and metadata
         ├── main.rhai     # Main protocol configuration
         ├── aux.rhai      # Auxiliary functions and configurations
