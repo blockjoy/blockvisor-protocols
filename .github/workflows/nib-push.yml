@@ -8,6 +8,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.head_ref || github.ref }}
   cancel-in-progress: false
 
+env:
+  HOME: /home/github-runner
+
 jobs:
   detect-changes:
     runs-on: dev

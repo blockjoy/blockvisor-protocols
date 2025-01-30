@@ -1,7 +1,7 @@
 import "base" as base;
 import "aux" as aux;
 
-const RPC_PORT = 8547;
+const RPC_PORT = 8547; // RPC PORT
 const WS_PORT = 8548;
 const METRICS_PORT = 6767;
 const METRICS_PATH = "/debug/metrics/prometheus";
