@@ -80,7 +80,7 @@ const PLUGIN_CONFIG = #{
 };
 
 fn application_status() {
-    let resp = run_jrpc(#{host: API_HOST, method: "/"});
+    let resp = run_jrpc(#{host: ${API_HOST}, method: "/"});
 
     if resp.status_code == 200 {
         "broadcasting"
@@ -90,11 +90,11 @@ fn application_status() {
 }
 
 fn height() {
-    parse_hex(run_jrpc(#{host: API_HOST, method: "eth_blockNumber"}).expect(200).result)
+    parse_hex(run_jrpc(#{host: ${API_HOST}, method: "eth_blockNumber"}).expect(200).result)
 }
 
 fn sync_status() {
-    let resp = run_jrpc(#{host: API_HOST, method: "eth_syncing"}).expect(200);
+    let resp = run_jrpc(#{host: ${API_HOST}, method: "eth_syncing"}).expect(200);
     if resp.result == false {
         "synced"
     } else {
