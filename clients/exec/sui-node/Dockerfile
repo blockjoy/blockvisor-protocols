@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250120.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 ARG SUI_IMAGE=mysten/sui-node:mainnet-v1.41.1
 
 FROM ${SUI_IMAGE} AS sui_node
@@ -9,4 +9,4 @@ RUN apt-get update && \
     apt-get install sysstat -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /usr/share/doc/* /var/cache/ldconfig/aux-cache /usr/lib/python3.9/__pycache__/ /usr/lib/python3.9/*/__pycache__/ /var/log/*
-COPY --from=sui_node /usr/local/bin/sui-node /root/bin/mainnet/
+COPY --from=sui_node /usr/local/bin/sui-node /root/bin/
