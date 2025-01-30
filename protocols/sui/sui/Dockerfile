@@ -23,7 +23,5 @@ COPY --from=protocol /root/bin/mainnet /root/bin/mainnet
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
 COPY templates/fullnode-yaml.template /var/lib/babel/templates/
-COPY templates/fullnode-testnet-yaml.template /var/lib/babel/templates/
-COPY templates/fullnode-mainnet-yaml.template /var/lib/babel/templates/
 COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/
