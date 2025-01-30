@@ -774,14 +774,15 @@ jobs:
       - name: Update matrix with version tag
         id: matrix-with-versions
         run: |
-          # Get the current matrix
+          # Get the current matrix and version tag
           MATRIX='${{ needs.detect-changes.outputs.protocols_matrix }}'
+          VERSION_TAG="${{ steps.version.outputs.version_tag }}"
           
           # Add version_tag to each item in the matrix
-          UPDATED_MATRIX=$(echo "$MATRIX" | jq --arg version "${{ steps.version.outputs.version_tag }}" '.include |= map(. + {version_tag: $version})')
+          UPDATED_MATRIX=$(echo "$MATRIX" | jq -c --arg version "$VERSION_TAG" '.include |= map(. + {version_tag: $version})')
           
-          # Set as output
-          echo "matrix=$UPDATED_MATRIX" >> $GITHUB_OUTPUT
+          # Output the updated matrix
+          echo "matrix=${UPDATED_MATRIX}" >> $GITHUB_OUTPUT
 
       - name: Generate build contexts
         id: build-contexts
