@@ -17,7 +17,7 @@ ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 RUN mkdir -p /root/bin /root/lib /var/lib/babel/templates
 
 # Copy binaries from builds
-COPY --from=protocol /root/bin/mainnet /root/bin/mainnet
+COPY --from=protocol /root/bin/sui-node /root/bin/
 
 # Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/
