@@ -287,7 +287,7 @@ jobs:
           
           # Commit and push changes
           git add "${{ matrix.image_path }}/babel.yaml"
-          git commit -m "chore: update container_uri in ${{ matrix.image_path }}/babel.yaml to version ${{ matrix.version_tag }} [skip ci]"
+          git commit -m "chore: update container_uri in ${{ matrix.image_path }}/babel.yaml to version ${{ matrix.version_tag }}"
           
           if ! git push origin update-babel:${{ github.event.pull_request.head.ref }}; then
             echo "Error: Failed to push changes"

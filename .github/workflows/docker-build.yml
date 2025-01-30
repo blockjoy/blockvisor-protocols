@@ -26,7 +26,8 @@ jobs:
     runs-on: dev
     if: |
       github.event_name == 'pull_request' &&
-      github.event.action != 'closed'
+      github.event.action != 'closed' &&
+      github.actor != 'github-actions[bot]'
     outputs:
       base_matrix: ${{ steps.set-matrix.outputs.base_matrix }}
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
