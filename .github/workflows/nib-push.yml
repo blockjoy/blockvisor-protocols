@@ -1,4 +1,4 @@
-name: Push Protocol Images
+name: Push to Blockjoy
 
 on:
   pull_request:
