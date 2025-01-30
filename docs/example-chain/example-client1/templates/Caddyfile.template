@@ -1,0 +1,18 @@
+{hostname}{tld} {
+    reverse_proxy /debug/metrics/prometheus localhost:{metrics_port}
+    reverse_proxy /ws localhost:{ws_port}
+    reverse_proxy localhost:{rpc_port}
+
+    tls {
+        dns cloudflare {env.CF_API_TOKEN}
+    }
+
+    log {
+        output file {data_dir}/access.log
+        format json
+    }
+
+    handle_errors {
+        respond "Service Unavailable" 503
+    }
+}

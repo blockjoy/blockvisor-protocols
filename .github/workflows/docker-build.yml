@@ -3,13 +3,6 @@ name: Build Docker Images
 on:
   pull_request:
     branches: [ main ]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.gitignore'
-      - 'LICENSE'
-      - '.github/**'
-      - '!.github/workflows/**'
     types:
       - opened      # PR is created
       - synchronize # New commits pushed
@@ -39,7 +32,7 @@ jobs:
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
       protocols_matrix: ${{ steps.set-matrix.outputs.protocols_matrix }}
       protocol_changes: ${{ steps.set-matrix.outputs.protocol_changes }}
-      all_changed_files: ${{ steps.changed-files.outputs.all_changed_files }}
+      all_changed_files: ${{ steps.changed-files.outputs.changes }}
       dockerfile_changes: ${{ steps.set-matrix.outputs.dockerfile_changes }}
       dockerfile_matrix: ${{ steps.set-matrix.outputs.dockerfile_matrix }}
       protocols_yaml_changed: ${{ steps.set-matrix.outputs.protocols_yaml_changed }}
@@ -51,14 +44,21 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@d6e91a2266cdb9d62096cebf1e8546899c6aa18f # v45
+        uses: dorny/paths-filter@v2
         with:
-          base_sha: ${{ github.event.pull_request.base.sha }}
-          fetch_depth: 0
+          filters: |
+            changes:
+              - '**'
+              - '!**.md'
+              - '!docs/**'
+              - '!.gitignore'
+              - '!LICENSE'
+              - '!.github/**'
+              - '.github/workflows/**'
 
       - name: List all changed files
         env:
-          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.changes }}
         run: |
           for file in ${ALL_CHANGED_FILES}; do
             echo "$file was changed"
@@ -66,7 +66,7 @@ jobs:
           
       - name: Debug changed files outputs
         env:
-          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.changes }}
         run: |
           echo "Debug outputs from changed-files action:"
           echo "Changed files:"
@@ -75,7 +75,7 @@ jobs:
       - name: Generate build matrices
         id: set-matrix
         env:
-          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.changes }}
         run: |
           # First find all Docker build contexts (directories containing Dockerfile)
           DOCKER_DIRS=$(find . -name Dockerfile -exec dirname {} \; | sed 's|^./||' | sort)
