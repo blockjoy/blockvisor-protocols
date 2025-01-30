@@ -27,22 +27,11 @@ fn base_config(data_dir, metrics_port, metrics_path, rpc_port, caddy_dir, networ
                 }
             },
             #{
-                template: "/var/lib/babel/templates/fullnode-mainnet-yaml.template",
-                destination: "/root/bin/mainnet/fullnode.yaml",
-                params: #{
-                    rpc_port: "${rpc_port}",
-                    metrics_port: "${metrics_port}",
-                    node_ip: node_env().node_ip,
-                    global_dir: `${data_dir}`,
-                    network: `${network}`,
-                }
-            },
-            #{
                 template: "/var/lib/babel/templates/fullnode-yaml.template",
                 destination: "/root/bin/fullnode.yaml",
                 params: #{
-                    rpc_port: "${rpc_port}",
-                    metrics_port: "${metrics_port}",
+                    rpc_port: `${rpc_port}`,
+                    metrics_port: `${metrics_port}`,
                     node_ip: node_env().node_ip,
                     global_dir: `${data_dir}`,
                     network: `${network}`,
@@ -52,7 +41,7 @@ fn base_config(data_dir, metrics_port, metrics_path, rpc_port, caddy_dir, networ
         services: [
             #{
               name: "alloy",
-              run_sh: `/usr/bin/alloy run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy`,
+              run_sh: `/usr/bin/alloy run --server.http.listen-addr=127.0.0.1:12346 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy`,
               log_timestamp: false,
             },
             #{

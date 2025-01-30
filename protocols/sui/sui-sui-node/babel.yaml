@@ -1,25 +1,18 @@
-version: 0.0.1
-container_uri: docker://ghcr.io/blockjoy/sui:20250126.3
-sku_code: SUI-SUI
+version: 0.0.2
+container_uri: docker://ghcr.io/blockjoy/sui-sui-node:v20250130.1
+sku_code: SUI-SUI-NODE
 org_id: null
 description: Sui
 visibility: public
 protocol_key: sui
 variants:
-  - key: sui-mainnet
+  - key: sui-node-mainnet-full
     min_cpu: 16
     min_memory_mb: 131072
-    min_disk_gb: 6000
-    sku_code: SUI-SUI-MF
+    min_disk_gb: 2500
+    sku_code: SUI-SUINODE-MF
     archive_pointers:
-      - pointer: !store_key sui-mainnet-v1
-  - key: sui-testnet
-    min_cpu: 16
-    min_memory_mb: 131072
-    min_disk_gb: 6000
-    sku_code: SUI-SUI-TF
-    archive_pointers:
-      - pointer: !store_key sui-testnet-v1
+      - pointer: !store_key sui-sui-node-mainnet-full-v1
 firewall_config:
   default_in: deny
   default_out: allow
@@ -38,7 +31,7 @@ firewall_config:
         - port: 443
           name: HTTPS port
     - key: Allow incoming ports UDP
-      description: Allow UDP inbound traffic on port 12345
+      description: Allow UDP inbound traffic on port 8084
       protocol: udp
       direction: in
       action: allow
