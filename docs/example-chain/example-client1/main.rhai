@@ -20,24 +20,33 @@ const BASE_CONFIG = #{
 
 // Define protocol variants
 const VARIANTS = #{
-    "mainnet-archive": #{
-        network: "mainnet",
-        extra_args: "--syncmode full --gcmode archive",
-    },
-    "mainnet-full": #{
+    "example-mainnet-full": #{
         network: "mainnet",
         extra_args: "--syncmode full",
+    },
+    "example-mainnet-archive": #{
+        network: "mainnet",
+        extra_args: "--syncmode full --gcmode archive",
     },
 };
 
 const VARIANT = VARIANTS[node_env().node_variant];
 const API_HOST = `http://127.0.0.1:${global::RPC_PORT}`;
+const BABEL_VERSION = "0.1.0";
+
+// Determine extra args based on variant
+const EXTRA_ARGS = if node_env().node_variant.ends_with("-full") {
+    "--prune htc"
+} else {
+    "--prune none"
+};
 
 // Plugin configuration
 const PLUGIN_CONFIG = #{
     init: #{
         commands: [
             `mkdir -p ${global::EXAMPLE_DIR}`,
+            `mkdir -p ${global::CADDY_DIR}`,
         ],
         jobs: [
             #{
@@ -63,8 +72,11 @@ const PLUGIN_CONFIG = #{
                     --metrics \
                     --metrics.addr=127.0.0.1 \
                     --metrics.port=${global::METRICS_PORT} \
-                    ${global::VARIANT.extra_args}`,
+                    ${global::VARIANT.extra_args} \
+                    ${global::EXTRA_ARGS}`,
             shutdown_timeout_secs: 120,
+            use_blockchain_data: true,
+            log_timestamp: false,
         },
     ],
     config_files: BASE_CONFIG.config_files,

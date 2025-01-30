@@ -23,6 +23,12 @@ version: 0.1.0                                      # Protocol version
 container_uri: docker://ghcr.io/org/image:tag      # Container image
 sku_code: YOUR-PROTOCOL                            # Unique protocol identifier
 org_id: null                                       # Organization ID (if applicable)
+variants:
+  - key: example-mainnet-full
+    min_cpu: 4
+    min_memory_mb: 16000
+    min_disk_gb: 1000
+    sku_code: EXPL-MF
 ```
 
 ### 2. main.rhai - Main protocol configuration
@@ -49,11 +55,7 @@ const BASE_CONFIG = #{
 
 // Define protocol variants
 const VARIANTS = #{
-    "mainnet-archive": #{
-        network: "mainnet",
-        extra_args: "--syncmode full --gcmode archive",
-    },
-    "mainnet-full": #{
+    "example-mainnet-full": #{
         network: "mainnet",
         extra_args: "--syncmode full",
     },
@@ -66,12 +68,7 @@ const PLUGIN_CONFIG = #{
     init: #{
         commands: [
             `mkdir -p ${global::EXAMPLE_DIR}`,
-        ],
-        jobs: [
-            #{
-                name: "init_job",
-                run_sh: `openssl rand -hex 32 > ${global::EXAMPLE_DIR}/jwt.txt`,
-            },
+            `mkdir -p ${global::CADDY_DIR}`,
         ],
     },
     services: [
@@ -80,19 +77,10 @@ const PLUGIN_CONFIG = #{
             run_sh: `/usr/bin/example-node \
                     --datadir=${global::EXAMPLE_DIR} \
                     --network=${global::VARIANT.network} \
-                    --http \
-                    --http.addr=127.0.0.1 \
-                    --http.port=${global::RPC_PORT} \
-                    --http.api=eth,net,web3 \
-                    --ws \
-                    --ws.addr=127.0.0.1 \
-                    --ws.port=${global::WS_PORT} \
-                    --ws.api=eth,net,web3 \
-                    --metrics \
-                    --metrics.addr=127.0.0.1 \
-                    --metrics.port=${global::METRICS_PORT} \
                     ${global::VARIANT.extra_args}`,
             shutdown_timeout_secs: 120,
+            use_blockchain_data: true,
+            log_timestamp: false,
         },
     ],
 };
@@ -128,17 +116,6 @@ fn base_config(metrics_port, rpc_port, ws_port, caddy_dir) {
     #{   
         config_files: [
             #{
-                template: "/var/lib/babel/templates/config-alloy.template",
-                destination: "/etc/alloy/config.alloy",
-                params: #{
-                    hostname: node_env().node_name,
-                    tld: ".n0des.xyz",
-                    blockchain: node_env().node_protocol,
-                    metrics_port: `${metrics_port}`,
-                    metrics_path: "/debug/metrics/prometheus",
-                }
-            },
-            #{
                 template: "/var/lib/babel/templates/Caddyfile.template",
                 destination: "/etc/caddy/Caddyfile",
                 params: #{
@@ -146,7 +123,6 @@ fn base_config(metrics_port, rpc_port, ws_port, caddy_dir) {
                     ws_port: `${ws_port}`,
                     metrics_port: `${metrics_port}`,
                     hostname: node_env().node_name,
-                    node_ip: node_env().node_ip,
                     tld: ".n0des.xyz",
                     data_dir: `${caddy_dir}`,
                 }
@@ -154,12 +130,9 @@ fn base_config(metrics_port, rpc_port, ws_port, caddy_dir) {
         ],
         services: [
             #{
-                name: "alloy",
-                run_sh: "/usr/bin/alloy run --server.http.listen-addr=127.0.0.1:12346 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy"
-            },
-            #{
                 name: "caddy",
-                run_sh: "/usr/bin/caddy run --config /etc/caddy/Caddyfile"
+                run_sh: `/usr/bin/caddy run --config /etc/caddy/Caddyfile`,
+                log_timestamp: false,
             }
         ]
     }
@@ -168,19 +141,20 @@ fn base_config(metrics_port, rpc_port, ws_port, caddy_dir) {
 
 ### 4. Dockerfile - Protocol image configuration
 ```dockerfile
-ARG CLIENT_IMAGE=ghcr.io/blockjoy/your-client:latest
-FROM ${CLIENT_IMAGE}
+FROM golang:1.21-alpine AS builder
+RUN apk add --no-cache make gcc musl-dev linux-headers git
 
-# Create necessary directories
-RUN mkdir -p /var/lib/babel/templates
+# Build example client
+RUN git clone https://github.com/example/example-client.git /src
+WORKDIR /src
+RUN make build
 
-# Copy protocol files
+FROM ghcr.io/blockjoy/node-base:latest
+COPY --from=builder /src/build/example-node /usr/bin/
 COPY . /var/lib/babel/
 COPY templates/Caddyfile.template /var/lib/babel/templates/
-COPY templates/config-alloy.template /var/lib/babel/templates/
 
-# Add protocol-specific files and configurations
-COPY . .
+ENTRYPOINT ["/usr/bin/babel"]
 ```
 
 ## BlockJoy API Integration
@@ -371,10 +345,115 @@ Your protocol must implement these functions in `main.rhai`:
 
 ## Example Implementation
 
-See the `docs/example-chain` directory in this repository for a complete protocol implementation example.
+The example chain protocol in `docs/example-chain/example-client1` demonstrates how to implement a protocol:
 
-The example includes:
-- `example-client1/babel.yaml` - Protocol metadata and versioning
-- `example-client1/main.rhai` - Core protocol configuration with proper config imports
-- `example-client1/aux.rhai` - Auxiliary functions and configurations
-- `example-client1/Dockerfile` - Protocol image configuration
+```
+example-chain/example-client1/
+├── Dockerfile          # Container build instructions
+├── aux.rhai           # Auxiliary configuration (Caddy, etc)
+├── babel.yaml         # Protocol metadata and requirements
+├── main.rhai          # Main protocol implementation
+└── templates/         # Configuration templates
+    └── Caddyfile.template
+```
+
+### Protocol Structure
+
+1. **babel.yaml**: Defines protocol metadata, variants, and requirements
+```yaml
+version: 0.1.0
+container_uri: docker://ghcr.io/blockjoy/example-client1:latest
+sku_code: EXPL-PROTO
+variants:
+  - key: example-mainnet-full
+    min_cpu: 4
+    min_memory_mb: 16000
+    min_disk_gb: 1000
+    sku_code: EXPL-MF
+```
+
+2. **main.rhai**: Implements protocol logic and service configuration
+```rhai
+const VARIANTS = #{
+    "example-mainnet-full": #{
+        network: "mainnet",
+        extra_args: "--syncmode full",
+    },
+};
+
+const PLUGIN_CONFIG = #{
+    init: #{
+        commands: [
+            `mkdir -p ${global::EXAMPLE_DIR}`,
+            `mkdir -p ${global::CADDY_DIR}`,
+        ],
+    },
+    services: [
+        #{
+            name: "example-node",
+            run_sh: `/usr/bin/example-node \
+                    --datadir=${global::EXAMPLE_DIR} \
+                    --network=${global::VARIANT.network} \
+                    ${global::VARIANT.extra_args}`,
+            shutdown_timeout_secs: 120,
+            use_blockchain_data: true,
+            log_timestamp: false,
+        },
+    ],
+};
+```
+
+3. **aux.rhai**: Configures auxiliary services like Caddy
+```rhai
+fn base_config(metrics_port, rpc_port, ws_port, caddy_dir) { 
+    #{   
+        config_files: [
+            #{
+                template: "/var/lib/babel/templates/Caddyfile.template",
+                destination: "/etc/caddy/Caddyfile",
+                params: #{
+                    rpc_port: `${rpc_port}`,
+                    ws_port: `${ws_port}`,
+                    metrics_port: `${metrics_port}`,
+                    hostname: node_env().node_name,
+                    tld: ".n0des.xyz",
+                    data_dir: `${caddy_dir}`,
+                }
+            }
+        ],
+        services: [
+            #{
+                name: "caddy",
+                run_sh: `/usr/bin/caddy run --config /etc/caddy/Caddyfile`,
+                log_timestamp: false,
+            }
+        ]
+    }
+}
+```
+
+4. **Dockerfile**: Builds the protocol container
+```dockerfile
+FROM golang:1.21-alpine AS builder
+RUN apk add --no-cache make gcc musl-dev linux-headers git
+
+# Build example client
+RUN git clone https://github.com/example/example-client.git /src
+WORKDIR /src
+RUN make build
+
+FROM ghcr.io/blockjoy/node-base:latest
+COPY --from=builder /src/build/example-node /usr/bin/
+COPY . /var/lib/babel/
+COPY templates/Caddyfile.template /var/lib/babel/templates/
+
+ENTRYPOINT ["/usr/bin/babel"]
+```
+
+### Required Functions
+
+Your protocol must implement these functions in `main.rhai`:
+
+1. **application_status()**: Returns the node's current status
+2. **height()**: Returns the current block height
+3. **sync_status()**: Returns the node's sync status
