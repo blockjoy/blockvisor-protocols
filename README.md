@@ -6,6 +6,8 @@ This repository contains Docker configurations for blockchain protocol nodes and
 
 ```
 .
+├── base-images/              # Base images with common utilities
+│   ├── debian-bookworm/      # Debian Bookworm base image
 ├── clients/                  # Client-specific Dockerfiles and configurations
 │   ├── consensus/            # Consensus client implementations
 │   │   └── lighthouse/       # Lighthouse client
@@ -20,7 +22,6 @@ This repository contains Docker configurations for blockchain protocol nodes and
 │   └── ethereum/             # Ethereum protocol configurations
 │       ├── ethereum-erigon/  # Erigon-based Ethereum node
 │       └── ethereum-reth/    # Reth-based Ethereum node
-└── node-base/                # Base image with common utilities
 ```
 
 ## Documentation
