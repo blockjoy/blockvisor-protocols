@@ -10,7 +10,7 @@ variants:
     min_cpu: 16
     min_memory_mb: 131072
     min_disk_gb: 2500
-    sku_code: SUI-SUI-NODE-MF
+    sku_code: SUI-SUINODE-MF
     archive_pointers:
       - pointer: !store_key sui-sui-node-mainnet-full-v1
 firewall_config:
