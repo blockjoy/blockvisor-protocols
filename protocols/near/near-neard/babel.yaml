@@ -6,7 +6,7 @@ description: Near
 visibility: public
 protocol_key: near
 variants:
-  - key: near-node-mainnet-full
+  - key: near-mainnet-full
     min_cpu: 16
     min_memory_mb: 32768
     min_disk_gb: 5000

@@ -11,16 +11,7 @@ const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const API_HOST = "http://127.0.0.1:" + global::RPC_PORT;
 
 const VARIANTS = #{
-    testnet: #{ 
-        url: "https://near-nodes.io/",
-        net_type: "test",
-        network: "testnet",
-        bootnodes: "ed25519:4k9csx6zMiXy4waUvRMPTkEtAS2RFKLVScocR5HwN53P@34.73.25.182:24567,ed25519:4keFArc3M4SE1debUQWi3F1jiuFZSWThgVuA2Ja2p3Jv@34.94.158.10:24567,\
-        ed25519:D2t1KTLJuwKDhbcD9tMXcXaydMNykA99Cedz7SkJkdj2@35.234.138.23:24567,ed25519:CAzhtaUPrxCuwJoFzceebiThD9wBofzqqEMCiupZ4M3E@34.94.177.51:24567",
-        extra_args: "--num-shards 0",
-        config_file: "/root/bin/files/config.json.testnet"
-    },
-    mainnet: #{
+    near-mainnet-full: #{
         url: "https://near-nodes.io/",
         net_type: "main",
         network: "mainnet",
