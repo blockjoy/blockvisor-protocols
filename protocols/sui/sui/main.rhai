@@ -5,21 +5,13 @@ const BABEL_VERSION = "1.13.1";
 const WORKDIR = "/root";
 const DATA_DIR = node_env().protocol_data_path + "/sui";
 const RPC_PORT = 9000;
-const METRICS_API = "http://127.0.0.1:8000/metrics";
-const METRICS_PORT = 4141;
-const METRICS_PATH = "/debug/metrics/prometheus";
-const ENV = node_env();
-const CADDY_DIR = DATA_DIR + "/caddy";
-const API_HOST = "http://127.0.0.1:${RPC_PORT}/";
+const METRICS_PORT = 9184;
+const METRICS_PATH = "/metrics";
+const CADDY_DIR = node_env().data_mount_point + "/caddy";
+const API_HOST = "http://127.0.0.1:" + global::RPC_PORT;
 
 const VARIANTS = #{
-    "sui-testnet": #{
-        url: "https://docs.sui.io/guides/operator",
-        net_type: "test",
-        network: "testnet",
-        rpc: "https://rpc-testnet.suiscan.xyz"
-    },
-    "sui-mainnet": #{
+    "sui-mainnet-full": #{
         url: "https://docs.sui.io/guides/operator",
         net_type: "main",
         network: "mainnet",

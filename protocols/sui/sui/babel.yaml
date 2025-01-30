@@ -6,20 +6,20 @@ description: Sui
 visibility: public
 protocol_key: sui
 variants:
-  - key: sui-mainnet
+  - key: sui-mainnet-full
     min_cpu: 16
     min_memory_mb: 131072
     min_disk_gb: 6000
     sku_code: SUI-SUI-MF
     archive_pointers:
-      - pointer: !store_key sui-mainnet-v1
-  - key: sui-testnet
+      - pointer: !store_key sui-sui-mainnet-full-v1
+  - key: sui-testnet-full
     min_cpu: 16
     min_memory_mb: 131072
     min_disk_gb: 6000
     sku_code: SUI-SUI-TF
     archive_pointers:
-      - pointer: !store_key sui-testnet-v1
+      - pointer: !store_key sui-sui-testnet-full-v1
 firewall_config:
   default_in: deny
   default_out: allow
