@@ -937,6 +937,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Get the latest commit SHA from the PR
+          LATEST_SHA=$(gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq .head.sha)
+          
           if [[ "${{ needs.build-base-images.result }}" == "failure" ]] || \
              [[ "${{ needs.build-clients.result }}" == "failure" ]] || \
              [[ "${{ needs.build-protocols.result }}" == "failure" ]] || \
@@ -972,43 +975,23 @@ jobs:
             gh api \
               --method POST \
               -H "Accept: application/vnd.github+json" \
-              "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
+              "/repos/${{ github.repository }}/statuses/$LATEST_SHA" \
               -f state="$STATE" \
               -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
               -f description="$DESCRIPTION" \
-              -f context="workflow-status" \
-              -f owner="${{ github.repository_owner }}" \
-              -f repo="${{ github.event.repository.name }}" \
-              -f sha="${{ github.event.pull_request.head.sha }}" \
-              -f token="${{ secrets.GITHUB_TOKEN }}"
+              -f context="workflow-status"
             exit 1
           fi
 
           # All jobs either succeeded or were skipped
-          if [[ "${{ needs.build-base-images.result }}" == "skipped" ]] && \
-             [[ "${{ needs.build-clients.result }}" == "skipped" ]] && \
-             [[ "${{ needs.build-protocols.result }}" == "skipped" ]] && \
-             [[ "${{ needs.test-nodes.result }}" == "skipped" ]] && \
-             [[ "${{ needs.scan-dockerfiles.result }}" == "skipped" ]] && \
-             [[ "${{ needs.detect-changes.result }}" == "skipped" ]] && \
-             [[ "${{ needs.check-protocols.result }}" == "skipped" ]]; then
-            DESCRIPTION="No changes detected"
-          else
-            DESCRIPTION="All checks passed successfully"
-          fi
-          
           gh api \
             --method POST \
             -H "Accept: application/vnd.github+json" \
-            "/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
-            -f state='success' \
+            "/repos/${{ github.repository }}/statuses/$LATEST_SHA" \
+            -f state="success" \
             -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            -f description="$DESCRIPTION" \
-            -f context="workflow-status" \
-            -f owner="${{ github.repository_owner }}" \
-            -f repo="${{ github.event.repository.name }}" \
-            -f sha="${{ github.event.pull_request.head.sha }}" \
-            -f token="${{ secrets.GITHUB_TOKEN }}"
+            -f description="All checks passed" \
+            -f context="workflow-status"
 
   push-protocols:
     environment: Dev
