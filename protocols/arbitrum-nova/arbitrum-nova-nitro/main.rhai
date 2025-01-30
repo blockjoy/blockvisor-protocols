@@ -46,7 +46,7 @@ const PLUGIN_CONFIG = #{
     services: [
         #{
             name: "nitro",           
-            run_sh: `HOME=${HOME} && /usr/bin/nitro \
+            run_sh: `HOME=${HOME} && /root/bin/nitro \
                     --parent-chain.connection.url=${VARIANT.l1_url} \
                     --chain.id=42170 \
                     --metrics \
