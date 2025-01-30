@@ -387,4 +387,4 @@ Your protocol must implement these functions in `main.rhai`:
 
 ## Example Implementation
 
-The example chain protocol in `docs/example-chain/` demonstrates how to implement a protocol.
+The example protocol implementation in `docs/example/` demonstrates how to implement a protocol.
