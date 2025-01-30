@@ -267,6 +267,7 @@ jobs:
         if: success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOME: /github/home
         run: |
           # Update container_uri in the original babel.yaml
           yq -i e ".container_uri = \"${{ steps.test-babel.outputs.new_uri }}\"" ${{ matrix.image_path }}/babel.yaml
