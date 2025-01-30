@@ -20,7 +20,7 @@ This repository contains Docker configurations for blockchain protocol nodes and
 │   └── ethereum/             # Ethereum protocol configurations
 │       ├── ethereum-erigon/  # Erigon-based Ethereum node
 │       └── ethereum-reth/    # Reth-based Ethereum node
-└── node-base/                # Base image with common utilities
+└── base-images/              # Base images with common utilities
 ```
 
 ## Documentation
