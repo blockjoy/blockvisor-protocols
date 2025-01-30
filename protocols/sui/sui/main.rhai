@@ -11,7 +11,7 @@ const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const API_HOST = "http://127.0.0.1:" + global::RPC_PORT;
 
 const VARIANTS = #{
-    "sui-mainnet-full": #{
+    "sui-node-mainnet-full": #{
         url: "https://docs.sui.io/guides/operator",
         net_type: "main",
         network: "mainnet",
