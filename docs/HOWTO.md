@@ -6,9 +6,12 @@ This guide explains how to create and maintain protocol implementations for the 
 
 The protocol implementation interacts with the BlockJoy API through a combination of metadata configuration and runtime interface files.
 
-### Protocol Metadata (babel.yaml)
+### Protocol Metadata (protocols.yaml)
+TODO: First make sure that protocol is defined in `protocols.yaml`.
 
-The `babel.yaml` file defines the protocol's metadata that the BlockJoy API needs to:
+### Image Metadata (babel.yaml)
+
+The `babel.yaml` file defines the image's metadata that the BlockJoy API needs to:
 - Set up resource requirements (CPU, memory, disk)
 - Configure networking and firewall rules
 - Define available protocol variants
@@ -351,13 +354,15 @@ The protocol implementation includes template files that are processed during no
 These templates are referenced in the auxiliary configuration (`aux.rhai`) and are processed with values from the node environment.
 
 ## Required Functions
+//TODO this is not up to date
 
 Your protocol must implement these functions in `main.rhai`:
 
-1. `application_status()` - Returns the node's operational status:
+1. `protocol_status()` - Returns the node's operational status:
    - `"broadcasting"` - Node is operational
    - `"delinquent"` - Node has issues
 
+TODO: below are not mandatory
 2. `height()` - Returns the current block height as an integer
 
 3. `sync_status()` - Returns the node's sync status:
