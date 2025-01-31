@@ -1,4 +1,4 @@
-ARG WORKER_IMAGE=ghcr.io/blockjoy/worker-rs:v20250128.2
+ARG WORKER_IMAGE=ghcr.io/blockjoy/worker-rs:v20250129.10
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
 FROM ${WORKER_IMAGE} AS worker
