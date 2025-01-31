@@ -67,7 +67,7 @@ const PLUGIN_CONFIG = #{
     services: [
         #{
             name: "layerd",
-            run_sh: `export ETH_RPC_URL="${global::ETH_RPC_URL}" && export TOKEN_BRIDGE_CONTRACT="${global::TOKEN_BRIDGE_CONTRACT}" &&/root/bin/layerd start --home ${global::PROTOCOL_DIR}/ --enable.api --enable.swagger --price-daemon-enabled=false --panic-on-daemon-failure-enabled=false --key-name ${global::KEY_NAME}`,
+            run_sh: `export ETH_RPC_URL="${global::ETH_RPC_URL}" && export TOKEN_BRIDGE_CONTRACT="${global::TOKEN_BRIDGE_CONTRACT}" &&/root/bin/layerd start --home ${global::PROTOCOL_DIR}/ --api.enable --api.swagger --price-daemon-enabled=false --panic-on-daemon-failure-enabled=false --key-name ${global::KEY_NAME}`,
             shutdown_timeout_secs: 300,
         },
     ],
