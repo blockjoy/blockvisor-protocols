@@ -48,7 +48,7 @@ const PLUGIN_CONFIG = #{
     services: [
         #{
             name: "ken",
-            run_sh: `/usr/bin/ken --${global::CHAIN} --gcmode ${global::SYNC_TYPE} --datadir ${global::HOME} --rpc.concurrencylimit 8000 --rpcreadtimeout 180 --rpcexecutiontimeout 180 --rpc --rpcaddr 127.0.0.1 --rpcapi klay,eth,net,web3,rpc,debug --rpcport ${global::RPC_PORT} --ws --wsaddr 127.0.0.1 --wsapi klay,eth,net,web3,rpc,debug --wsport ${global::WS_PORT} --wsorigins "*" --metrics --prometheus --prometheusport ${global::METRICS_PORT} ${global::KAIA_KEN_EXTRA_ARGS}`,
+            run_sh: `/root/bin/ken --${global::CHAIN} --gcmode ${global::SYNC_TYPE} --datadir ${global::HOME} --rpc.concurrencylimit 8000 --rpcreadtimeout 180 --rpcexecutiontimeout 180 --rpc --rpcaddr 127.0.0.1 --rpcapi klay,eth,net,web3,rpc,debug --rpcport ${global::RPC_PORT} --ws --wsaddr 127.0.0.1 --wsapi klay,eth,net,web3,rpc,debug --wsport ${global::WS_PORT} --wsorigins "*" --metrics --prometheus --prometheusport ${global::METRICS_PORT} ${global::KAIA_KEN_EXTRA_ARGS}`,
             shutdown_timeout_secs: 120,
             use_blockchain_data: true,
             log_timestamp: false,
