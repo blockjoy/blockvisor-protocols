@@ -22,7 +22,6 @@ fn base_config(data_dir, metrics_port, metrics_path, rpc_port, caddy_dir) {
                     node_ip: node_env().node_ip,
                     tld: ".n0des.xyz",
                     data_dir: `${caddy_dir}`,
-                    ws_port: `${rpc_port}`,
                     rpc_port: `${rpc_port}`,
                 }
             },

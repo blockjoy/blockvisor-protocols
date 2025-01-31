@@ -47,7 +47,4 @@ http://{{ hostname }}{{ tld }}, https://{{ hostname }}{{ tld }}, http:// {
 	reverse_proxy 127.0.0.1:{{ rpc_port }} {
 		header_up Host localhost
 	}
-	reverse_proxy @websockets 127.0.0.1:{{ ws_port }} {
-		header_up Host localhost
-	}
 }
