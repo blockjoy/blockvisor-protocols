@@ -29,9 +29,9 @@ fn base_config(data_dir, metrics_port, metrics_path, rpc_port, caddy_dir) {
             #{
                 template: "/var/lib/babel/templates/config-json.template",
                 destination: "/root/bin/config.json",
-                rpc_port: `${rpc_port}`,
-                _port}`,
-                params: #{},
+                params: #{
+                    rpc_port: `${rpc_port}`
+                },
             },
         ],
         services: [
