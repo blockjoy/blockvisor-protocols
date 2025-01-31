@@ -1,5 +1,5 @@
-version: 1.1.0
 container_uri: docker://ghcr.io/blockjoy/kaia-ken:v20250131.2
+version: 1.1.1
 sku_code: KAIA-KEN
 org_id: null
 description: Kaia Ken EN node
