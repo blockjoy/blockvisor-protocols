@@ -1,5 +1,5 @@
 version: 0.0.4
-container_uri: docker://ghcr.io/blockjoy/ethereum-erigon:v20250129.2
+container_uri: docker://ghcr.io/blockjoy/ethereum-erigon:v20250131.1
 sku_code: ETH-ERG
 org_id: null
 description: Ethereum Erigon node
@@ -65,7 +65,7 @@ firewall_config:
         - port: 30303
           name: P2P port 1
         - port: 30304
-          name: P2P port 2 
+          name: P2P port 2
         - port: 42069
           name: Torrent port
 properties: []
