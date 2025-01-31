@@ -5,7 +5,7 @@ const BABEL_VERSION = "1.13.1";
 const WORKDIR = "/root";
 const DATA_DIR = node_env().protocol_data_path + "/near";
 const RPC_PORT = 3030;
-const METRICS_PORT = 9184;
+const METRICS_PORT = 6667;
 const METRICS_PATH = "/metrics";
 const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const API_HOST = "http://127.0.0.1:" + global::RPC_PORT;
@@ -18,14 +18,12 @@ const VARIANTS = #{
         bootnodes: "ed25519:86EtEy7epneKyrcJwSWP7zsisTkfDRH5CFVszt4qiQYw@35.195.32.249:24567,ed25519:BFB78VTDBBfCY4jCP99zWxhXUcFAZqR22oSx2KEr8UM1@35.229.222.235:24567,\
         ed25519:Cw1YyiX9cybvz3yZcbYdG7oDV6D7Eihdfc8eM1e1KKoh@35.195.27.104:24567,ed25519:33g3PZRdDvzdRpRpFRZLyscJdbMxUA3j3Rf2ktSYwwF8@34.94.132.112:24567,\
         ed25519:CDQFcD9bHUWdc31rDfRi4ZrJczxg8derCzybcac142tK@35.196.209.192:24567",
-        extra_args: "--num-shards 0",
-        config_file: "/root/bin/files/config.json.mainnet"
     },
 };
 
 const NET = VARIANTS[node_env().node_variant].network;
 
-let AUX_CONFIG = aux::base_config(global::DATA_DIR, global::METRICS_PORT, global::METRICS_PATH, global::CADDY_DIR);
+let AUX_CONFIG = aux::base_config(global::DATA_DIR, global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::CADDY_DIR);
 
 const BASE_CONFIG = #{
     config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,

@@ -4,7 +4,7 @@
   "validator_key_file": "validator_key.json",
   "node_key_file": "node_key.json",
   "rpc": {
-    "addr": "0.0.0.0:3030",
+    "addr": "127.0.0.1:{{ rpc_port }}",
     "prometheus_addr": null,
     "cors_allowed_origins": [
       "*"

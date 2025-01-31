@@ -1,4 +1,4 @@
-fn base_config(data_dir, metrics_port, metrics_path, caddy_dir) {
+fn base_config(data_dir, metrics_port, metrics_path, rpc_port, caddy_dir) {
     #{
         config_files: [
             #{
@@ -22,11 +22,15 @@ fn base_config(data_dir, metrics_port, metrics_path, caddy_dir) {
                     node_ip: node_env().node_ip,
                     tld: ".n0des.xyz",
                     data_dir: `${caddy_dir}`,
+                    ws_port: `${rpc_port}`,
+                    rpc_port: `${rpc_port}`,
                 }
             },
             #{
                 template: "/var/lib/babel/templates/config-json.template",
                 destination: "/root/bin/config.json",
+                rpc_port: `${rpc_port}`,
+                _port}`,
                 params: #{},
             },
         ],
