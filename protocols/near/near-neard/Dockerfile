@@ -1,7 +1,7 @@
-ARG PROTOCOL_IMAGE=ghcr.io/blockjoy/neard:v20250130.1
+ARG CLIENT_IMAGE=ghcr.io/blockjoy/neard:v20250130.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
-FROM ${PROTOCOL_IMAGE} AS protocol
+FROM ${CLIENT_IMAGE} AS client
 
 FROM ${BASE_IMAGE}
 
@@ -17,7 +17,7 @@ ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 RUN mkdir -p /root/bin /root/lib /var/lib/babel/templates
 
 # Copy binaries from builds
-COPY --from=protocol /root/bin/neard /root/bin/
+COPY --from=client /root/bin/neard /root/bin/
 
 # Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/
