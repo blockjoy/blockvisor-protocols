@@ -106,3 +106,9 @@
   ticker: null
   description: Sui is a first-of-its-kind Layer 1 blockchain and smart contract platform designed to make digital asset ownership fast, private, secure, and accessible.
   visibility: public
+- key: near
+  name: NEAR
+  org_id: null
+  ticker: null
+  description: NEAR is a layer-1 blockchain platform designed for scalability and usability, featuring a unique sharding technology called Nightshade and a developer-friendly WebAssembly-based smart contract runtime.
+  visibility: public

@@ -1,7 +1,7 @@
-ARG BSC_ERIGON_IMAGE=ghcr.io/blockjoy/bsc-erigon:v20250129.2
+ARG CLIENT_IMAGE=ghcr.io/blockjoy/neard:v20250130.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
 
-FROM ${BSC_ERIGON_IMAGE} AS erigon
+FROM ${CLIENT_IMAGE} AS client
 
 FROM ${BASE_IMAGE}
 
@@ -13,11 +13,15 @@ ENV CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
 ENV GRAFANA_LOKI_BASICAUTH=${GRAFANA_LOKI_BASICAUTH}
 ENV GRAFANA_PROM_BASICAUTH=${GRAFANA_PROM_BASICAUTH}
 
-RUN mkdir -p /root/bin /root/lib
-COPY --from=erigon /root/bin/erigon /root/bin/
-COPY --from=erigon /root/lib/libsilkworm_capi.so /root/lib/
+# Create necessary directories
+RUN mkdir -p /root/bin /root/lib /var/lib/babel/templates
 
+# Copy binaries from builds
+COPY --from=client /root/bin/neard /root/bin/
+
+# Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
+COPY templates/config-json.template /var/lib/babel/templates/
 COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/
