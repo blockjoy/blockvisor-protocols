@@ -1,5 +1,5 @@
 version: 0.1.1
-container_uri: docker://ghcr.io/blockjoy/polygon-erigon:v20250130.2
+container_uri: docker://ghcr.io/blockjoy/polygon-erigon:v20250131.1
 sku_code: POLY-ERIGON
 org_id: null
 description: Polygon
