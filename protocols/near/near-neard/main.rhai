@@ -45,7 +45,7 @@ const PLUGIN_CONFIG = #{
     services: [
         #{
             name: "near",
-            run_sh: `/root/bin/neard --home=${global::DATA_DIR} run --rpc-prometheus-addr 127.0.0.1:6667`,
+            run_sh: `/root/bin/neard --home=${global::DATA_DIR} run --rpc-prometheus-addr 127.0.0.1:${global::METRICS_PORT}`,
             shutdown_timeout_secs: 300,
             needs: [],
             log_timestamp: false,
