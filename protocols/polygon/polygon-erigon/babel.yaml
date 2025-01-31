@@ -1,6 +1,6 @@
-version: 0.1.1
-container_uri: docker://ghcr.io/blockjoy/polygon-erigon:v20250129.1
-sku_code: POLY-ERIGON
+container_uri: docker://ghcr.io/blockjoy/polygon-erigon-protocol:v20250210.3
+version: 0.1.6
+sku_code: POLERI
 org_id: null
 description: Polygon
 visibility: public
@@ -10,7 +10,7 @@ variants:
     min_cpu: 16
     min_memory_mb: 65536
     min_disk_gb: 15000
-    sku_code: POLY-ERIGON-MA
+    sku_code: POLERI-A-MN
     archive_pointers:
       - pointer: !store_key polygon-erigon-mainnet-archive-v1
 firewall_config:

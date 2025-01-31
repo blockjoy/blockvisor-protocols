@@ -2,7 +2,7 @@
   name: Ethereum
   org_id: null
   ticker: null
-  description: Ethereum is a network of computers all over the world that follow a set of rules called the Ethereum protocol. The Ethereum network acts as the foundation for communities, applications, organizations and digital assets that anyone can build and use.
+  description: Ethereum protocol is a network of computers all over the world that follow a set of rules called the Ethereum protocol. The Ethereum network acts as the foundation for communities, applications, organizations and digital assets that anyone can build and use.
   visibility: public
 - key: base
   name: Base
@@ -101,8 +101,20 @@
   description: Tellor is a decentralized oracle protocol that provides on-chain data about the real-world, with the power of community to verify and validate it.
   visibility: public
 - key: sui
-  name: SUI
+  name: Sui
   org_id: null
   ticker: null
   description: Sui is a first-of-its-kind Layer 1 blockchain and smart contract platform designed to make digital asset ownership fast, private, secure, and accessible.
+  visibility: public
+- key: near
+  name: Near
+  org_id: null
+  ticker: null
+  description: NEAR is a layer-1 blockchain platform designed for scalability and usability, featuring a unique sharding technology called Nightshade and a developer-friendly WebAssembly-based smart contract runtime.
+  visibility: public
+- key: boba
+  name: Boba
+  org_id: null
+  ticker: null
+  description: Boba Network is a multichain Layer 2 optimistic rollup solution that operates across multiple blockchains (including Ethereum and BNB), offering EVM compatibility, fast transactions, and lower fees, while uniquely enabling hybrid dApps that can connect blockchain with off-chain computations.
   visibility: public

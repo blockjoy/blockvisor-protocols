@@ -24,10 +24,11 @@ const VARIANTS = #{
     },
 };
 
-const API_HOST = `http://127.0.0.1:${global::RPC_PORT}`;
-const HOME = node_env().protocol_data_path + "/kaia";
-const CHAIN = VARIANTS[node_env().node_variant].network_name;
-const SYNC_TYPE = VARIANTS[node_env().node_variant].sync_type;
+const VARIANT = VARIANTS[node_env().node_variant];
+const API_HOST = "http://127.0.0.1:" + global::RPC_PORT;
+const HOME = node_env().protocol_data_path + "/kaia/data";
+const CHAIN = VARIANT.network_name;
+const SYNC_TYPE = VARIANT.sync_type;
 
 const KAIA_KEN_EXTRA_ARGS = if node_env().node_variant.ends_with("-archive") {
     "--db.leveldb.cache-size 8096 --state.cache-size 8096 --cache.memory 64"
@@ -48,7 +49,7 @@ const PLUGIN_CONFIG = #{
     services: [
         #{
             name: "ken",
-            run_sh: `/usr/bin/ken --${global::CHAIN} --gcmode ${global::SYNC_TYPE} --datadir ${global::HOME} --rpc.concurrencylimit 8000 --rpcreadtimeout 180 --rpcexecutiontimeout 180 --rpc --rpcaddr 127.0.0.1 --rpcapi klay,eth,net,web3,rpc,debug --rpcport ${global::RPC_PORT} --ws --wsaddr 127.0.0.1 --wsapi klay,eth,net,web3,rpc,debug --wsport ${global::WS_PORT} --wsorigins "*" --metrics --prometheus --prometheusport ${global::METRICS_PORT} ${global::KAIA_KEN_EXTRA_ARGS}`,
+            run_sh: `/root/bin/ken --${global::CHAIN} --gcmode ${global::SYNC_TYPE} --datadir ${global::HOME} --rpc.concurrencylimit 8000 --rpcreadtimeout 180 --rpcexecutiontimeout 180 --rpc --rpcaddr 127.0.0.1 --rpcapi klay,eth,net,web3,rpc,debug --rpcport ${global::RPC_PORT} --ws --wsaddr 127.0.0.1 --wsapi klay,eth,net,web3,rpc,debug --wsport ${global::WS_PORT} --wsorigins "*" --metrics --prometheus --prometheusport ${global::METRICS_PORT} ${global::KAIA_KEN_EXTRA_ARGS}`,
             shutdown_timeout_secs: 120,
             use_blockchain_data: true,
             log_timestamp: false,
@@ -61,9 +62,9 @@ const PLUGIN_CONFIG = #{
 };
 
 fn application_status() {
-    let is_syncd = run_jrpc(#{ host: global::API_HOST, method: "eth_syncing"}).expect(200);
+    let resp = run_jrpc(#{ host: global::API_HOST, method: "eth_syncing"});
 
-    if is_syncd.result == false {
+    if resp.status_code == 200 {
         "broadcasting"
     } else {
         "delinquent"

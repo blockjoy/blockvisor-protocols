@@ -23,20 +23,6 @@
       "password": "{{ secrets.RENOVATE_TOKEN }}"
     }
   ],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "fileMatch": [
-        ".*babel\\.yaml$"
-      ],
-      "matchStrings": [
-        "container_uri:\\s+docker://(?<depName>[^:]+):(?<currentValue>v\\d{8}\\.\\d+)"
-      ],
-      "datasourceTemplate": "docker",
-      "depNameTemplate": "{{{depName}}}",
-      "versioningTemplate": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$"
-    }
-  ],
   "packageRules": [
     {
       "matchUpdateTypes": [

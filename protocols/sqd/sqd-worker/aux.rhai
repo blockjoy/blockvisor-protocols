@@ -33,20 +33,11 @@ fn base_config(data_dir, key_path, metrics_port, metrics_path, caddy_dir) {
                     ip: node_env().node_ip,
                 }
             },
-            #{
-                template: "/var/lib/babel/templates/tethys-env.template",
-                destination: "/root/.tethys.env",
-                params: #{
-                    data_dir: `${data_dir}`,
-                    key_path: `${key_path}`,
-                    ip: node_env().node_ip,
-                }
-            },
         ],
         services: [
             #{
               name: "alloy",
-              run_sh: `/usr/bin/alloy run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy`,
+              run_sh: `/usr/bin/alloy run --server.http.listen-addr=127.0.0.1:12346 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy`,
               log_timestamp: false,
             },
             #{

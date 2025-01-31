@@ -1,6 +1,6 @@
-version: 1.1.0
-container_uri: docker://ghcr.io/blockjoy/base-op-reth:v20250129.1
-sku_code: BASE-OP-RETH
+version: 0.1.1
+container_uri: docker://ghcr.io/blockjoy/base-op-reth-protocol:v20250210.3
+sku_code: BASEOPRETH
 org_id: null
 description: Base OP Reth node1
 visibility: public
@@ -10,14 +10,14 @@ variants:
     min_cpu: 32
     min_memory_mb: 32678
     min_disk_gb: 2000
-    sku_code: BASE-OPRETH-MF
+    sku_code: BASEOPRETH-F-MN
     archive_pointers:
       - pointer: !store_key base-op-reth-mainnet-full-v1
   - key: op-reth-mainnet-archive
     min_cpu: 32
     min_memory_mb: 32678
     min_disk_gb: 2000
-    sku_code: BASE-OPRETH-MA
+    sku_code: BASEOPRETH-A-MN
     archive_pointers:
       - pointer: !store_key base-op-reth-mainnet-archive-v1
 firewall_config:

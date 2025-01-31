@@ -1,5 +1,5 @@
-ARG AVALANCHEGO_IMAGE=ghcr.io/blockjoy/avalanchego:v20250129.1
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
+ARG AVALANCHEGO_IMAGE=ghcr.io/blockjoy/avalanchego:v20250203.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250203.1
 
 FROM ${AVALANCHEGO_IMAGE} AS avalanchego
 

@@ -15,6 +15,7 @@ RUN apt-get update --allow-insecure-repositories \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    procps \
     sysstat \
     wget \
     curl \
@@ -28,6 +29,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libc6 \
     libfontconfig1 \
     apt-utils \
+    iproute2 \
+    iputils-ping \
+    netcat-traditional \
+    dnsutils \
+    jq \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /etc/apt/keyrings/ && \
@@ -57,7 +63,7 @@ RUN cd / && \
     mkdir -p /etc/caddy
 
 RUN mkdir -p /var/lib/babel/templates && \
-    mkdir -p /var/lib/babel/plugins
+    mkdir -p /var/lib/babel/plugin
 
 RUN mkdir -p /etc/grafana /var/lib/grafana /usr/share/grafana/conf/provisioning/datasources \
     /usr/share/grafana/conf/provisioning/dashboards /var/lib/grafana/dashboards

@@ -1,6 +1,6 @@
-version: 0.0.1
-container_uri: docker://ghcr.io/blockjoy/sqd:20250127.1
-sku_code: SQD-WORKER
+version: 1.0.5
+container_uri: docker://ghcr.io/blockjoy/sqd-worker-protocol:v20250211.5
+sku_code: SQDWORKER
 org_id: null
 description: Sqd
 visibility: public
@@ -10,16 +10,9 @@ variants:
     min_cpu: 2
     min_memory_mb: 9216
     min_disk_gb: 900
-    sku_code: SQD-WORKER-M
+    sku_code: SQDWORKER-W-MN
     archive_pointers:
       - pointer: !store_key sqd-worker-mainnet-v1
-  - key: sqd-worker-testnet
-    min_cpu: 2
-    min_memory_mb: 9216
-    min_disk_gb: 900
-    sku_code: SQD-WORKER-M
-    archive_pointers:
-      - pointer: !store_key sqd-worker-testnet-v1
 firewall_config:
   default_in: deny
   default_out: allow

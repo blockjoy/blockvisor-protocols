@@ -11,7 +11,7 @@ const L1_URL = "https://eth-l1.blkjy.io";
 const L1_BEACON_URL = "https://lighthouse.blkjy.io";
 const L1_RPCKIND = "standard";
 
-const GETH_API = `http://127.0.0.1:${global::RPC_PORT}`;
+const GETH_API = "http://127.0.0.1:" + global::RPC_PORT;
 const OPTIMISM_API = "http://127.0.0.1:8547";
 const DATADIR = node_env().protocol_data_path;
 const OP_DIR = node_env().protocol_data_path + "/optimism";
@@ -24,7 +24,7 @@ const BASE_CONFIG = #{
 };
 
 const VARIANTS = #{
-    "geth-mainnet-archive": #{
+    "op-geth-mainnet-archive": #{
         sequencer_url: "https://mainnet-sequencer.optimism.io/",
         net_type: "main",
         url: "https://mainnet.optimism.io",
@@ -35,7 +35,7 @@ const VARIANTS = #{
         ethnet: "mainnet",
         chainid: 10,
     },
-    "geth-testnet-archive": #{
+    "op-geth-testnet-archive": #{
         sequencer_url: "https://goerli-sequencer.optimism.io/",
         net_type: "test",
         url: "https://goerli.optimism.io",

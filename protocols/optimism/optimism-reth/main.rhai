@@ -4,6 +4,7 @@ import "aux" as aux;
 const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8545;
 const WS_PORT = 8546;
+const OPT_API_PORT = 7000;
 const METRICS_PORT = 6060;
 const METRICS_PATH = "/debug/metrics/prometheus";
 
@@ -11,8 +12,8 @@ const L1_URL = "https://eth-l1.blkjy.io";
 const L1_BEACON_URL = "https://lighthouse.blkjy.io";
 const L1_RPCKIND = "standard";
 
-const RETH_API = `http://127.0.0.1:${global::RPC_PORT}`;
-const OPTIMISM_API = "http://127.0.0.1:7000";
+const RETH_API = "http://127.0.0.1:" + global::RPC_PORT;
+const OPTIMISM_API = "http://127.0.0.1:" + global::OPT_API_PORT;
 
 let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
 
@@ -22,13 +23,13 @@ const BASE_CONFIG = #{
 };
 
 const VARIANTS = #{
-    "reth-mainnet-archive": #{
+    "op-reth-mainnet-archive": #{
         sequencer_url: "https://mainnet-sequencer.optimism.io/",
         opnet: "op-mainnet",
         chain: "optimism",
 
     },
-    "reth-mainnet-full": #{
+    "op-reth-mainnet-full": #{
         sequencer_url: "https://mainnet-sequencer.optimism.io/",
         opnet: "op-mainnet",
         chain: "optimism",
@@ -36,7 +37,7 @@ const VARIANTS = #{
     },
 };
 
-const API_HOST = `http://127.0.0.1:${global::RPC_PORT}`;
+const API_HOST = "http://127.0.0.1:" + global::RPC_PORT;
 const HOME = node_env().protocol_data_path + "/op-reth";
 const DATADIR = node_env().protocol_data_path;
 const OP_DIR = node_env().protocol_data_path + "/optimism";
@@ -73,7 +74,7 @@ const PLUGIN_CONFIG = #{
         },
         #{
             name: "op-node",
-            run_sh: `/root/bin/op-node --network=${global::OPNET} --rpc.addr=0.0.0.0 --rpc.port=7000 --l1=${global::L1_URL} --l1.beacon=${global::L1_BEACON_URL} --l1.trustrpc --l1.rpckind=${global::L1_RPCKIND} --l2=http://127.0.0.1:8551 --l2.jwt-secret=${global::OP_DIR}/jwt.txt --syncmode=execution-layer`,
+            run_sh: `/root/bin/op-node --network=${global::OPNET} --rpc.addr=0.0.0.0 --rpc.port=${global::OPT_API_PORT} --l1=${global::L1_URL} --l1.beacon=${global::L1_BEACON_URL} --l1.trustrpc --l1.rpckind=${global::L1_RPCKIND} --l2=http://127.0.0.1:8551 --l2.jwt-secret=${global::OP_DIR}/jwt.txt --syncmode=execution-layer`,
             shutdown_timeout_secs: 120,
         },
     ],

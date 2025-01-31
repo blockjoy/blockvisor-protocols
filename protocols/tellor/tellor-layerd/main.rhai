@@ -24,38 +24,50 @@ const VARIANTS = #{
     "layerd-testnet-full": #{
         hostname: node_env().node_name,
         chain_id: "layertest-2",
+        key_name: "alice",
+        key_ring: "test",
+        eth_rpc_url: "https://eth-l1-sepolia.blkjy.io",
+        token_bridge_contract: "0xFC1C57F1E466605e3Dd40840bC3e7DdAa400528c",
     },
 };
 
 const VARIANT = VARIANTS[node_env().node_variant];
 const HOSTNAME = VARIANT.hostname;
 const CHAIN_ID = VARIANT.chain_id;
+const KEY_NAME = VARIANT.key_name;
+const KEY_RING = VARIANT.key_ring;
+const ETH_RPC_URL = VARIANT.eth_rpc_url;
+const TOKEN_BRIDGE_CONTRACT = VARIANT.token_bridge_contract;
 
 const BABEL_VERSION = "0.9.0";
 
 const PLUGIN_CONFIG = #{
     init: #{
         commands: [
-            `mkdir -p ${global::PROTOCOL_DIR}/.layer/config`,
+            `mkdir -p ${global::PROTOCOL_DIR}/config`,
             `mkdir -p ${global::CADDY_DIR}`,
-            `cp -f /root/configs/* ${global::PROTOCOL_DIR}/.layer/config/`,
         ],
         jobs: [
             #{
                 name: "init",
-                run_sh: `export HOME=${global::PROTOCOL_DIR} && \
-                /root/bin/layerd init ${global::HOSTNAME} --overwrite --home ${global::PROTOCOL_DIR}/ --chain-id ${global::CHAIN_ID}`,
-            }
+                run_sh: `if [ ! -f ${global::PROTOCOL_DIR}/config/node_key.json ]; then /root/bin/layerd init ${global::HOSTNAME} --overwrite --home ${global::PROTOCOL_DIR}/ --chain-id ${global::CHAIN_ID}; else echo "Already initialized"; fi;`,
+            },
+            #{
+                name: "config",
+                run_sh: `cp -f /root/configs/* ${global::PROTOCOL_DIR}/config/`,
+                needs: ["init"],
+            },
+            #{
+                name: "add-key",
+                run_sh: `if [ ! -f ${global::PROTOCOL_DIR}/keyring-test/alice.info ]; then /root/bin/layerd keys add ${global::KEY_NAME} --keyring-backend ${global::KEY_RING} --home ${global::PROTOCOL_DIR}/; else echo "Key already exists"; fi; `,
+                needs: ["init", "config"],
+            },
         ]
     },
     services: [
         #{
             name: "layerd",
-            run_sh: `export DAEMON_HOME=${global::PROTOCOL_DIR}/.layer && \
-                export DAEMON_NAME=layerd && \
-                export UNSAFE_SKIP_BACKUP=true && \
-                export HOME=${global::PROTOCOL_DIR} && \
-                /root/bin/layerd start`,
+            run_sh: `export ETH_RPC_URL="${global::ETH_RPC_URL}" && export TOKEN_BRIDGE_CONTRACT="${global::TOKEN_BRIDGE_CONTRACT}" &&/root/bin/layerd start --home ${global::PROTOCOL_DIR}/ --api.enable --api.swagger --price-daemon-enabled=false --panic-on-daemon-failure-enabled=false --key-name ${global::KEY_NAME}`,
             shutdown_timeout_secs: 300,
         },
     ],
@@ -64,7 +76,7 @@ const PLUGIN_CONFIG = #{
     },
     upload: #{
         exclude: [
-            "tellor/.layer/config/**",
+            "tellor/config/**",
         ],
     },
 };

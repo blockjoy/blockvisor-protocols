@@ -25,7 +25,7 @@ const VARIANTS = #{
     },
 };
 
-const API_HOST = `http://127.0.0.1:${global::RPC_PORT}`;
+const API_HOST = "http://127.0.0.1:" + global::RPC_PORT;
 const P2P_SEEDS = VARIANTS[node_env().node_variant].p2p_seeds;
 const BOOTNODES = VARIANTS[node_env().node_variant].bootnodes;
 const NETWORK = VARIANTS[node_env().node_variant].network;
@@ -47,7 +47,7 @@ const PLUGIN_CONFIG = #{
         },
         #{
             name: "erigon",
-            run_sh: `/root/bin/erigon --datadir ${global::ERIGON_DIR} --chain ${global::NETWORK} --snapshots=false --bootnodes=${global::BOOTNODES} --trustedpeers=${global::P2P_SEEDS}  --staticpeers=${global::P2P_SEEDS}  --maxpeers=400 --snap.stop --http.addr 127.0.0.1 --http.port ${global::RPC_PORT} --http.compression --http.vhosts=* --http.corsdomain=* --http.api=eth,debug,net,trace,web3,erigon,bor --ws --ws.port ${global::WS_PORT} --ws.compression --rpc.gascap=300000000 --metrics --metrics.addr=127.0.0.1 --metrics.port=${global::METRICS_PORT} --bodies.cache=5G --rpc.batch.limit=200000 --db.pagesize=16k --batchSize=2048MB --p2p.protocol=66 --db.size.limit=14TB --rpc.returndata.limit=1000000 --downloader.disable.ipv6 --bor.heimdall=http://127.0.0.1:${global::HEIMDALL_PORT}`,
+            run_sh: `/root/bin/erigon --datadir ${global::ERIGON_DIR} --chain ${global::NETWORK} --snapshots=false --bootnodes=${global::BOOTNODES} --trustedpeers=${global::BOOTNODES}  --staticpeers=${global::BOOTNODES}  --maxpeers=400 --snap.stop --http.addr 127.0.0.1 --http.port ${global::RPC_PORT} --http.compression --http.vhosts=* --http.corsdomain=* --http.api=eth,debug,net,trace,web3,erigon,bor --ws --ws.port ${global::WS_PORT} --ws.compression --rpc.gascap=300000000 --metrics --metrics.addr=127.0.0.1 --metrics.port=${global::METRICS_PORT} --bodies.cache=5G --rpc.batch.limit=200000 --db.pagesize=16k --batchSize=2048MB --p2p.protocol=66 --db.size.limit=14TB --rpc.returndata.limit=1000000 --downloader.disable.ipv6 --bor.heimdall=http://127.0.0.1:${global::HEIMDALL_PORT}`,
         },
     ],
     upload: #{

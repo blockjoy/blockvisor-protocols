@@ -8,7 +8,7 @@ const P2P_PORT = 5050;
 const METRICS_PORT = 6060;
 const METRICS_PATH = "/debug/metrics/prometheus";
 
-const FANTOM_API = `http://127.0.0.1:${global::RPC_PORT}`;
+const FANTOM_API = "http://127.0.0.1:" + global::RPC_PORT;
 const FANTOM_DIR = node_env().protocol_data_path + "/fantom";
 
 let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);

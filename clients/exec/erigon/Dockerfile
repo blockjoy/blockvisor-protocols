@@ -1,5 +1,5 @@
 #1
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250123.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250203.1
 
 FROM ${BASE_IMAGE} as builder
 
