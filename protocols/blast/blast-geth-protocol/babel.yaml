@@ -1,5 +1,5 @@
 version: 0.1.2
-container_uri: docker://ghcr.io/blockjoy/blast-geth:v20250131.1
+container_uri: docker://ghcr.io/blockjoy/blast-geth-protocol:v20250201.1
 sku_code: BLAST-GETH
 org_id: null
 description: Blast Geth
