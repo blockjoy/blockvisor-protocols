@@ -1,5 +1,0 @@
-{
-	"allow-missing-tries": true,
-	"state-sync-enabled": false,
-	"pruning-enabled": false
-}
