@@ -1,18 +1,18 @@
-version: 0.1.1
-container_uri: docker://ghcr.io/blockjoy/celo-geth:v20250131.1
-sku_code: CELO-GETH
+version: 0.0.4
+container_uri: docker://ghcr.io/blockjoy/sui-protocol:v20250201.3
+sku_code: SUI-SUI-NODE
 org_id: null
-description: Celo Geth
+description: Sui
 visibility: public
-protocol_key: celo
+protocol_key: sui
 variants:
-  - key: geth-mainnet-archive
-    min_cpu: 12
-    min_memory_mb: 16384
-    min_disk_gb: 6000
-    sku_code: CELO-GETH-MA
+  - key: sui-node-mainnet-full
+    min_cpu: 16
+    min_memory_mb: 131072
+    min_disk_gb: 2500
+    sku_code: SUI-SUINODE-MF
     archive_pointers:
-      - pointer: !store_key celo-geth-mainnet-archive-v1
+      - pointer: !store_key sui-sui-node-mainnet-full-v1
 firewall_config:
   default_in: deny
   default_out: allow
@@ -31,14 +31,14 @@ firewall_config:
         - port: 443
           name: HTTPS port
     - key: Allow incoming ports UDP
-      description: Allow UDP inbound traffic on ports 30303
-      protocol: both
+      description: Allow UDP inbound traffic on port 8084
+      protocol: udp
       direction: in
       action: allow
       ips:
         - ip: 0.0.0.0/0
           name: allow all traffic
       ports:
-        - port: 30303
-          name: P2P port
+        - port: 8084
+          name: SUI port
 properties: []

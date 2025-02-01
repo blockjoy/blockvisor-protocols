@@ -1,24 +1,24 @@
 version: 0.1.2
-container_uri: docker://ghcr.io/blockjoy/blast-geth:v20250131.1
-sku_code: BLAST-GETH
+container_uri: docker://ghcr.io/blockjoy/celo-geth-protocol:v20250201.3
+sku_code: CELO-GETH
 org_id: null
-description: Blast Geth
+description: Celo Geth
 visibility: public
-protocol_key: blast
+protocol_key: celo
 variants:
   - key: geth-mainnet-archive
-    min_cpu: 8
-    min_memory_mb: 8192
-    min_disk_gb: 4000
-    sku_code: BLAST-GETH-MA
+    min_cpu: 12
+    min_memory_mb: 16384
+    min_disk_gb: 6000
+    sku_code: CELO-GETH-MA
     archive_pointers:
-      - pointer: !store_key blast-geth-mainnet-archive-v1
+      - pointer: !store_key celo-geth-mainnet-archive-v1
 firewall_config:
   default_in: deny
   default_out: allow
   rules:
     - key: Allow incoming ports TCP
-      description: Allow TCP inbound traffic on ports 80, 443, 30303, 30304, 30305
+      description: Allow TCP inbound traffic on ports 80, 443
       protocol: tcp
       direction: in
       action: allow
@@ -30,10 +30,8 @@ firewall_config:
           name: HTTP port
         - port: 443
           name: HTTPS port
-        - port: 9222
-          name: OP Node p2p port
     - key: Allow incoming ports UDP
-      description: Allow UDP inbound traffic on ports 30303, 30304, 30305
+      description: Allow UDP inbound traffic on ports 30303
       protocol: both
       direction: in
       action: allow
