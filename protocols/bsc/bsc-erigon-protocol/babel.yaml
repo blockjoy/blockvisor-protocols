@@ -1,4 +1,4 @@
-version: 1.12.0
+version: 1.12.1
 container_uri: docker://ghcr.io/blockjoy/bsc-erigon-protocol:v20250201.2
 sku_code: BSC-ERG
 org_id: null
