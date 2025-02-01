@@ -1,0 +1,19 @@
+{
+	"allow-missing-tries": true,
+	"state-sync-enabled": false,
+	"pruning-enabled": false,
+	"eth-apis": [
+		"internal-eth",
+		"internal-blockchain",
+		"internal-transaction",
+		"internal-tx-pool",
+		"internal-account",
+		"internal-personal",
+		"debug-tracer",
+		"web3",
+		"eth",
+		"eth-filter",
+		"admin",
+		"net"
+	  ]
+}
