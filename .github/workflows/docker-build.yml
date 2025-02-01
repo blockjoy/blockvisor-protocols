@@ -123,10 +123,9 @@ jobs:
 
           # Check for duplicate names between clients and protocols
           if [[ -n "$CLIENTS" || -n "$PROTOCOLS" ]]; then
-            # Get all client folders
-            ALL_CLIENTS=$(find clients -mindepth 3 -maxdepth 3 -type d -exec basename {} \;)
-            # Get all protocol folders
-            ALL_PROTOCOLS=$(find protocols -mindepth 2 -maxdepth 2 -type d -exec basename {} \;)
+            # Get client and protocol names from DOCKER_DIRS
+            CLIENT_NAMES=$(echo "$DOCKER_DIRS" | grep "^clients/" | xargs -n1 basename)
+            PROTOCOL_NAMES=$(echo "$DOCKER_DIRS" | grep "^protocols/" | xargs -n1 basename)
 
             while read -r client; do
               while read -r protocol; do
@@ -136,8 +135,8 @@ jobs:
                   echo "Found duplicate: $protocol"
                   exit 1
                 fi
-              done <<< "$ALL_PROTOCOLS"
-            done <<< "$ALL_CLIENTS"
+              done <<< "$PROTOCOL_NAMES"
+            done <<< "$CLIENT_NAMES"
           fi
 
           # Verify that all component directories have a Dockerfile
