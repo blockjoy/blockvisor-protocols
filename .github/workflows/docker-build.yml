@@ -143,7 +143,7 @@ jobs:
                 if [ "$client" = "$protocol" ]; then
                   protocol_path=$(echo "$PROTOCOL_PATHS" | grep "/${protocol}$")
                   echo "A protocol folder and a client folder can not have the same name."
-                  echo "TIP: If required, append the '-node' suffix to the colliding client."
+                  echo "Naming convention: Append the '-protocol' suffix to the colliding client."
                   echo "Found duplicate: $protocol"
                   echo "Client path: $client_path"
                   echo "Protocol path: $protocol_path"
