@@ -109,6 +109,12 @@ jobs:
               echo "Error: $type directory $dir does not contain a Dockerfile"
               exit 1
             fi
+            # Check for main.rhai in protocol directories
+            if [[ "$type" == "Protocol" && ! -f "$dir/main.rhai" ]]; then
+              echo "Protocol folder must contain a main.rhai file"
+              echo "Missing main.rhai in: $dir"
+              exit 1
+            fi
           }
 
           # Filter by component
