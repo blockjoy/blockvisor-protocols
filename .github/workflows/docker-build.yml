@@ -127,31 +127,31 @@ jobs:
             fi
           done | sort -u)
 
-          # Check for duplicate names between clients and protocols
-          if [[ -n "$CLIENTS" || -n "$PROTOCOLS" ]]; then
-            # Get client and protocol paths
-            CLIENT_PATHS=$(echo "$DOCKER_DIRS" | grep "^clients/")
-            PROTOCOL_PATHS=$(echo "$DOCKER_DIRS" | grep "^protocols/")
+          # # Check for duplicate names between clients and protocols
+          # if [[ -n "$CLIENTS" || -n "$PROTOCOLS" ]]; then
+          #   # Get client and protocol paths
+          #   CLIENT_PATHS=$(echo "$DOCKER_DIRS" | grep "^clients/")
+          #   PROTOCOL_PATHS=$(echo "$DOCKER_DIRS" | grep "^protocols/")
             
-            # Get just the names for comparison
-            CLIENT_NAMES=$(echo "$CLIENT_PATHS" | xargs -n1 basename)
-            PROTOCOL_NAMES=$(echo "$PROTOCOL_PATHS" | xargs -n1 basename)
+          #   # Get just the names for comparison
+          #   CLIENT_NAMES=$(echo "$CLIENT_PATHS" | xargs -n1 basename)
+          #   PROTOCOL_NAMES=$(echo "$PROTOCOL_PATHS" | xargs -n1 basename)
 
-            while IFS= read -r client; do
-              client_path=$(echo "$CLIENT_PATHS" | grep "/${client}$")
-              while IFS= read -r protocol; do
-                if [ "$client" = "$protocol" ]; then
-                  protocol_path=$(echo "$PROTOCOL_PATHS" | grep "/${protocol}$")
-                  echo "A protocol folder and a client folder can not have the same name."
-                  echo "Naming convention: Append the '-protocol' suffix to the colliding protocol."
-                  echo "Found duplicate: $protocol"
-                  echo "Client path: $client_path"
-                  echo "Protocol path: $protocol_path"
-                  exit 1
-                fi
-              done <<< "$PROTOCOL_NAMES"
-            done <<< "$CLIENT_NAMES"
-          fi
+          #   while IFS= read -r client; do
+          #     client_path=$(echo "$CLIENT_PATHS" | grep "/${client}$")
+          #     while IFS= read -r protocol; do
+          #       if [ "$client" = "$protocol" ]; then
+          #         protocol_path=$(echo "$PROTOCOL_PATHS" | grep "/${protocol}$")
+          #         echo "A protocol folder and a client folder can not have the same name."
+          #         echo "Naming convention: Append the '-protocol' suffix to the colliding protocol."
+          #         echo "Found duplicate: $protocol"
+          #         echo "Client path: $client_path"
+          #         echo "Protocol path: $protocol_path"
+          #         exit 1
+          #       fi
+          #     done <<< "$PROTOCOL_NAMES"
+          #   done <<< "$CLIENT_NAMES"
+          # fi
 
           # Verify that all component directories have a Dockerfile
           if [[ -n "$BASE" ]]; then
@@ -744,7 +744,7 @@ jobs:
           PROTOCOL_PATH=${{ matrix.image_path }}
           # Extract just the protocol name without the parent directory
           PROTOCOL=$(echo "${{ matrix.image_path }}" | cut -d'/' -f2)
-          IMAGE_NAME=$(echo "${{ matrix.image_path }}" | cut -d'/' -f3)
+          IMAGE_NAME=$(echo "${{ matrix.image_path }}" | cut -d'/' -f3)-protocol
           
           echo "Debug: matrix.image_path = ${{ matrix.image_path }}"
           echo "Debug: IMAGE_NAME = ${IMAGE_NAME}"

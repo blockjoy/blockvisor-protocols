@@ -171,10 +171,10 @@ jobs:
           # Copy babel.yaml to test file
           cp ${{ matrix.image_path }}/babel.yaml ${{ matrix.image_path }}/babel.yaml-test
           
-          # Extract image name the same way as build-protocols
-          IMAGE_NAME=$(echo "${{ matrix.image_path }}" | cut -d'/' -f3)
+          # Get image name from path
+          IMAGE_NAME=$(echo "${{ matrix.image_path }}" | cut -d'/' -f3)-protocol
           
-          # Update container_uri with newly built image using version from matrix
+          # Update container_uri in babel.yaml-test
           NEW_URI="docker://ghcr.io/blockjoy/${IMAGE_NAME}:${{ matrix.version_tag }}"
           yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
           echo "new_uri=${NEW_URI}" >> $GITHUB_OUTPUT
