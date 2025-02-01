@@ -1,4 +1,4 @@
-version: 0.1.0
+version: 0.1.1
 container_uri: docker://ghcr.io/blockjoy/arbitrum-one-nitro-protocol:v20250201.1
 sku_code: ARBONE-NITRO
 org_id: null
