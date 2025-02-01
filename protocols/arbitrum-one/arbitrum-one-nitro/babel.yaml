@@ -1,5 +1,5 @@
 version: 0.1.1
-container_uri: docker://ghcr.io/blockjoy/arbitrum-one-nitro-protocol:v20250201.1
+container_uri: docker://ghcr.io/blockjoy/arbitrum-one-nitro-protocol:v20250201.3
 sku_code: ARBONE-NITRO
 org_id: null
 description: Arbitrum One Archive Node
