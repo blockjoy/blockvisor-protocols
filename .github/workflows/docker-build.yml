@@ -123,16 +123,24 @@ jobs:
 
           # Check for duplicate names between clients and protocols
           if [[ -n "$CLIENTS" || -n "$PROTOCOLS" ]]; then
-            # Get client and protocol names from DOCKER_DIRS
-            CLIENT_NAMES=$(echo "$DOCKER_DIRS" | grep "^clients/" | xargs -n1 basename)
-            PROTOCOL_NAMES=$(echo "$DOCKER_DIRS" | grep "^protocols/" | xargs -n1 basename)
+            # Get client and protocol paths
+            CLIENT_PATHS=$(echo "$DOCKER_DIRS" | grep "^clients/")
+            PROTOCOL_PATHS=$(echo "$DOCKER_DIRS" | grep "^protocols/")
+            
+            # Get just the names for comparison
+            CLIENT_NAMES=$(echo "$CLIENT_PATHS" | xargs -n1 basename)
+            PROTOCOL_NAMES=$(echo "$PROTOCOL_PATHS" | xargs -n1 basename)
 
-            while read -r client; do
-              while read -r protocol; do
+            while IFS= read -r client; do
+              client_path=$(echo "$CLIENT_PATHS" | grep "/${client}$")
+              while IFS= read -r protocol; do
                 if [ "$client" = "$protocol" ]; then
+                  protocol_path=$(echo "$PROTOCOL_PATHS" | grep "/${protocol}$")
                   echo "A protocol folder and a client folder can not have the same name."
                   echo "TIP: If required, append the '-node' suffix to the colliding client."
                   echo "Found duplicate: $protocol"
+                  echo "Client path: $client_path"
+                  echo "Protocol path: $protocol_path"
                   exit 1
                 fi
               done <<< "$PROTOCOL_NAMES"
@@ -275,9 +283,8 @@ jobs:
     needs: [detect-changes]
     if: |
       github.event_name == 'pull_request' &&
-      github.event.action != 'closed' &&
-      (fromJson(needs.detect-changes.outputs.protocol_changes).include[0] ||
-       needs.detect-changes.outputs.protocols_yaml_changed == 'true')
+      fromJson(needs.detect-changes.outputs.protocol_changes).include[0] ||
+       needs.detect-changes.outputs.protocols_yaml_changed == 'true'
     runs-on: dev
     outputs:
       protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
