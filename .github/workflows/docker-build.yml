@@ -121,6 +121,22 @@ jobs:
             fi
           done | sort -u)
 
+          # Check for duplicate names between clients and protocols
+          if [[ -n "$CLIENTS" || -n "$PROTOCOLS" ]]; then
+            while read -r client; do
+              client_name=$(basename "$client")
+              while read -r protocol; do
+                protocol_name=$(basename "$protocol")
+                if [ "$client_name" = "$protocol_name" ]; then
+                  echo "A protocol folder and a client folder can not have the same name."
+                  echo "TIP: If required, append the '-node' suffix to the colliding client."
+                  echo "Found duplicate: $protocol_name"
+                  exit 1
+                fi
+              done <<< "$PROTOCOLS"
+            done <<< "$CLIENTS"
+          fi
+
           # Verify that all component directories have a Dockerfile
           if [[ -n "$BASE" ]]; then
             echo "$BASE" | while read -r dir; do
