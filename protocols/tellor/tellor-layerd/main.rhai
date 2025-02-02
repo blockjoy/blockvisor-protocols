@@ -50,7 +50,7 @@ const PLUGIN_CONFIG = #{
         jobs: [
             #{
                 name: "init",
-                run_sh: `if [ ! -f ${global::PROTOCOL_DIR}/data/priv_validator_state.json ]; then/root/bin/layerd init ${global::HOSTNAME} --overwrite --home ${global::PROTOCOL_DIR}/ --chain-id ${global::CHAIN_ID}; else echo "Already initialized"; fi;`,
+                run_sh: `if [ ! -f ${global::PROTOCOL_DIR}/data/priv_validator_state.json ]; then /root/bin/layerd init ${global::HOSTNAME} --overwrite --home ${global::PROTOCOL_DIR}/ --chain-id ${global::CHAIN_ID}; else echo "Already initialized"; fi;`,
             },
             #{
                 name: "config",
