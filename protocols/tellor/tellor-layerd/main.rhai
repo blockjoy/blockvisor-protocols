@@ -50,7 +50,7 @@ const PLUGIN_CONFIG = #{
         jobs: [
             #{
                 name: "init",
-                run_sh: `/root/bin/layerd init ${global::HOSTNAME} --overwrite --home ${global::PROTOCOL_DIR}/ --chain-id ${global::CHAIN_ID}`,
+                run_sh: `if [ ! -f ${global::PROTOCOL_DIR}/data/priv_validator_state.json ]; then/root/bin/layerd init ${global::HOSTNAME} --overwrite --home ${global::PROTOCOL_DIR}/ --chain-id ${global::CHAIN_ID}; else echo "Already initialized"; fi;`,
             },
             #{
                 name: "config",
@@ -59,7 +59,7 @@ const PLUGIN_CONFIG = #{
             },
             #{
                 name: "add-key",
-                run_sh: `/root/bin/layerd keys add ${global::KEY_NAME} --keyring-backend ${global::KEY_RING} --home ${global::PROTOCOL_DIR}/`,
+                run_sh: `if [ ! -f ${global::PROTOCOL_DIR}/keyring-test/alice.info ]; then /root/bin/layerd keys add ${global::KEY_NAME} --keyring-backend ${global::KEY_RING} --home ${global::PROTOCOL_DIR}/; else ehco "Key already exists"; fi; `,
                 needs: ["init", "config"],
             },
         ]
