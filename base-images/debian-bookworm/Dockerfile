@@ -30,7 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-utils \
     iproute2 \
     iputils-ping \
-    netcat \
+    netcat-traditional \
     dnsutils \
     jq \
     && rm -rf /var/lib/apt/lists/*
