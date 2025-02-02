@@ -32,7 +32,7 @@ const VARIANTS = #{
     },
 };
 
-const API_HOST = `http://127.0.0.1:${global::RPC_PORT}`;
+const API_HOST = "http://127.0.0.1:" + global::RPC_PORT;
 const HOME = node_env().protocol_data_path + "/reth";
 const LIGHTHOUSE_DIR = node_env().protocol_data_path + "/lighthouse";
 const NET = VARIANTS[node_env().node_variant].net;

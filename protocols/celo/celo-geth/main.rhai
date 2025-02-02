@@ -8,7 +8,7 @@ const P2P_PORT = 30303;
 const METRICS_PORT = 7770;
 const METRICS_PATH = "/debug/metrics/prometheus";
 
-const CELO_API = `http://127.0.0.1:${global::RPC_PORT}`;
+const CELO_API = "http://127.0.0.1:" + global::RPC_PORT;
 const CELO_DIR = node_env().protocol_data_path + "/celo";
 
 let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
