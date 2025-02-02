@@ -24,10 +24,11 @@ const VARIANTS = #{
     },
 };
 
-const API_HOST = `http://127.0.0.1:${global::RPC_PORT}`;
+const VARIANT = VARIANTS[node_env().node_variant];
+const API_HOST = "http://127.0.0.1:" + global::RPC_PORT;
 const HOME = node_env().protocol_data_path + "/kaia";
-const CHAIN = VARIANTS[node_env().node_variant].network_name;
-const SYNC_TYPE = VARIANTS[node_env().node_variant].sync_type;
+const CHAIN = VARIANT.network_name;
+const SYNC_TYPE = VARIANT.sync_type;
 
 const KAIA_KEN_EXTRA_ARGS = if node_env().node_variant.ends_with("-archive") {
     "--db.leveldb.cache-size 8096 --state.cache-size 8096 --cache.memory 64"
