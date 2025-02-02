@@ -12,7 +12,7 @@ const METRICS_PATH = "/debug/metrics/prometheus";
 
 const L1_RPCKIND = "standard";
 
-const GETH_API = `http://127.0.0.1:${global::RPC_PORT}`;
+const GETH_API = "http://127.0.0.1:" + global::RPC_PORT;
 const BLAST_API = `http://127.0.0.1:${global::OP_NODE_RPC_PORT}`;
 const BLAST_DIR = node_env().protocol_data_path + "/blast";
 

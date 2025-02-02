@@ -11,7 +11,7 @@ const L1_URL = "https://eth-l1.blkjy.io";
 const L1_BEACON_URL = "https://lighthouse.blkjy.io";
 const L1_RPCKIND = "standard";
 
-const RETH_API = `http://127.0.0.1:${global::RPC_PORT}`;
+const RETH_API = "http://127.0.0.1:" + global::RPC_PORT;
 const OPTIMISM_API = "http://127.0.0.1:7000";
 
 let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
@@ -36,7 +36,7 @@ const VARIANTS = #{
     },
 };
 
-const API_HOST = `http://127.0.0.1:${global::RPC_PORT}`;
+const API_HOST = "http://127.0.0.1:" + global::RPC_PORT;
 const HOME = node_env().protocol_data_path + "/op-reth";
 const DATADIR = node_env().protocol_data_path;
 const OP_DIR = node_env().protocol_data_path + "/optimism";
