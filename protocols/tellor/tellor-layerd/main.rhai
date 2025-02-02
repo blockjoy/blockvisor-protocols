@@ -59,7 +59,7 @@ const PLUGIN_CONFIG = #{
             },
             #{
                 name: "add-key",
-                run_sh: `if [ ! -f ${global::PROTOCOL_DIR}/keyring-test/alice.info ]; then /root/bin/layerd keys add ${global::KEY_NAME} --keyring-backend ${global::KEY_RING} --home ${global::PROTOCOL_DIR}/; else ehco "Key already exists"; fi; `,
+                run_sh: `if [ ! -f ${global::PROTOCOL_DIR}/keyring-test/alice.info ]; then /root/bin/layerd keys add ${global::KEY_NAME} --keyring-backend ${global::KEY_RING} --home ${global::PROTOCOL_DIR}/; else echo "Key already exists"; fi; `,
                 needs: ["init", "config"],
             },
         ]
