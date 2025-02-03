@@ -15,6 +15,7 @@ RUN apt-get update --allow-insecure-repositories \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    procps \
     sysstat \
     wget \
     curl \
