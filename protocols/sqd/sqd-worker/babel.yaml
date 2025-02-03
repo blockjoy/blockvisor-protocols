@@ -13,13 +13,6 @@ variants:
     sku_code: SQD-WORKER-M
     archive_pointers:
       - pointer: !store_key sqd-worker-mainnet-v1
-  - key: sqd-worker-testnet
-    min_cpu: 2
-    min_memory_mb: 9216
-    min_disk_gb: 900
-    sku_code: SQD-WORKER-M
-    archive_pointers:
-      - pointer: !store_key sqd-worker-testnet-v1
 firewall_config:
   default_in: deny
   default_out: allow

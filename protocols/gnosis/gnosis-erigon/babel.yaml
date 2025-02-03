@@ -18,6 +18,7 @@ variants:
     min_memory_mb: 16384
     min_disk_gb: 3000
     sku_code: GNO-ERG-MF
+    visibility: private
     archive_pointers:
       - pointer: !store_key gnosis-erigon-mainnet-full-v1
 firewall_config:

@@ -6,20 +6,21 @@ description: Optimism Reth
 visibility: public
 protocol_key: optimism
 variants:
-  - key: reth-mainnet-archive
+  - key: op-reth-mainnet-archive
     min_cpu: 32
     min_memory_mb: 32768
     min_disk_gb: 1000
     sku_code: OP-RETH-MA
     archive_pointers:
-      - pointer: !store_key reth-mainnet-archive-v1
-  - key: reth-mainnet-full
+      - pointer: !store_key op-reth-mainnet-archive-v1
+  - key: op-reth-mainnet-full
     min_cpu: 32
     min_memory_mb: 32768
     min_disk_gb: 1000
     sku_code: OP-RETH-MF
+    visibility: private
     archive_pointers:
-      - pointer: !store_key reth-mainnet-full-v1
+      - pointer: !store_key op-reth-mainnet-full-v1
 firewall_config:
   default_in: deny
   default_out: allow

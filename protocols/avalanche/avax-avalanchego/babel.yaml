@@ -18,6 +18,7 @@ variants:
     min_memory_mb: 8192
     min_disk_gb: 2000
     sku_code: AVAX-GO-TA
+    visibility: private
     archive_pointers:
       - pointer: !store_key avalanche-avalanchego-testnet-archive-v1
 firewall_config:

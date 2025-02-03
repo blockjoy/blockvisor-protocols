@@ -18,6 +18,7 @@ variants:
     min_memory_mb: 65536
     min_disk_gb: 9000
     sku_code: OP-GETH-TA
+    visibility: private
     archive_pointers:
       - pointer: !store_key optimism-geth-testnet-archive-v1
 firewall_config:
