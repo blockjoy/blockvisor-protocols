@@ -26,7 +26,7 @@ const VARIANTS = #{
 
 const VARIANT = VARIANTS[node_env().node_variant];
 const API_HOST = "http://127.0.0.1:" + global::RPC_PORT;
-const HOME = node_env().protocol_data_path + "/kaia";
+const HOME = node_env().protocol_data_path + "/data";
 const CHAIN = VARIANT.network_name;
 const SYNC_TYPE = VARIANT.sync_type;
 
@@ -62,9 +62,9 @@ const PLUGIN_CONFIG = #{
 };
 
 fn application_status() {
-    let is_syncd = run_jrpc(#{ host: global::API_HOST, method: "eth_syncing"}).expect(200);
+    let resp = run_jrpc(#{ host: global::API_HOST, method: "eth_syncing"});
 
-    if is_syncd.result == false {
+    if resp.status_code == 200 {
         "broadcasting"
     } else {
         "delinquent"
