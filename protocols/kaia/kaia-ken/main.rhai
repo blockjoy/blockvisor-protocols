@@ -62,9 +62,9 @@ const PLUGIN_CONFIG = #{
 };
 
 fn application_status() {
-    let is_syncd = run_jrpc(#{ host: global::API_HOST, method: "eth_syncing"}).expect(200);
+    let resp = run_jrpc(#{ host: global::API_HOST, method: "eth_syncing"});
 
-    if is_syncd.result == false {
+    if resp.status_code == 200 {
         "broadcasting"
     } else {
         "delinquent"
