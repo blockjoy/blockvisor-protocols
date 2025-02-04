@@ -983,6 +983,11 @@ jobs:
     needs: [get-images]
     if: needs.get-images.result == 'success'
     uses: ./.github/workflows/test-nodes.yml
+    permissions:
+      contents: write
+      pull-requests: write
+      packages: write
+      statuses: write
     with:
       matrix: ${{ needs.get-images.outputs.matrix }}
       pr_number: ${{ github.event.pull_request.number }}
@@ -990,11 +995,6 @@ jobs:
       event_action: ${{ github.event.action }}
       pr_merged: false
       pr_closed: false
-    permissions:
-      contents: write
-      pull-requests: write
-      packages: write
-      statuses: write
     secrets: inherit
 
   workflow-status:
