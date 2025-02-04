@@ -33,15 +33,6 @@ fn base_config(data_dir, key_path, metrics_port, metrics_path, caddy_dir) {
                     ip: node_env().node_ip,
                 }
             },
-            #{
-                template: "/var/lib/babel/templates/tethys-env.template",
-                destination: "/root/.tethys.env",
-                params: #{
-                    data_dir: `${data_dir}`,
-                    key_path: `${key_path}`,
-                    ip: node_env().node_ip,
-                }
-            },
         ],
         services: [
             #{
