@@ -1,5 +1,5 @@
-version: 0.0.5
-container_uri: docker://ghcr.io/blockjoy/ethereum-erigon-protocol:v20250203.1
+version: 0.0.6
+container_uri: docker://ghcr.io/blockjoy/ethereum-erigon-protocol:v20250204.14
 sku_code: ETH-ERG
 org_id: null
 description: Ethereum Erigon node
@@ -11,6 +11,7 @@ variants:
     min_memory_mb: 65536
     min_disk_gb: 5000
     sku_code: ETH-ERG-MF
+    visibility: private
     archive_pointers:
       - pointer: !store_key ethereum-erigon-mainnet-full-v1
   - key: erigon-sepolia-full
@@ -18,6 +19,7 @@ variants:
     min_memory_mb: 16000
     min_disk_gb: 2000
     sku_code: ETH-ERG-SF
+    visibility: private
     archive_pointers:
       - pointer: !store_key ethereum-erigon-sepolia-full-v1
   - key: erigon-mainnet-archive
@@ -32,6 +34,7 @@ variants:
     min_memory_mb: 16000
     min_disk_gb: 2000
     sku_code: ETH-ERG-SA
+    visibility: private
     archive_pointers:
       - pointer: !store_key ethereum-erigon-sepolia-archive-v1
 firewall_config:

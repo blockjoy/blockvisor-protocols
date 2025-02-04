@@ -24,11 +24,6 @@ const VARIANTS = #{
         network: "main",
         env_file: ".mainnet.env"
     },
-    "sqd-worker-testnet": #{
-        url: "https://testnet-api.helium.wtf/v1/",
-        network: "test",
-        env_file: ".tethys.env"
-    },
 };
 
 print(`Debug - network value: ${node_env().node_variant}`);

@@ -706,7 +706,6 @@ jobs:
       (needs.scan-dockerfiles.result == 'success' || needs.scan-dockerfiles.result == 'skipped')
     runs-on: dev
     outputs:
-      matrix: ${{ steps.matrix-with-versions.outputs.matrix }}
       image_name: ${{ steps.version.outputs.image_name }}
       image_tag: ${{ steps.version.outputs.image_tag }}
       version_tag: ${{ steps.version.outputs.version_tag }}
@@ -803,18 +802,6 @@ jobs:
           
           # Script should succeed even if API call failed
           exit 0
-      - name: Update matrix with version tag
-        id: matrix-with-versions
-        run: |
-          # Get the current matrix and version tag
-          MATRIX='${{ needs.detect-changes.outputs.protocols_matrix }}'
-          VERSION_TAG="${{ steps.version.outputs.version_tag }}"
-          
-          # Add version_tag to each item in the matrix
-          UPDATED_MATRIX=$(echo "$MATRIX" | jq -c --arg version "$VERSION_TAG" '.include |= map(. + {version_tag: $version})')
-          
-          # Output the updated matrix
-          echo "matrix=${UPDATED_MATRIX}" >> $GITHUB_OUTPUT
 
       - name: Generate build contexts
         id: build-contexts
@@ -939,9 +926,62 @@ jobs:
           
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
 
+  get-images:
+    needs: [detect-changes, build-protocols]
+    runs-on: dev
+    permissions:
+      packages: read
+      contents: read
+      actions: read
+      id-token: write
+    outputs:
+      matrix: ${{ steps.combine.outputs.matrix }}
+    steps:
+      - name: Combine matrices
+        id: combine
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the protocol matrix from detect-changes
+          PROTOCOL_MATRIX='${{ needs.detect-changes.outputs.protocols_matrix }}'
+          
+          # Initialize array for new matrix entries
+          MATRIX_ENTRIES=()
+          
+          # Process each image path
+          for IMAGE_PATH in $(echo "$PROTOCOL_MATRIX" | jq -r '.include[].image_path'); do
+            echo "Processing $IMAGE_PATH"
+            
+            # Get image name from path (last part of path)
+            IMAGE_NAME=$(basename "$IMAGE_PATH")-protocol
+            
+            # Query GitHub API for latest tag
+            LATEST_TAG=$(gh api \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              /orgs/blockjoy/packages/container/${IMAGE_NAME}/versions \
+              --jq 'map(select(.metadata.container.tags[] | test("^v[0-9]"))) | sort_by(.created_at) | last.metadata.container.tags[] | select(test("^v[0-9]"))')
+            
+            if [ -n "$LATEST_TAG" ]; then
+              echo "Found latest tag $LATEST_TAG for $IMAGE_NAME"
+              # Add to matrix entries
+              MATRIX_ENTRIES+=("{\"image_path\":\"$IMAGE_PATH\",\"version_tag\":\"$LATEST_TAG\"}")
+            else
+              echo "No version tags found for $IMAGE_NAME"
+            fi
+          done
+          
+          # Combine all entries into a matrix
+          MATRIX=$(printf '{"include":[%s]}' "$(IFS=,; echo "${MATRIX_ENTRIES[*]}")")
+          
+          echo "Combined matrix:"
+          echo "$MATRIX" | jq '.'
+          
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
   test-nodes:
-    needs: [build-protocols]
-    if: needs.build-protocols.result == 'success'
+    needs: [get-images]
+    if: needs.get-images.result == 'success'
     uses: ./.github/workflows/test-nodes.yml
     permissions:
       contents: write
@@ -949,7 +989,7 @@ jobs:
       packages: write
       statuses: write
     with:
-      matrix: ${{ needs.build-protocols.outputs.matrix }}
+      matrix: ${{ needs.get-images.outputs.matrix }}
       pr_number: ${{ github.event.pull_request.number }}
       pr_sha: ${{ github.event.pull_request.head.sha }}
       event_action: ${{ github.event.action }}
