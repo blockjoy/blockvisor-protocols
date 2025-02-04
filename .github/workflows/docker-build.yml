@@ -715,8 +715,10 @@ jobs:
       matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
       fail-fast: false
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
       packages: write
+      statuses: write
     steps:
       - name: Get runner hostname
         id: get-hostname
@@ -810,9 +812,18 @@ jobs:
           CURRENT_PATH="${{ matrix.image_path }}"
           VERSION_TAG="${{ steps.version.outputs.version_tag }}"
           
-          # Output this build's matrix entry with a unique key based on image path
-          KEY=$(echo "$CURRENT_PATH" | tr '/' '_')
-          echo "matrix_${KEY}={\"image_path\":\"$CURRENT_PATH\",\"version_tag\":\"$VERSION_TAG\"}" >> $GITHUB_OUTPUT
+          # Create the matrix entry
+          echo "matrix={\"include\":[{\"image_path\":\"$CURRENT_PATH\",\"version_tag\":\"$VERSION_TAG\"}]}" >> $GITHUB_OUTPUT
+
+      - name: Run test-nodes workflow
+        uses: ./.github/workflows/test-nodes.yml
+        with:
+          matrix: ${{ steps.matrix-with-versions.outputs.matrix }}
+          pr_number: ${{ github.event.pull_request.number }}
+          pr_sha: ${{ github.event.pull_request.head.sha }}
+          event_action: ${{ github.event.action }}
+          pr_merged: false
+          pr_closed: false
 
       - name: Generate build contexts
         id: build-contexts
@@ -937,57 +948,8 @@ jobs:
           
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
 
-  combine-matrices:
-    needs: [build-protocols]
-    runs-on: dev
-    outputs:
-      matrix: ${{ steps.combine.outputs.matrix }}
-    steps:
-      - name: Combine matrices
-        id: combine
-        run: |
-          # Get all the matrix entries from build jobs
-          MATRICES='${{ toJSON(needs.build-protocols.outputs) }}'
-          
-          # Debug - see what we got from build-protocols
-          echo "Raw outputs from build-protocols:"
-          echo "$MATRICES" | jq '.'
-          
-          # Extract all matrix entries and combine them into a single matrix
-          COMBINED=$(echo "$MATRICES" | jq -c '{
-            include: [
-              to_entries[] | 
-              select(.key | startswith("matrix_")) | 
-              .value | 
-              fromjson
-            ]
-          }')
-          
-          echo "Combined matrix:"
-          echo "$COMBINED" | jq '.'
-          
-          echo "matrix=$COMBINED" >> $GITHUB_OUTPUT
-
-  test-nodes:
-    needs: [combine-matrices]
-    if: needs.combine-matrices.result == 'success'
-    uses: ./.github/workflows/test-nodes.yml
-    permissions:
-      contents: write
-      pull-requests: write
-      packages: write
-      statuses: write
-    with:
-      matrix: ${{ needs.combine-matrices.outputs.matrix }}
-      pr_number: ${{ github.event.pull_request.number }}
-      pr_sha: ${{ github.event.pull_request.head.sha }}
-      event_action: ${{ github.event.action }}
-      pr_merged: false
-      pr_closed: false
-    secrets: inherit
-
   workflow-status:
-    needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes]
+    needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols]
     if: always() && github.event_name == 'pull_request'
     runs-on: dev
     permissions:
@@ -1004,31 +966,28 @@ jobs:
           if [[ "${{ needs.build-base-images.result }}" == "failure" ]] || \
              [[ "${{ needs.build-clients.result }}" == "failure" ]] || \
              [[ "${{ needs.build-protocols.result }}" == "failure" ]] || \
-             [[ "${{ needs.test-nodes.result }}" == "failure" ]] || \
              [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] || \
              [[ "${{ needs.detect-changes.result }}" == "failure" ]] || \
              [[ "${{ needs.check-protocols.result }}" == "failure" ]] || \
              [[ "${{ needs.build-base-images.result }}" == "cancelled" ]] || \
              [[ "${{ needs.build-clients.result }}" == "cancelled" ]] || \
              [[ "${{ needs.build-protocols.result }}" == "cancelled" ]] || \
-             [[ "${{ needs.test-nodes.result }}" == "cancelled" ]] || \
              [[ "${{ needs.scan-dockerfiles.result }}" == "cancelled" ]] || \
              [[ "${{ needs.detect-changes.result }}" == "cancelled" ]] || \
              [[ "${{ needs.check-protocols.result }}" == "cancelled" ]]; then
             DESCRIPTION="Workflow failed"
-            [[ "${{ needs.test-nodes.result }}" == "failure" ]] && DESCRIPTION="Node testing failed"
+            [[ "${{ needs.build-protocols.result }}" == "failure" ]] && DESCRIPTION="Protocol build failed"
             [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] && DESCRIPTION="Dockerfile scanning failed"
             [[ "${{ needs.check-protocols.result }}" == "failure" ]] && DESCRIPTION="Protocol validation failed"
             [[ "${{ needs.detect-changes.result }}" == "failure" ]] && DESCRIPTION="Failed to detect changes"
             
             # Add cancelled status descriptions
-            [[ "${{ needs.test-nodes.result }}" == "cancelled" ]] && DESCRIPTION="Node testing was cancelled"
+            [[ "${{ needs.build-protocols.result }}" == "cancelled" ]] && DESCRIPTION="Protocol build was cancelled"
             [[ "${{ needs.scan-dockerfiles.result }}" == "cancelled" ]] && DESCRIPTION="Dockerfile scanning was cancelled"
             [[ "${{ needs.check-protocols.result }}" == "cancelled" ]] && DESCRIPTION="Protocol validation was cancelled"
             [[ "${{ needs.detect-changes.result }}" == "cancelled" ]] && DESCRIPTION="Change detection was cancelled"
             [[ "${{ needs.build-base-images.result }}" == "cancelled" ]] && DESCRIPTION="Base image build was cancelled"
             [[ "${{ needs.build-clients.result }}" == "cancelled" ]] && DESCRIPTION="Client build was cancelled"
-            [[ "${{ needs.build-protocols.result }}" == "cancelled" ]] && DESCRIPTION="Protocol build was cancelled"
             
             STATE='failure'
             [[ "$DESCRIPTION" == *"cancelled"* ]] && STATE='error'
@@ -1051,7 +1010,6 @@ jobs:
           if [[ "${{ needs.build-base-images.result }}" == "skipped" ]] && \
              [[ "${{ needs.build-clients.result }}" == "skipped" ]] && \
              [[ "${{ needs.build-protocols.result }}" == "skipped" ]] && \
-             [[ "${{ needs.test-nodes.result }}" == "skipped" ]] && \
              [[ "${{ needs.scan-dockerfiles.result }}" == "skipped" ]] && \
              [[ "${{ needs.detect-changes.result }}" == "skipped" ]] && \
              [[ "${{ needs.check-protocols.result }}" == "skipped" ]]; then
