@@ -815,6 +815,9 @@ jobs:
           # Create the matrix entry
           echo "matrix={\"include\":[{\"image_path\":\"$CURRENT_PATH\",\"version_tag\":\"$VERSION_TAG\"}]}" >> $GITHUB_OUTPUT
 
+      - name: Checkout for test-nodes workflow
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
       - name: Run test-nodes workflow
         uses: ./.github/workflows/test-nodes.yml
         with:
