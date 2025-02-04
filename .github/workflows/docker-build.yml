@@ -810,8 +810,9 @@ jobs:
           CURRENT_PATH="${{ matrix.image_path }}"
           VERSION_TAG="${{ steps.version.outputs.version_tag }}"
           
-          # Output this build's matrix entry
-          echo "matrix={\"image_path\":\"$CURRENT_PATH\",\"version_tag\":\"$VERSION_TAG\"}" >> $GITHUB_OUTPUT
+          # Output this build's matrix entry with a unique key based on image path
+          KEY=$(echo "$CURRENT_PATH" | tr '/' '_')
+          echo "matrix_${KEY}={\"image_path\":\"$CURRENT_PATH\",\"version_tag\":\"$VERSION_TAG\"}" >> $GITHUB_OUTPUT
 
       - name: Generate build contexts
         id: build-contexts
@@ -947,6 +948,10 @@ jobs:
         run: |
           # Get all the matrix entries from build jobs
           MATRICES='${{ toJSON(needs.build-protocols.outputs) }}'
+          
+          # Debug - see what we got from build-protocols
+          echo "Raw outputs from build-protocols:"
+          echo "$MATRICES" | jq '.'
           
           # Extract all matrix entries and combine them into a single matrix
           COMBINED=$(echo "$MATRICES" | jq -c '{
