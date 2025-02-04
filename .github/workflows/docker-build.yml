@@ -821,17 +821,17 @@ jobs:
             echo '{"include":[]}' > "$MATRIX_FILE"
           fi
           
-          # Add this protocol to the matrix
-          UPDATED_MATRIX=$(jq --arg path "$CURRENT_PATH" --arg version "$VERSION_TAG" '.include += [{"image_path":$path,"version_tag":$version}]' "$MATRIX_FILE")
+          # Add this protocol to the matrix (using -c for compact output)
+          UPDATED_MATRIX=$(jq -c --arg path "$CURRENT_PATH" --arg version "$VERSION_TAG" '.include += [{"image_path":$path,"version_tag":$version}]' "$MATRIX_FILE")
           echo "$UPDATED_MATRIX" > "$MATRIX_FILE"
           
           # Debug output
           echo "Current path: $CURRENT_PATH"
           echo "Version tag: $VERSION_TAG"
-          echo "Updated matrix file contents:"
-          cat "$MATRIX_FILE"
+          echo "Updated matrix file contents (pretty):"
+          jq '.' "$MATRIX_FILE"
           
-          # Output the current state of the matrix
+          # Output the current state of the matrix (compact format)
           echo "matrix=$(cat $MATRIX_FILE)" >> $GITHUB_OUTPUT
 
       - name: Generate build contexts
