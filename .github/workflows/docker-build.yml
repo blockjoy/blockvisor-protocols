@@ -816,13 +816,20 @@ jobs:
           # Create or update the shared matrix file
           MATRIX_FILE=~/temp/test_matrix.json
           
-          # Initialize the matrix file if it doesn't exist
+          # Initialize the matrix file with detect-changes matrix if it doesn't exist
           if [ ! -f "$MATRIX_FILE" ]; then
-            echo '{"include":[]}' > "$MATRIX_FILE"
+            echo '${{ needs.detect-changes.outputs.protocols_matrix }}' > "$MATRIX_FILE"
           fi
           
-          # Add this protocol to the matrix (using -c for compact output)
-          UPDATED_MATRIX=$(jq -c --arg path "$CURRENT_PATH" --arg version "$VERSION_TAG" '.include += [{"image_path":$path,"version_tag":$version}]' "$MATRIX_FILE")
+          # Update this protocol's version tag in the matrix
+          UPDATED_MATRIX=$(jq -c --arg path "$CURRENT_PATH" --arg version "$VERSION_TAG" '
+            .include |= map(
+              if .image_path == $path then
+                . + {"version_tag": $version}
+              else
+                .
+              end
+            )' "$MATRIX_FILE")
           echo "$UPDATED_MATRIX" > "$MATRIX_FILE"
           
           # Debug output
