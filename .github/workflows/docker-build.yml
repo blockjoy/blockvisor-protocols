@@ -807,22 +807,16 @@ jobs:
         id: matrix-with-versions
         run: |
           # Get the current matrix and version tag
-          MATRIX='${{ needs.detect-changes.outputs.protocols_matrix }}'
           VERSION_TAG="${{ steps.version.outputs.version_tag }}"
           CURRENT_PATH="${{ matrix.image_path }}"
           
-          # First, check if this matrix item already has a version_tag
-          UPDATED_MATRIX=$(echo "$MATRIX" | jq -c --arg version "$VERSION_TAG" --arg path "$CURRENT_PATH" '
-            if .include then
-              .include |= map(
-                if .image_path == $path
-                then . + {version_tag: $version}
-                else .
-                end
-              )
-            else
-              {include: [{image_path: $path, version_tag: $version}]}
-            end')
+          # Create a new matrix with just this item and its version tag
+          UPDATED_MATRIX=$(jq -n --arg path "$CURRENT_PATH" --arg version "$VERSION_TAG" '{
+            "include": [{
+              "image_path": $path,
+              "version_tag": $version
+            }]
+          }')
           
           # Debug output
           echo "Current path: $CURRENT_PATH"
