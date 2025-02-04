@@ -810,17 +810,29 @@ jobs:
           CURRENT_PATH="${{ matrix.image_path }}"
           VERSION_TAG="${{ steps.version.outputs.version_tag }}"
           
-          # Create a test matrix with just this item
-          TEST_MATRIX=$(jq -nc --arg path "$CURRENT_PATH" --arg version "$VERSION_TAG" \
-            '{"include":[{"image_path":$path,"version_tag":$version}]}')
+          # Create a temp directory if it doesn't exist
+          mkdir -p ~/temp
+          
+          # Create or update the shared matrix file
+          MATRIX_FILE=~/temp/test_matrix.json
+          
+          # Initialize the matrix file if it doesn't exist
+          if [ ! -f "$MATRIX_FILE" ]; then
+            echo '{"include":[]}' > "$MATRIX_FILE"
+          fi
+          
+          # Add this protocol to the matrix
+          UPDATED_MATRIX=$(jq --arg path "$CURRENT_PATH" --arg version "$VERSION_TAG" '.include += [{"image_path":$path,"version_tag":$version}]' "$MATRIX_FILE")
+          echo "$UPDATED_MATRIX" > "$MATRIX_FILE"
           
           # Debug output
           echo "Current path: $CURRENT_PATH"
           echo "Version tag: $VERSION_TAG"
-          echo "Test matrix: $TEST_MATRIX"
+          echo "Updated matrix file contents:"
+          cat "$MATRIX_FILE"
           
-          # Output the test matrix
-          echo "matrix=$TEST_MATRIX" >> $GITHUB_OUTPUT
+          # Output the current state of the matrix
+          echo "matrix=$(cat $MATRIX_FILE)" >> $GITHUB_OUTPUT
 
       - name: Generate build contexts
         id: build-contexts
