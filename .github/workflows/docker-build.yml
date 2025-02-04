@@ -222,6 +222,7 @@ jobs:
     needs: [detect-changes]
     if: |
       github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
       contains(needs.detect-changes.outputs.dockerfile_changes, 'true')
     runs-on: dev
     strategy:
