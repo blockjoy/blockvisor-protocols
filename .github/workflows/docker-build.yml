@@ -812,12 +812,16 @@ jobs:
           
           # First, check if this matrix item already has a version_tag
           UPDATED_MATRIX=$(echo "$MATRIX" | jq -c --arg version "$VERSION_TAG" --arg path "$CURRENT_PATH" '
-            .include |= map(
-              if .image_path == $path and (.version_tag | not)
-              then . + {version_tag: $version}
-              else .
-              end
-            )')
+            if .include then
+              .include |= map(
+                if .image_path == $path
+                then . + {version_tag: $version}
+                else .
+                end
+              )
+            else
+              {include: [{image_path: $path, version_tag: $version}]}
+            end')
           
           # Debug output
           echo "Current path: $CURRENT_PATH"
@@ -825,7 +829,7 @@ jobs:
           echo "Updated matrix: $UPDATED_MATRIX"
           
           # Output the updated matrix
-          echo "matrix=${UPDATED_MATRIX}" >> $GITHUB_OUTPUT
+          echo "matrix=$UPDATED_MATRIX" >> $GITHUB_OUTPUT
 
       - name: Generate build contexts
         id: build-contexts
