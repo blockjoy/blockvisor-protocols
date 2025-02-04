@@ -803,23 +803,24 @@ jobs:
           
           # Script should succeed even if API call failed
           exit 0
-      - name: Update matrix with version tag
+      - name: Create test matrix
         id: matrix-with-versions
         run: |
-          # Get the current matrix and version tag
-          VERSION_TAG="${{ steps.version.outputs.version_tag }}"
+          # Get the current path and version tag
           CURRENT_PATH="${{ matrix.image_path }}"
+          VERSION_TAG="${{ steps.version.outputs.version_tag }}"
           
-          # Create a new matrix with just this item and its version tag
-          UPDATED_MATRIX=$(jq -nc --arg path "$CURRENT_PATH" --arg version "$VERSION_TAG" '{"include":[{"image_path":$path,"version_tag":$version}]}')
+          # Create a test matrix with just this item
+          TEST_MATRIX=$(jq -nc --arg path "$CURRENT_PATH" --arg version "$VERSION_TAG" \
+            '{"include":[{"image_path":$path,"version_tag":$version}]}')
           
           # Debug output
           echo "Current path: $CURRENT_PATH"
           echo "Version tag: $VERSION_TAG"
-          echo "Updated matrix: $UPDATED_MATRIX"
+          echo "Test matrix: $TEST_MATRIX"
           
-          # Output the updated matrix
-          echo "matrix=$UPDATED_MATRIX" >> $GITHUB_OUTPUT
+          # Output the test matrix
+          echo "matrix=$TEST_MATRIX" >> $GITHUB_OUTPUT
 
       - name: Generate build contexts
         id: build-contexts
