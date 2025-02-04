@@ -811,12 +811,7 @@ jobs:
           CURRENT_PATH="${{ matrix.image_path }}"
           
           # Create a new matrix with just this item and its version tag
-          UPDATED_MATRIX=$(jq -n --arg path "$CURRENT_PATH" --arg version "$VERSION_TAG" '{
-            "include": [{
-              "image_path": $path,
-              "version_tag": $version
-            }]
-          }')
+          UPDATED_MATRIX=$(jq -nc --arg path "$CURRENT_PATH" --arg version "$VERSION_TAG" '{"include":[{"image_path":$path,"version_tag":$version}]}')
           
           # Debug output
           echo "Current path: $CURRENT_PATH"
