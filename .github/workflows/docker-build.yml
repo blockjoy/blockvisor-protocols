@@ -809,9 +809,10 @@ jobs:
           # Get the current matrix and version tag
           MATRIX='${{ needs.detect-changes.outputs.protocols_matrix }}'
           VERSION_TAG="${{ steps.version.outputs.version_tag }}"
+          CURRENT_PATH="${{ matrix.image_path }}"
           
-          # Add version_tag to each item in the matrix
-          UPDATED_MATRIX=$(echo "$MATRIX" | jq -c --arg version "$VERSION_TAG" '.include |= map(. + {version_tag: $version})')
+          # Only update the version tag for the current matrix item
+          UPDATED_MATRIX=$(echo "$MATRIX" | jq -c --arg version "$VERSION_TAG" --arg path "$CURRENT_PATH" '.include |= map(if .image_path == $path then . + {version_tag: $version} else . end)')
           
           # Output the updated matrix
           echo "matrix=${UPDATED_MATRIX}" >> $GITHUB_OUTPUT
