@@ -1,5 +1,5 @@
 version: 0.0.5
-container_uri: docker://ghcr.io/blockjoy/sui-protocol:v20250203.1
+container_uri: docker://ghcr.io/blockjoy/sui-protocol:v20250204.1
 sku_code: SUI-SUI-NODE
 org_id: null
 description: Sui
