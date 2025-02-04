@@ -810,36 +810,8 @@ jobs:
           CURRENT_PATH="${{ matrix.image_path }}"
           VERSION_TAG="${{ steps.version.outputs.version_tag }}"
           
-          # Create a temp directory if it doesn't exist
-          mkdir -p ~/temp
-          
-          # Create or update the shared matrix file
-          MATRIX_FILE=~/temp/test_matrix.json
-          
-          # Initialize the matrix file with detect-changes matrix if it doesn't exist
-          if [ ! -f "$MATRIX_FILE" ]; then
-            echo '${{ needs.detect-changes.outputs.protocols_matrix }}' > "$MATRIX_FILE"
-          fi
-          
-          # Update this protocol's version tag in the matrix
-          UPDATED_MATRIX=$(jq -c --arg path "$CURRENT_PATH" --arg version "$VERSION_TAG" '
-            .include |= map(
-              if .image_path == $path then
-                . + {"version_tag": $version}
-              else
-                .
-              end
-            )' "$MATRIX_FILE")
-          echo "$UPDATED_MATRIX" > "$MATRIX_FILE"
-          
-          # Debug output
-          echo "Current path: $CURRENT_PATH"
-          echo "Version tag: $VERSION_TAG"
-          echo "Updated matrix file contents (pretty):"
-          jq '.' "$MATRIX_FILE"
-          
-          # Output the current state of the matrix (compact format)
-          echo "matrix=$(cat $MATRIX_FILE)" >> $GITHUB_OUTPUT
+          # Output this build's matrix entry
+          echo "matrix={\"image_path\":\"$CURRENT_PATH\",\"version_tag\":\"$VERSION_TAG\"}" >> $GITHUB_OUTPUT
 
       - name: Generate build contexts
         id: build-contexts
@@ -964,9 +936,36 @@ jobs:
           
           echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
 
-  test-nodes:
+  combine-matrices:
     needs: [build-protocols]
-    if: needs.build-protocols.result == 'success'
+    runs-on: dev
+    outputs:
+      matrix: ${{ steps.combine.outputs.matrix }}
+    steps:
+      - name: Combine matrices
+        id: combine
+        run: |
+          # Get all the matrix entries from build jobs
+          MATRICES='${{ toJSON(needs.build-protocols.outputs) }}'
+          
+          # Extract all matrix entries and combine them into a single matrix
+          COMBINED=$(echo "$MATRICES" | jq -c '{
+            include: [
+              to_entries[] | 
+              select(.key | startswith("matrix_")) | 
+              .value | 
+              fromjson
+            ]
+          }')
+          
+          echo "Combined matrix:"
+          echo "$COMBINED" | jq '.'
+          
+          echo "matrix=$COMBINED" >> $GITHUB_OUTPUT
+
+  test-nodes:
+    needs: [combine-matrices]
+    if: needs.combine-matrices.result == 'success'
     uses: ./.github/workflows/test-nodes.yml
     permissions:
       contents: write
@@ -974,7 +973,7 @@ jobs:
       packages: write
       statuses: write
     with:
-      matrix: ${{ needs.build-protocols.outputs.matrix }}
+      matrix: ${{ needs.combine-matrices.outputs.matrix }}
       pr_number: ${{ github.event.pull_request.number }}
       pr_sha: ${{ github.event.pull_request.head.sha }}
       event_action: ${{ github.event.action }}
