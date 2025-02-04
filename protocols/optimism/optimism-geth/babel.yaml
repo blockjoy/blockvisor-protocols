@@ -1,19 +1,19 @@
-version: 0.1.3
-container_uri: docker://ghcr.io/blockjoy/optimism-geth-protocol:v20250204.15
+version: 0.1.4
+container_uri: docker://ghcr.io/blockjoy/optimism-geth-protocol:v20250204.17
 sku_code: OP-GETH
 org_id: null
 description: Optimism Geth
 visibility: public
 protocol_key: optimism
 variants:
-  - key: geth-mainnet-archive
+  - key: op-geth-mainnet-archive
     min_cpu: 12
     min_memory_mb: 65536
     min_disk_gb: 9000
     sku_code: OP-GETH-MA
     archive_pointers:
       - pointer: !store_key optimism-geth-mainnet-archive-v1
-  - key: geth-testnet-archive
+  - key: op-geth-testnet-archive
     min_cpu: 12
     min_memory_mb: 65536
     min_disk_gb: 9000
