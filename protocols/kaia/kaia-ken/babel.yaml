@@ -10,14 +10,14 @@ variants:
     min_cpu: 24
     min_memory_mb: 131072
     min_disk_gb: 5700
-    sku_code: KAIA-KEN-MF
+    sku_code: KAIA-KEN-F-MN
     archive_pointers:
       - pointer: !store_key kaia-ken-mainnet-full-v1
   - key: ken-mainnet-archive
     min_cpu: 24
     min_memory_mb: 131072
     min_disk_gb: 30000
-    sku_code: KAIA-KEN-MA
+    sku_code: KAIA-KEN-A-MN
     archive_pointers:
       - pointer: !store_key kaia-ken-mainnet-archive-v1
 firewall_config:

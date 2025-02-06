@@ -1,6 +1,6 @@
 version: 0.1.7
 container_uri: docker://ghcr.io/blockjoy/fantom-opera-protocol:v20250204.1
-sku_code: FANTOM-OPERA
+sku_code: FTM-OPERA
 org_id: null
 description: Fantom Opera
 visibility: public
@@ -10,7 +10,7 @@ variants:
     min_cpu: 16
     min_memory_mb: 32768
     min_disk_gb: 17500
-    sku_code: FANTOM-OPERA-MA
+    sku_code: FTM-OPERA-A-MN
     archive_pointers:
       - pointer: !store_key fantom-opera-mainnet-archive-v1
 firewall_config:

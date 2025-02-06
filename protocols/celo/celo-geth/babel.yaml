@@ -10,7 +10,7 @@ variants:
     min_cpu: 12
     min_memory_mb: 16384
     min_disk_gb: 6000
-    sku_code: CELO-GETH-MA
+    sku_code: CELO-GETH-A-MN
     archive_pointers:
       - pointer: !store_key celo-geth-mainnet-archive-v1
 firewall_config:
