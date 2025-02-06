@@ -11,6 +11,7 @@ RUN apt-get update && \
     git \
     pkg-config \
     libssl-dev \
+    protobuf-compiler \
     curl \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
