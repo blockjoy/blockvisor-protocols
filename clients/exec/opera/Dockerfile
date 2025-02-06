@@ -2,7 +2,7 @@ ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250203.1
 
 FROM ${BASE_IMAGE} AS builder
 
-ENV GOLANG_VERSION=1.21.1
+ENV GOLANG_VERSION=1.19.3
 ENV GOPATH=/go
 ENV PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
 
