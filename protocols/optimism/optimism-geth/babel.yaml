@@ -1,5 +1,5 @@
 version: 0.1.4
-container_uri: docker://ghcr.io/blockjoy/optimism-geth-protocol:v20250206.3
+container_uri: docker://ghcr.io/blockjoy/optimism-geth-protocol:v20250206.4
 sku_code: OPGETH
 org_id: null
 description: Optimism Geth
