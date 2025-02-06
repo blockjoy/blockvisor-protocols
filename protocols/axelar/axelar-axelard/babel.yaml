@@ -1,4 +1,4 @@
-container_uri: docker://ghcr.io/blockjoy/axelar-axelard-protocol:v20250206.5
+container_uri: docker://ghcr.io/blockjoy/axelar-axelard-protocol:v20250206.6
 version: 0.1.4
 sku_code: AXL
 org_id: null
