@@ -1,4 +1,4 @@
-version: 1.12.2
+version: 1.12.3
 container_uri: docker://ghcr.io/blockjoy/bsc-erigon-protocol:v20250206.5
 sku_code: BSCERI
 org_id: null

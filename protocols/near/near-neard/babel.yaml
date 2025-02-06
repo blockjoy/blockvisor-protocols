@@ -1,4 +1,4 @@
-version: 0.0.4
+version: 0.0.5
 container_uri: docker://ghcr.io/blockjoy/near-neard-protocol:v20250206.5
 sku_code: NEARNRD
 org_id: null
