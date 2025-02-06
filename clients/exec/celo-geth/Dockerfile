@@ -1,7 +1,7 @@
 #1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250203.1
 
-FROM golang:1.19-bookworm AS builder
+FROM golang:1.23-bookworm AS builder
 ENV CELO_GETH_VERSION=v1.8.4
 
 WORKDIR /go-ethereum

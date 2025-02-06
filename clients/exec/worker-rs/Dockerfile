@@ -2,7 +2,7 @@ ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250120.1
 ARG WORKER_VERSION=v2.0.3
 
 # Build the worker from subsquid/worker-rs repository
-FROM rust:1.81-slim-bookworm AS builder
+FROM rust:1.84-slim-bookworm AS builder
 WORKDIR /build
 RUN apt-get update && \
     apt-get install -y \
