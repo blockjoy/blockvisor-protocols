@@ -2,6 +2,18 @@ ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250203.1
 
 FROM ${BASE_IMAGE} AS builder
 
+# Install Go 1.21
+ENV GOLANG_VERSION=1.21.6
+ENV GOPATH=/go
+ENV PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL "https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz" | tar -xz -C /usr/local
+
 ENV OPERA_VERSION="release/txtracing/1.1.3-rc.5"
 
 WORKDIR /go-opera
