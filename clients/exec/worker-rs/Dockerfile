@@ -1,19 +1,25 @@
-ARG BASE_IMAGE=ghcr.io/blockjoy/node-base:v20250120.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250203.1
 ARG WORKER_VERSION=v2.0.3
 
 # Build the worker from subsquid/worker-rs repository
-FROM rust:1.81-slim-bookworm AS builder
+FROM ${BASE_IMAGE} AS builder
+
 WORKDIR /build
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
+    build-essential \
     git \
-    protobuf-compiler \
     pkg-config \
     libssl-dev \
+    protobuf-compiler \
+    libprotobuf-dev \
     libsqlite3-dev \
-    build-essential && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Clone and build the worker
 RUN git clone https://github.com/subsquid/worker-rs.git . && \
