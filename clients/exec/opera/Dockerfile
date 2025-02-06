@@ -2,8 +2,8 @@ ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250203.1
 
 FROM ${BASE_IMAGE} AS builder
 
-# Install Go 1.21
-ENV GOLANG_VERSION=1.21.6
+# Install Go 1.20
+ENV GOLANG_VERSION=1.20.14
 ENV GOPATH=/go
 ENV PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
 
