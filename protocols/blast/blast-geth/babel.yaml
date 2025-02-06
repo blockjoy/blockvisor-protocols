@@ -1,6 +1,6 @@
-version: 0.1.4
-container_uri: docker://ghcr.io/blockjoy/blast-geth-protocol:v20250204.1
-sku_code: BLAST-GETH
+version: 0.1.5
+container_uri: docker://ghcr.io/blockjoy/blast-geth-protocol:v20250206.6
+sku_code: BLASTGETH
 org_id: null
 description: Blast Geth
 visibility: public
@@ -10,7 +10,7 @@ variants:
     min_cpu: 8
     min_memory_mb: 8192
     min_disk_gb: 4000
-    sku_code: BLAST-GETH-MA
+    sku_code: BLASTGETH-A-MN
     archive_pointers:
       - pointer: !store_key blast-geth-mainnet-archive-v1
 firewall_config:

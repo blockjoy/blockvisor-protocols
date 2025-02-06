@@ -1,6 +1,6 @@
-version: 0.0.11
-container_uri: docker://ghcr.io/blockjoy/gnosis-erigon-protocol:v20250204.16
-sku_code: GNO-ERG
+version: 0.0.12
+container_uri: docker://ghcr.io/blockjoy/gnosis-erigon-protocol:v20250206.6
+sku_code: GNOERI
 org_id: null
 description: Gnosis Chain Erigon node
 visibility: public
@@ -10,14 +10,14 @@ variants:
     min_cpu: 12
     min_memory_mb: 16384
     min_disk_gb: 3000
-    sku_code: GNO-ERG-MA
+    sku_code: GNOERI-A-MN
     archive_pointers:
       - pointer: !store_key gnosis-erigon-mainnet-archive-v1
   - key: erigon-mainnet-full
     min_cpu: 12
     min_memory_mb: 16384
     min_disk_gb: 3000
-    sku_code: GNO-ERG-MF
+    sku_code: GNOERI-F-MN
     visibility: private
     archive_pointers:
       - pointer: !store_key gnosis-erigon-mainnet-full-v1
