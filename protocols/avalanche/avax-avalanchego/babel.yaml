@@ -1,5 +1,5 @@
 version: 0.0.6
-container_uri: docker://ghcr.io/blockjoy/avax-avalanchego-protocol:v20250206.4
+container_uri: docker://ghcr.io/blockjoy/avax-avalanchego-protocol:v20250206.6
 sku_code: AVAXGO
 org_id: null
 description: Avalanche node with avalanchego client
