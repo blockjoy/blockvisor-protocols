@@ -10,7 +10,7 @@ variants:
     min_cpu: 2
     min_memory_mb: 9216
     min_disk_gb: 900
-    sku_code: SQDWORKER-M
+    sku_code: SQDWORKER-W-MN
     archive_pointers:
       - pointer: !store_key sqd-worker-mainnet-v1
 firewall_config:
