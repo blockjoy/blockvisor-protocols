@@ -1,6 +1,7 @@
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250203.1
 
-FROM golang:1.23-bookworm AS builder
+FROM ${BASE_IMAGE} AS builder
+
 ENV OPERA_VERSION="release/txtracing/1.1.3-rc.5"
 
 WORKDIR /go-opera
