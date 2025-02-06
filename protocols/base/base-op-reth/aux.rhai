@@ -10,6 +10,8 @@ fn base_config(metrics_port, metrics_path, rpc_port, ws_port, authrpc_port, op_r
                     blockchain: node_env().node_protocol,
                     metrics_port: `${metrics_port}`,
                     metrics_path: `${metrics_path}`,
+                    grafana_prom_basicauth: std::env("GRAFANA_PROM_BASICAUTH"),
+                    grafana_loki_basicauth: std::env("GRAFANA_LOKI_BASICAUTH"),
                 }
             },
             #{
@@ -24,6 +26,7 @@ fn base_config(metrics_port, metrics_path, rpc_port, ws_port, authrpc_port, op_r
                     node_ip: node_env().node_ip,
                     tld: ".n0des.xyz",
                     data_dir: `${caddy_dir}`,
+                    cloudflare_api_key: std::env("CLOUDFLARE_API_KEY"),
                 }
             }
         ],
