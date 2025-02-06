@@ -1,4 +1,4 @@
-container_uri: docker://ghcr.io/blockjoy/arbitrum-nova-nitro-protocol:v20250206.6
+container_uri: docker://ghcr.io/blockjoy/arbitrum-nova-nitro-protocol:v20250206.8
 version: 0.1.5
 sku_code: ARBNOVANITRO
 org_id: null
