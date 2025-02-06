@@ -1,5 +1,5 @@
 version: 0.1.3
-container_uri: docker://ghcr.io/blockjoy/axelar-axelard-protocol:v20250204.1
+container_uri: docker://ghcr.io/blockjoy/axelar-axelard-protocol:v20250206.2
 sku_code: AXLAXLD
 org_id: null
 description: Axelar Axelard
