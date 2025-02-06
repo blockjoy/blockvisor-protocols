@@ -1,6 +1,6 @@
 version: 1.0.0
 container_uri: docker://ghcr.io/blockjoy/polygon-bor-protocol:v20250204.1
-sku_code: POLY-BOR
+sku_code: POLYBOR
 org_id: null
 description: Polygon
 visibility: public
@@ -10,7 +10,7 @@ variants:
     min_cpu: 32
     min_memory_mb: 32768
     min_disk_gb: 2600
-    sku_code: POLY-BOR-F-MN
+    sku_code: POLYBOR-F-MN
     archive_pointers:
       - pointer: !store_key polygon-bor-mainnet-full-v1
 firewall_config:

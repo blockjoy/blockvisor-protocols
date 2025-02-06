@@ -1,6 +1,6 @@
 version: 1.1.5
 container_uri: docker://ghcr.io/blockjoy/kaia-ken-protocol:v20250204.1
-sku_code: KAIA-KEN
+sku_code: KAIAKEN
 org_id: null
 description: Kaia Ken EN node
 visibility: public
@@ -10,14 +10,14 @@ variants:
     min_cpu: 24
     min_memory_mb: 131072
     min_disk_gb: 5700
-    sku_code: KAIA-KEN-F-MN
+    sku_code: KAIAKEN-F-MN
     archive_pointers:
       - pointer: !store_key kaia-ken-mainnet-full-v1
   - key: ken-mainnet-archive
     min_cpu: 24
     min_memory_mb: 131072
     min_disk_gb: 30000
-    sku_code: KAIA-KEN-A-MN
+    sku_code: KAIAKEN-A-MN
     archive_pointers:
       - pointer: !store_key kaia-ken-mainnet-archive-v1
 firewall_config:

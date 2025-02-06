@@ -10,7 +10,7 @@ variants:
     min_cpu: 24
     min_memory_mb: 32768
     min_disk_gb: 9000
-    sku_code: ARBNOVA-NITRO-A-MN
+    sku_code: ARBNOVANITRO-A-MN
     archive_pointers:
       - pointer: !store_key arbitrum-nova-nitro-mainnet-archive-v1
 firewall_config:
