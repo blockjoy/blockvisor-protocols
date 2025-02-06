@@ -1,6 +1,6 @@
 version: 0.0.6
-container_uri: docker://ghcr.io/blockjoy/avax-avalanchego-protocol:v20250206.3
-sku_code: AVAXAVAGO
+container_uri: docker://ghcr.io/blockjoy/avax-avalanchego-protocol:v20250204.15
+sku_code: AVAXGO
 org_id: null
 description: Avalanche node with avalanchego client
 visibility: public
@@ -10,14 +10,14 @@ variants:
     min_cpu: 12
     min_memory_mb: 24576
     min_disk_gb: 8000
-    sku_code: AVAXAVAGO-A-MN
+    sku_code: AVAXGO-A-MN
     archive_pointers:
       - pointer: !store_key avalanche-avalanchego-mainnet-archive-v1
   - key: avalanchego-testnet-archive
     min_cpu: 4
     min_memory_mb: 8192
     min_disk_gb: 2000
-    sku_code: AVAXAVAGO-A-TN
+    sku_code: AVAXGO-A-TN
     visibility: private
     archive_pointers:
       - pointer: !store_key avalanche-avalanchego-testnet-archive-v1

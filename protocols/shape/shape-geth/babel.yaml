@@ -17,7 +17,7 @@ variants:
     min_cpu: 12
     min_memory_mb: 16384
     min_disk_gb: 100
-    sku_code: SHAPEGETH-F-SP
+    sku_code: SHAPEGETH-F-SEP
     archive_pointers:
       - pointer: !store_key shape-geth-sepolia-full-v1
 firewall_config:

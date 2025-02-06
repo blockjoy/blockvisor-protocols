@@ -18,7 +18,7 @@ variants:
     min_cpu: 4
     min_memory_mb: 16000
     min_disk_gb: 2000
-    sku_code: ETHERI-F-SP
+    sku_code: ETHERI-F-SEP
     visibility: private
     archive_pointers:
       - pointer: !store_key ethereum-erigon-sepolia-full-v1
@@ -33,7 +33,7 @@ variants:
     min_cpu: 4
     min_memory_mb: 16000
     min_disk_gb: 2000
-    sku_code: ETHERI-A-SP
+    sku_code: ETHERI-A-SEP
     visibility: private
     archive_pointers:
       - pointer: !store_key ethereum-erigon-sepolia-archive-v1

@@ -17,7 +17,7 @@ variants:
     min_cpu: 8
     min_memory_mb: 16000
     min_disk_gb: 1200
-    sku_code: ETHRETH-F-SP
+    sku_code: ETHRETH-F-SEP
     archive_pointers:
       - pointer: !store_key ethereum-reth-sepolia-full-v1
   - key: reth-mainnet-archive
@@ -31,7 +31,7 @@ variants:
     min_cpu: 8
     min_memory_mb: 16000
     min_disk_gb: 1500
-    sku_code: ETHRETH-A-SP
+    sku_code: ETHRETH-A-SEP
     archive_pointers:
       - pointer: !store_key ethereum-reth-sepolia-archive-v1
 firewall_config:

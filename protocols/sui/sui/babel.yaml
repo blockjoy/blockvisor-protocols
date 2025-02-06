@@ -1,6 +1,6 @@
 version: 0.0.5
 container_uri: docker://ghcr.io/blockjoy/sui-protocol:v20250206.2
-sku_code: SUISUI
+sku_code: SUI
 org_id: null
 description: Sui
 visibility: public
@@ -10,7 +10,7 @@ variants:
     min_cpu: 16
     min_memory_mb: 131072
     min_disk_gb: 2500
-    sku_code: SUISUI-F-MN
+    sku_code: SUI-F-MN
     archive_pointers:
       - pointer: !store_key sui-sui-node-mainnet-full-v1
 firewall_config:
