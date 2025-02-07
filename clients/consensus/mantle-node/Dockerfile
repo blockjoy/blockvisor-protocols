@@ -19,6 +19,8 @@ ENV GOLANG_VERSION=1.20.14
 ENV GOPATH=/go
 ENV PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
 
+RUN mkdir -p /root/bin
+
 RUN rm -rf /usr/local/go && \
     curl -fsSL "https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz" | tar -xz -C /usr/local
 
