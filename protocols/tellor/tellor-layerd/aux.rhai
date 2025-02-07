@@ -10,8 +10,8 @@ fn base_config(axelar_dir, metrics_port, p2p_port, rpc_port, rest_port, grpc_web
                     blockchain: node_env().node_protocol,
                     metrics_port: `${metrics_port}`,
                     metrics_path: `${metrics_path}`,
-                    grafana_loki_key: get_secret("grafana_loki_key").as_string(),
-                    grafana_prometheus_key: get_secret("grafana_prometheus_key").as_string(),
+                    grafana_loki_key: get_secret("grafana-loki-key").as_string(),
+                    grafana_prometheus_key: get_secret("grafana-prometheus-key").as_string(),
                 }
             },
             #{
@@ -27,7 +27,7 @@ fn base_config(axelar_dir, metrics_port, p2p_port, rpc_port, rest_port, grpc_web
                     data_dir: `${caddy_dir}`,
                     metrics_path: `${metrics_path}`,
                     metrics_port: `${metrics_port}`,
-                    cloudflare_cert_key: get_secret("cloudflare_cert_key").as_string(),
+                    cloudflare_cert_key: get_secret("cloudflare-cert-key").as_string(),
                 }
             },
             #{
