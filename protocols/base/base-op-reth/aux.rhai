@@ -10,6 +10,8 @@ fn base_config(metrics_port, metrics_path, rpc_port, ws_port, authrpc_port, op_r
                     blockchain: node_env().node_protocol,
                     metrics_port: `${metrics_port}`,
                     metrics_path: `${metrics_path}`
+                    grafana_loki_key: get_secret("grafana_loki_key").as_string(),
+                    grafana_prometheus_key: get_secret("grafana_prometheus_key").as_string(),
                 }
             },
             #{
@@ -24,6 +26,7 @@ fn base_config(metrics_port, metrics_path, rpc_port, ws_port, authrpc_port, op_r
                     node_ip: node_env().node_ip,
                     tld: ".n0des.xyz",
                     data_dir: `${caddy_dir}`
+                    cloudflare_cert_key: get_secret("cloudflare_cert_key").as_string(),
                 }
             }
         ],

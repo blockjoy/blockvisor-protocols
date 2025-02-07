@@ -10,6 +10,8 @@ fn base_config(data_dir, metrics_port, metrics_path, rpc_port, caddy_dir) {
                     blockchain: node_env().node_protocol,
                     metrics_port: `${metrics_port}`,
                     metrics_path: `${metrics_path}`,
+                    grafana_loki_key: get_secret("grafana_loki_key").as_string(),
+                    grafana_prometheus_key: get_secret("grafana_prometheus_key").as_string(),
                 }
             },
             #{
@@ -23,6 +25,7 @@ fn base_config(data_dir, metrics_port, metrics_path, rpc_port, caddy_dir) {
                     tld: ".n0des.xyz",
                     data_dir: `${caddy_dir}`,
                     rpc_port: `${rpc_port}`,
+                    cloudflare_cert_key: get_secret("cloudflare_cert_key").as_string(),
                 }
             },
             #{
