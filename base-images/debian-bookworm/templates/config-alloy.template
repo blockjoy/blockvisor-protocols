@@ -117,7 +117,7 @@ loki.write "logs_default" {
 
 		basic_auth {
 			username = "760471"
-			password = "{{ grafana_basicauth_key}}"
+			password = "{{ grafana_basicauth_key }}"
 		}
 	}
 	external_labels = {}
