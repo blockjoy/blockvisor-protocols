@@ -13,6 +13,7 @@ RUN mkdir -p /root/bin /var/lib/babel/templates /root/configs
 COPY --from=layerd /root/bin/layerd /root/bin/
 
 # Copy templates and protocol files
+COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/client-toml.template /var/lib/babel/templates/
 COPY templates/app-toml.template /var/lib/babel/templates/
 COPY templates/config-toml.template /var/lib/babel/templates/

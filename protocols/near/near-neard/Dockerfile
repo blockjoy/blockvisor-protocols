@@ -13,5 +13,6 @@ COPY --from=client /root/bin/neard /root/bin/
 
 # Copy templates and protocol files
 COPY templates/config-json.template /var/lib/babel/templates/
+COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/

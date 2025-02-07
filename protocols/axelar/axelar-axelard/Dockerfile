@@ -12,6 +12,7 @@ RUN mkdir -p /root/bin /var/lib/babel/templates /root/configs
 COPY --from=axelard /root/bin/axelard /root/bin/
 
 # Copy templates and protocol files
+COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/addrbook-json.template /var/lib/babel/templates/
 COPY templates/app-toml.template /var/lib/babel/templates/
 COPY templates/config-toml.template /var/lib/babel/templates/
