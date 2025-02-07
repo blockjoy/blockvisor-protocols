@@ -15,8 +15,9 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone and build mantle-node
-RUN git clone https://github.com/mantlenetworkio/mantle-v2.git /mantle && \
+RUN git clone --recursive https://github.com/mantlenetworkio/mantle-v2.git /mantle && \
     cd /mantle && \
     git checkout ${MANTLE_VERSION} && \
     cd op-node && \
-    go build -o bin/op-node ./cmd
+    go build -o bin/op-node ./cmd && \
+    cp bin/op-node /root/bin/
