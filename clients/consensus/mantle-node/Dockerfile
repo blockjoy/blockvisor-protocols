@@ -19,6 +19,4 @@ RUN git clone https://github.com/mantlenetworkio/mantle-v2.git /mantle && \
     cd /mantle && \
     git checkout ${MANTLE_VERSION} && \
     cd op-node && \
-    make op-node && \
-    mkdir -p /root/bin && \
-    mv ./bin/op-node /root/bin/
+    go build -o bin/op-node ./cmd
