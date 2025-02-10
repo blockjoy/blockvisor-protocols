@@ -1,4 +1,4 @@
-version: 1.0.1
+version: 0.1.1
 container_uri: docker://ghcr.io/blockjoy/ethereum-reth-protocol:v20250206.6
 sku_code: ETHRETH
 org_id: null
