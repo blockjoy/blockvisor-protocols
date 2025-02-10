@@ -26,7 +26,7 @@ const VARIANTS = #{
         chain_id: "layertest-2",
         key_name: "alice",
         key_ring: "test",
-        eth_rpc_url: "https://eth-la-sepolia.blkjy.io",
+        eth_rpc_url: "https://eth-l1-sepolia.blkjy.io",
         token_bridge_contract: "0xFC1C57F1E466605e3Dd40840bC3e7DdAa400528c",
     },
 };
