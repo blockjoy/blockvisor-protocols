@@ -46,28 +46,7 @@ const PLUGIN_CONFIG = #{
     services: [
         #{
             name: "nitro",           
-            run_sh: `HOME=${HOME} && /root/bin/nitro \
-                    --parent-chain.connection.url=${VARIANT.l1_url} \
-                    --chain.id=42170 \
-                    --metrics \
-                    --metrics-server.addr=127.0.0.1 \
-                    --metrics-server.port=${METRICS_PORT} \
-                    --http.api=net,web3,eth,arb \
-                    --http.corsdomain=* \
-                    --http.addr=127.0.0.1 \
-                    --http.port=${RPC_PORT} \
-                    --http.vhosts=* \
-                    --ws.rpcprefix=/ \
-                    --ws.addr=127.0.0.1 \
-                    --ws.api=net,web3,eth,arb \
-                    --ws.origins=* \
-                    --ws.port=${WS_PORT} \
-                    --execution.caching.archive \
-                    --parent-chain.blob-client.beacon-url=${VARIANT.beacon_url} \
-                    --validation.wasm.allowed-wasm-module-roots=${VARIANT.wasm_root} \
-                    --persistent.chain=${HOME} \
-                    --persistent.global-config=${HOME} \
-                    --persistent.log-dir=${HOME}`,
+            run_sh: `HOME=${HOME} && /root/bin/nitro --parent-chain.connection.url=${VARIANT.l1_url} --chain.id=42170 --metrics --metrics-server.addr=127.0.0.1 --metrics-server.port=${METRICS_PORT} --http.api=net,web3,eth,arb --http.corsdomain=* --http.addr=127.0.0.1 --http.port=${RPC_PORT} --http.vhosts=* --ws.rpcprefix=/ --ws.addr=127.0.0.1 --ws.api=net,web3,eth,arb --ws.origins=* --ws.port=${WS_PORT} --execution.caching.archive --parent-chain.blob-client.beacon-url=${VARIANT.beacon_url} --validation.wasm.allowed-wasm-module-roots=${VARIANT.wasm_root} --persistent.chain=${HOME} --persistent.global-config=${HOME} --persistent.log-dir=${HOME}`,
             shutdown_timeout_secs: 300,
             log_timestamp: false,
         }
