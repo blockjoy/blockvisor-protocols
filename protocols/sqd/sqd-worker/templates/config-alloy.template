@@ -52,6 +52,11 @@ discovery.relabel "metrics_{{ blockchain | lower | replace(from="-", to="_") }}"
 		target_label = "protocol"
 		replacement  = "{{ blockchain | lower | replace(from="-", to="_") }}"
 	}
+
+	rule {
+		target_label = "blockvisor_host"
+		replacement  = sys.env("BV_HOST_NAME")
+	}
 }
 
 prometheus.scrape "metrics_{{ blockchain | lower | replace(from="-", to="_") }}" {

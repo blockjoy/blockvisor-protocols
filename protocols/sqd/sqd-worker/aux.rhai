@@ -37,7 +37,7 @@ fn base_config(data_dir, key_path, metrics_port, metrics_path, caddy_dir) {
         services: [
             #{
               name: "alloy",
-              run_sh: `/usr/bin/alloy run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy`,
+              run_sh: `/usr/bin/alloy run --server.http.listen-addr=127.0.0.1:12346 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy`,
               log_timestamp: false,
             },
             #{
