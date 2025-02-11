@@ -1,5 +1,5 @@
 version: 1.0.1
-container_uri: docker://ghcr.io/blockjoy/sqd-worker-protocol:v20250210.3
+container_uri: docker://ghcr.io/blockjoy/sqd-worker-protocol:v20250211.2
 sku_code: SQDWORKER
 org_id: null
 description: Sqd
