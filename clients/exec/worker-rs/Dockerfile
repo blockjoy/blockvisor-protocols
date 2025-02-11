@@ -1,5 +1,6 @@
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250203.1
 ARG WORKER_VERSION=v2.0.3
+# added to trigger build
 
 # Build the worker from subsquid/worker-rs repository
 FROM ${BASE_IMAGE} AS builder
