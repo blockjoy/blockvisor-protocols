@@ -1,7 +1,7 @@
 #2
-ARG ERIGON_IMAGE=ghcr.io/blockjoy/erigon:v20250203.1
-ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v20250203.1
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250212.3
+ARG ERIGON_IMAGE=ghcr.io/blockjoy/erigon:v20250212.1
+ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v20250212.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250212.4
 
 FROM ${ERIGON_IMAGE} AS erigon
 

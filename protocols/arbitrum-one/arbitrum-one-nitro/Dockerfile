@@ -1,5 +1,5 @@
-ARG ARB_NODE_IMAGE=ghcr.io/blockjoy/arb-node:v20250203.1
-ARG NITRO_IMAGE=ghcr.io/blockjoy/nitro:v20250203.1
+ARG ARB_NODE_IMAGE=ghcr.io/blockjoy/arb-node:v20250212.1
+ARG NITRO_IMAGE=ghcr.io/blockjoy/nitro:v20250212.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250212.3
 
 FROM ${ARB_NODE_IMAGE} AS arb-node

@@ -1,6 +1,6 @@
 #1
-ARG PROTOCOL_IMAGE=ghcr.io/blockjoy/layerd:v20250203.1
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250212.3
+ARG PROTOCOL_IMAGE=ghcr.io/blockjoy/layerd:v20250212.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250212.4
 
 FROM ${PROTOCOL_IMAGE} AS layerd
 
