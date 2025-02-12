@@ -1,6 +1,6 @@
 ARG HEIMDALL_IMAGE=ghcr.io/blockjoy/heimdall:v20250203.1
 ARG BOR_IMAGE=ghcr.io/blockjoy/bor:v20250203.1
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250207.3
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250212.3
 
 FROM ${HEIMDALL_IMAGE} AS heimdall
 

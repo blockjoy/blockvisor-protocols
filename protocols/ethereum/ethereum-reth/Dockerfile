@@ -1,7 +1,7 @@
 #1
 ARG RETH_IMAGE=ghcr.io/blockjoy/reth:v20250203.1
 ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v20250203.1
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250207.3
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250212.3
 
 FROM ${RETH_IMAGE} AS reth
 
