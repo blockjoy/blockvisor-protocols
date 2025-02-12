@@ -13,6 +13,7 @@ COPY --from=worker /root/bin/worker /root/bin/
 
 # Copy templates and protocol files
 COPY templates/Caddyfile.template /var/lib/babel/templates/
+COPY templates/config-alloy.template /var/lib/babel/templates/
 COPY templates/mainnet-env.template /var/lib/babel/templates/
 COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/
