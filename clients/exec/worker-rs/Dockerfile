@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250203.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250212.4
 ARG WORKER_VERSION=v2.0.3
 # added to trigger build
 
