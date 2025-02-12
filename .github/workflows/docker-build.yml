@@ -456,7 +456,7 @@ jobs:
             --allow-insecure-entitlement network.host
 
       - name: Build base image
-        uses: docker/build-push-action@67a2d409c0a876cbe6b11854e3e25193efe4e62d # v6
+        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6
         with:
           context: ./${{ matrix.image_path }}
           push: false
@@ -524,7 +524,7 @@ jobs:
 
       - name: Push base image
         if: success()
-        uses: docker/build-push-action@67a2d409c0a876cbe6b11854e3e25193efe4e62d # v6
+        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6
         with:
           context: ./${{ matrix.image_path }}
           push: true
@@ -681,7 +681,7 @@ jobs:
             --debug
             --allow-insecure-entitlement network.host
       - name: Build and push client images
-        uses: docker/build-push-action@67a2d409c0a876cbe6b11854e3e25193efe4e62d # v6
+        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6
         with:
           context: ./${{ matrix.image_path }}
           push: true
@@ -852,7 +852,7 @@ jobs:
             --debug
             --allow-insecure-entitlement network.host
       - name: Build and push protocol images
-        uses: docker/build-push-action@67a2d409c0a876cbe6b11854e3e25193efe4e62d # v6
+        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6
         with:
           context: ./${{ matrix.image_path }}
           push: true

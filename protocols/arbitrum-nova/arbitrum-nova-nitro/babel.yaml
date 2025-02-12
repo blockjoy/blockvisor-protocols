@@ -1,6 +1,6 @@
-version: 0.1.4
-container_uri: docker://ghcr.io/blockjoy/arbitrum-nova-nitro-protocol:v20250204.1
-sku_code: ARBNOVA-NITRO
+container_uri: docker://ghcr.io/blockjoy/arbitrum-nova-nitro-protocol:v20250210.4
+version: 0.1.6
+sku_code: ARBNOVANITRO
 org_id: null
 description: Arbitrum Nova Archive Node
 visibility: public
@@ -10,7 +10,7 @@ variants:
     min_cpu: 24
     min_memory_mb: 32768
     min_disk_gb: 9000
-    sku_code: ARBNOVA-NITRO-MA
+    sku_code: ARBNOVANITRO-A-MN
     archive_pointers:
       - pointer: !store_key arbitrum-nova-nitro-mainnet-archive-v1
 firewall_config:

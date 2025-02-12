@@ -1,6 +1,6 @@
-version: 0.1.2
-container_uri: docker://ghcr.io/blockjoy/arbitrum-one-nitro-protocol:v20250204.1
-sku_code: ARBONE-NITRO
+container_uri: docker://ghcr.io/blockjoy/arbitrum-one-nitro-protocol:v20250210.3
+version: 0.1.4
+sku_code: ARBONENITRO
 org_id: null
 description: Arbitrum One Nitro Node
 visibility: public
@@ -10,14 +10,14 @@ variants:
     min_cpu: 24
     min_memory_mb: 65536
     min_disk_gb: 22000
-    sku_code: ARBONE-NITRO-MA
+    sku_code: ARBONENITRO-A-MN
     archive_pointers:
       - pointer: !store_key arbitrum-one-nitro-mainnet-archive-v1
   - key: nitro-mainnet-full
     min_cpu: 16
     min_memory_mb: 32768
     min_disk_gb: 10000
-    sku_code: ARBONE-NITRO-MF
+    sku_code: ARBONENITRO-F-MN
     archive_pointers:
       - pointer: !store_key arbitrum-one-nitro-mainnet-full-v1
 firewall_config:

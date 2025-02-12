@@ -1,6 +1,6 @@
-version: 1.12.2
-container_uri: docker://ghcr.io/blockjoy/bsc-erigon-protocol:v20250204.1
-sku_code: BSC-ERG
+version: 0.1.1
+container_uri: docker://ghcr.io/blockjoy/bsc-erigon-protocol:v20250210.3
+sku_code: BSCERI
 org_id: null
 description: Binance Smart Chain
 visibility: public
@@ -10,7 +10,7 @@ variants:
     min_cpu: 16
     min_memory_mb: 32768
     min_disk_gb: 16000
-    sku_code: BSC-ERG-MA
+    sku_code: BSCERI-A-MN
     archive_pointers:
       - pointer: !store_key bsc-erigon-mainnet-archive-v1
 firewall_config:
