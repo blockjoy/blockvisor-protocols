@@ -29,8 +29,8 @@ firewall_config:
         - port: 80
           name: HTTP port
         - port: 443
-          name: HTTPS port        
-    - key: Allow P2P ports 
+          name: HTTPS port
+    - key: Allow P2P ports
       description: Allow inbound traffic on P2P ports
       protocol: both
       direction: in
