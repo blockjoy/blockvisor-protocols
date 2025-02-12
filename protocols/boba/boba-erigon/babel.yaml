@@ -1,0 +1,48 @@
+version: 0.0.1
+container_uri: docker://ghcr.io/blockjoy/boba-erigon-protocol:v20250212.1
+sku_code: BOBAERIGON
+org_id: null
+description: Boba
+visibility: public
+protocol_key: boba
+variants:
+  - key: erigon-mainnet-archive
+    min_cpu: 32
+    min_memory_mb: 32768
+    min_disk_gb: 5000
+    sku_code: BOBAERIGON-A-MN
+    archive_pointers:
+      - pointer: !store_key boba-erigon-mainnet-archive-v1
+firewall_config:
+  default_in: deny
+  default_out: allow
+  rules:
+    - key: Allow incoming ports TCP
+      description: Allow TCP inbound traffic on port 80, 443
+      protocol: tcp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 80
+          name: HTTP port
+        - port: 443
+          name: HTTPS port
+    - key: Allow P2P ports
+      description: Allow inbound traffic on P2P ports
+      protocol: both
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 30303
+          name: P2P port 1
+        - port: 30304
+          name: P2P port 2
+        - port: 42069
+          name: Torrent port
+properties: []
