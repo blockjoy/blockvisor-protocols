@@ -8,7 +8,7 @@ protocol_key: sqd
 variants:
   - key: sqd-worker-mainnet
     min_cpu: 2
-    min_memory_mb: 9216
+    min_memory_mb: 10240
     min_disk_gb: 900
     sku_code: SQDWORKER-W-MN
     archive_pointers:
