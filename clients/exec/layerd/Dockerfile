@@ -1,6 +1,6 @@
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250212.4
 
-FROM golang:1.23-bookworm AS builder
+FROM golang:1.24-bookworm AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PROTOCOL_VERSION=v2.0.1-fix
