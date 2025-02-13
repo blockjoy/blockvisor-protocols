@@ -1,4 +1,4 @@
-version: 0.0.8
+version: 1.0.0
 container_uri: docker://ghcr.io/blockjoy/avax-avalanchego-protocol:v20250212.1
 sku_code: AVAXGO
 org_id: null
