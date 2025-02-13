@@ -21,6 +21,7 @@ RUN mkdir -p /root/bin /var/lib/babel/templates
 
 # Copy binaries from builds
 COPY --from=exec /root/bin/erigon /root/bin/
+COPY --from=exec /root/bin/libsilkworm_capi.so /root/bin/
 COPY --from=consensus /root/bin/op-node /root/bin/
 
 # Copy templates and protocol files
