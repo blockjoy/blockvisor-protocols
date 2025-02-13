@@ -1,5 +1,5 @@
 version: 1.0.0
-container_uri: docker://ghcr.io/blockjoy/ethereum-erigon-protocol:v20250213.1
+container_uri: docker://ghcr.io/blockjoy/ethereum-erigon-protocol:v20250213.3
 sku_code: ETHERI
 org_id: null
 description: Ethereum Erigon node
