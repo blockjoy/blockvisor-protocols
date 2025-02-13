@@ -1,25 +1,18 @@
-version: 1.1.7
-container_uri: docker://ghcr.io/blockjoy/kaia-ken-protocol:v20250213.1
-sku_code: KAIA
+version: 0.0.2
+container_uri: docker://ghcr.io/blockjoy/boba-erigon-protocol:v20250213.2
+sku_code: BOBAERIGON
 org_id: null
-description: Kaia Ken EN node
+description: Boba
 visibility: public
-protocol_key: kaia
+protocol_key: boba
 variants:
-  - key: ken-mainnet-full
-    min_cpu: 24
-    min_memory_mb: 131072
-    min_disk_gb: 5700
-    sku_code: KAIA-F-MN
+  - key: erigon-mainnet-archive
+    min_cpu: 32
+    min_memory_mb: 32768
+    min_disk_gb: 5000
+    sku_code: BOBAERIGON-A-MN
     archive_pointers:
-      - pointer: !store_key kaia-ken-mainnet-full-v1
-  - key: ken-mainnet-archive
-    min_cpu: 24
-    min_memory_mb: 131072
-    min_disk_gb: 30000
-    sku_code: KAIA-A-MN
-    archive_pointers:
-      - pointer: !store_key kaia-ken-mainnet-archive-v1
+      - pointer: !store_key boba-erigon-mainnet-archive-v1
 firewall_config:
   default_in: deny
   default_out: allow
@@ -37,7 +30,7 @@ firewall_config:
           name: HTTP port
         - port: 443
           name: HTTPS port
-    - key: Allow P2P ports TCP/UDP
+    - key: Allow P2P ports
       description: Allow inbound traffic on P2P ports
       protocol: both
       direction: in
@@ -46,6 +39,10 @@ firewall_config:
         - ip: 0.0.0.0/0
           name: allow all traffic
       ports:
-        - port: 32323
-          name: P2P port
+        - port: 30303
+          name: P2P port 1
+        - port: 30304
+          name: P2P port 2
+        - port: 42069
+          name: Torrent port
 properties: []
