@@ -43,19 +43,14 @@ const PLUGIN_CONFIG = #{
         jobs: [
             #{
                 name: "init",
-                run_sh: `export HOME=${global::AXELAR_DIR} && \
-                /root/bin/axelard init ${global::HOSTNAME} --overwrite --home ${global::AXELAR_DIR}/.axelar --chain-id axelar-dojo-1`,
+                run_sh: `export HOME=${global::AXELAR_DIR} && /root/bin/axelard init ${global::HOSTNAME} --overwrite --home ${global::AXELAR_DIR}/.axelar --chain-id axelar-dojo-1`,
             }
         ]
     },
     services: [
         #{
             name: "axelar",
-            run_sh: `export DAEMON_HOME=${global::AXELAR_DIR}/.axelar && \
-                export DAEMON_NAME=axelard && \
-                export UNSAFE_SKIP_BACKUP=true && \
-                export HOME=${global::AXELAR_DIR} && \
-                /root/bin/axelard start`,
+            run_sh: `export DAEMON_HOME=${global::AXELAR_DIR}/.axelar && export DAEMON_NAME=axelard && export UNSAFE_SKIP_BACKUP=true && export HOME=${global::AXELAR_DIR} && /root/bin/axelard start`,
             shutdown_timeout_secs: 300,
         },
     ],

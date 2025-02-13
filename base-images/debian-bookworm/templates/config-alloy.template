@@ -52,27 +52,55 @@ discovery.relabel "metrics_{{ blockchain | lower | replace(from="-", to="_") }}"
 		target_label = "protocol"
 		replacement  = "{{ blockchain | lower | replace(from="-", to="_") }}"
 	}
+
+	rule {
+		target_label = "blockvisor_host"
+		replacement  = sys.env("BV_HOST_NAME")
+	}
 }
 
 prometheus.scrape "metrics_{{ blockchain | lower | replace(from="-", to="_") }}" {
 	targets      = discovery.relabel.metrics_{{ blockchain | lower | replace(from="-", to="_") }}.output
-	forward_to   = [prometheus.remote_write.default.receiver]
+	forward_to   = [prometheus.relabel.blockchain_metrics.receiver]
 	job_name     = "{{ blockchain | lower | replace(from="-", to="_") }}"
 	metrics_path = "{{ metrics_path }}"
 }
 
+prometheus.relabel "blockchain_metrics" {
+	forward_to = [prometheus.remote_write.default.receiver]
+	rule {
+		action  = "labelmap"
+		regex   = "worker_id"
+		replacement = "peerId"
+	}
+
+	rule {
+		action       = "labeldrop"
+		regex        = "worker_id"
+	}
+}
+
 local.file_match "babel" {
-        path_targets = [{
-                __address__ = "127.0.0.1",
-                __path__    = "/var/lib/babel/jobs/logs/*",
-                instance    = "{{ hostname }}{{ tld }}",
-                job         = "babel",
-        }]
+	path_targets = [{
+		__address__ = "127.0.0.1",
+		__path__    = "/var/lib/babel/jobs/*/logs",
+		instance    = "{{ hostname }}{{ tld }}",
+		job         = "babel",
+	}]
+}
+
+loki.relabel "babel_labels" {
+	forward_to = [loki.write.logs_default.receiver]
+
+	rule {
+		target_label = "blockvisor_host"
+		replacement  = sys.env("BV_HOST_NAME")
+	}
 }
 
 loki.source.file "logs_default_babel" {
-        targets    = local.file_match.babel.targets
-        forward_to = [loki.write.logs_default.receiver]
+	targets    = local.file_match.babel.targets
+	forward_to = [loki.relabel.babel_labels.receiver]
 }
 
 
@@ -98,6 +126,11 @@ discovery.relabel "logs_default_journal_scrape" {
 		source_labels = ["__journal_priority_keyword"]
 		target_label  = "level"
 	}
+
+	rule {
+		target_label = "blockvisor_host"
+		replacement  = sys.env("BV_HOST_NAME")
+	}
 }
 
 loki.source.journal "logs_default_journal_scrape" {
@@ -117,21 +150,14 @@ loki.write "logs_default" {
 
 		basic_auth {
 			username = "760471"
-			password = "${GRAFANA_LOKI_BASICAUTH}"
+			password = "{{ grafana_loki_key }}"
 		}
 	}
 	external_labels = {}
 }
 
-loki.write "logs_local" {
-  endpoint {
-    url = "http://localhost:9090/loki/api/v1/push"
-  }
-  external_labels = {}
-}
-
 prometheus.exporter.unix "node_exporter" {
-	disable_collectors = ["ipvs", "btrfs", "infiniband", "xfs", "zfs"]
+	disable_collectors = ["ipvs", "btrfs", "infiniband", "xfs", "zfs", "diskstats"]
 
 	filesystem {
 		fs_types_exclude     = "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|tmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$"
@@ -196,7 +222,7 @@ prometheus.remote_write "default" {
 
 		basic_auth {
 			username = "blockjoy"
-			password = "${GRAFANA_PROM_BASICAUTH}"
+			password = "{{ grafana_prometheus_key }}"
 		}
 
 		queue_config { }

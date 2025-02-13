@@ -22,6 +22,7 @@ const VARIANTS = #{
         url: "https://mainnet.boba.network",
         network: "boba-mainnet",
         l1_url: "https://eth-l1.blkjy.io",
+        l1_beacon_url: "https://lighthouse.blkjy.io",
     },
 };
 
@@ -31,6 +32,7 @@ const HOME = node_env().protocol_data_path + "/erigon";
 const NET = VARIANT.network;
 const SEQUENCER_URL = VARIANT.url;
 const L1_URL = VARIANT.l1_url;
+const L1_BEACON_URL = VARIANT.l1_beacon_url;
 
 const BABEL_VERSION = "0.9.0";
 
@@ -56,7 +58,7 @@ const PLUGIN_CONFIG = #{
         },
         #{
             name: "op-node",
-            run_sh: `/root/bin/op-node --l1=${global::L1_URL} --l2=http://127.0.0.1:${global::AUTH_RPC_PORT} --l2.jwt-secret=${global::HOME}/jwt.hex --network=${global::NET} --rpc.addr=127.0.0.1 --rpc.port=${global::OP_RPC_PORT}`,
+            run_sh: `/root/bin/op-node --l1=${global::L1_URL} --l1.beacon=${global::L1_BEACON_URL} --l2=http://127.0.0.1:${global::AUTH_RPC_PORT} --l2.jwt-secret=${global::HOME}/jwt.hex --network=${global::NET} --rpc.addr=127.0.0.1 --rpc.port=${global::OP_RPC_PORT}`,
             shutdown_timeout_secs: 120,
             use_blockchain_data: true,
         },

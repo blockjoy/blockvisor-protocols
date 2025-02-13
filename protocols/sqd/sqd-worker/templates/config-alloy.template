@@ -150,7 +150,7 @@ loki.write "logs_default" {
 
 		basic_auth {
 			username = "760471"
-			password = sys.env("GRAFANA_LOKI_BASICAUTH")
+			password = {{ grafana_loki_key }}
 		}
 	}
 	external_labels = {}
@@ -222,7 +222,7 @@ prometheus.remote_write "default" {
 
 		basic_auth {
 			username = "blockjoy"
-			password = sys.env("GRAFANA_PROM_BASICAUTH")
+			password = {{ grafana_prometheus_key }}
 		}
 
 		queue_config { }

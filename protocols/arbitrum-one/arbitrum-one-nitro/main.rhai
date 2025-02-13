@@ -64,25 +64,7 @@ const PLUGIN_CONFIG = #{
         let base_services = [
             #{
                 name: "nitro",           
-                run_sh: `HOME=${global::NITRO_DIR} && /root/bin/nitro \
-                        --parent-chain.connection.url=${global::VARIANT.l1_url} \
-                        --chain.id=42161 \
-                        --metrics \
-                        --metrics-server.addr=127.0.0.1 \
-                        --metrics-server.port=${global::METRICS_PORT} \
-                        --http.api=net,web3,eth,arb,debug \
-                        --http.corsdomain=* \
-                        --http.addr=127.0.0.1 \
-                        --http.port=${global::RPC_PORT} \
-                        --http.vhosts=* \
-                        --ws.addr=127.0.0.1 \
-                        --ws.api=net,web3,eth,arb,debug \
-                        --ws.origins=* \
-                        --ws.port=${global::WS_PORT} \
-                        --execution.caching.archive \
-                        --parent-chain.blob-client.beacon-url=${global::VARIANT.beacon_url} \
-                        --validation.wasm.allowed-wasm-module-roots=${global::VARIANT.wasm_root} \
-                         ${global::NITRO_EXTRA_ARGS}`,
+                run_sh: `HOME=${global::NITRO_DIR} && /root/bin/nitro --parent-chain.connection.url=${global::VARIANT.l1_url} --chain.id=42161 --metrics --metrics-server.addr=127.0.0.1 --metrics-server.port=${global::METRICS_PORT} --http.api=net,web3,eth,arb,debug --http.corsdomain=* --http.addr=127.0.0.1 --http.port=${global::RPC_PORT} --http.vhosts=* --ws.addr=127.0.0.1 --ws.api=net,web3,eth,arb,debug --ws.origins=* --ws.port=${global::WS_PORT} --execution.caching.archive --parent-chain.blob-client.beacon-url=${global::VARIANT.beacon_url} --validation.wasm.allowed-wasm-module-roots=${global::VARIANT.wasm_root}  ${global::NITRO_EXTRA_ARGS}`,
                 shutdown_timeout_secs: 300,
                 log_timestamp: false,
             }
@@ -92,14 +74,7 @@ const PLUGIN_CONFIG = #{
             base_services + [
                 #{
                     name: "arb-node",
-                    run_sh: `HOME=${global::ONE_DIR} && /root/bin/arb-node \
-                            --l1.url=${global::VARIANT.l1_url} \
-                            --node.chain-id=42161 \
-                            --l2.disable-upstream \
-                            --node.cache.allow-slow-lookup \
-                            --node.rpc.port=${global::ARB_NODE_RPC_PORT} \
-                            --core.checkpoint-gas-frequency=156250000 \
-                            --core.lazy-load-core-machine`,
+                    run_sh: `HOME=${global::ONE_DIR} && /root/bin/arb-node --l1.url=${global::VARIANT.l1_url} --node.chain-id=42161 --l2.disable-upstream --node.cache.allow-slow-lookup --node.rpc.port=${global::ARB_NODE_RPC_PORT} --core.checkpoint-gas-frequency=156250000 --core.lazy-load-core-machine`,
                     log_timestamp: false,
                 }
             ]

@@ -58,8 +58,8 @@ const PLUGIN_CONFIG = #{
         commands: [
             `mkdir -p ${global::SHAPE_DIR}/geth`,
             `mkdir -p ${global::CADDY_DIR}`,
-            `cp -a ${global::CONFIG_DIR}/rollup.json ${global::SHAPE_DIR} &&\
-             cp -a ${global::CONFIG_DIR}/genesis.json ${global::SHAPE_DIR}/geth`,
+            `cp -a ${global::CONFIG_DIR}/rollup.json ${global::SHAPE_DIR}`,
+            `cp -a ${global::CONFIG_DIR}/genesis.json ${global::SHAPE_DIR}/geth`,
         ],
         jobs: [
             #{
