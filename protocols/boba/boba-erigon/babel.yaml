@@ -1,4 +1,4 @@
-version: 0.0.1
+version: 0.0.2
 container_uri: docker://ghcr.io/blockjoy/boba-erigon-protocol:v20250212.1
 sku_code: BOBAERIGON
 org_id: null
