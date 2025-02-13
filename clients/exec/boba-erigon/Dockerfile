@@ -23,3 +23,4 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 # Create minimal final image
 FROM ${BASE_IMAGE}
 COPY --from=builder /root/op-erigon/build/bin/erigon /root/bin/
+COPY --from=builder /root/go/pkg/mod/github.com/erigontech/silkworm-go@v0.18.0/lib/linux_x64/libsilkworm_capi.so /root/bin/
