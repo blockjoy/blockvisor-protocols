@@ -39,6 +39,8 @@ fn base_config(axelar_dir, metrics_port, p2p_port, rpc_port, rest_port, grpc_web
                     metrics_port: `${metrics_port}`,
                     hostname: node_env().node_name,
                     node_ip: node_env().node_ip,
+                    trust_height: "415637",
+                    trust_hash: "1BCB0F657CEF35FDD28E00824F79A38E2FC9414348712B82F85B25209B02DAE5",
                 }
             },
             #{
@@ -54,7 +56,11 @@ fn base_config(axelar_dir, metrics_port, p2p_port, rpc_port, rest_port, grpc_web
             #{
                 template: "/var/lib/babel/templates/genesis-json.template",
                 destination: "/root/configs/genesis.json",
-                params: #{},
+                params: #{
+                    vote_height: "1",
+                    signed_blocks_window: "1000",
+                    minimum_gas_prices: "0.000025000000000000",
+                },
             },
         ],
         services: [

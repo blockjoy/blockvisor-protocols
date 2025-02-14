@@ -23,11 +23,11 @@ const BASE_CONFIG = #{
 const VARIANTS = #{
     "layerd-testnet-full": #{
         hostname: node_env().node_name,
-        chain_id: "layertest-2",
+        chain_id: "layertest-3",
         key_name: "alice",
         key_ring: "test",
         eth_rpc_url: "https://eth-l1-sepolia.blkjy.io",
-        token_bridge_contract: "0xFC1C57F1E466605e3Dd40840bC3e7DdAa400528c",
+        token_bridge_contract: "0x6ac02f3887b358591b8b2d22cfb1f36fa5843867",
     },
 };
 
