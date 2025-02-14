@@ -1,5 +1,5 @@
-version: 0.1.1
-container_uri: docker://ghcr.io/blockjoy/bsc-erigon-protocol:v20250210.3
+version: 1.13.0
+container_uri: docker://ghcr.io/blockjoy/bsc-erigon-protocol:v20250214.1
 sku_code: BSCERI
 org_id: null
 description: Binance Smart Chain

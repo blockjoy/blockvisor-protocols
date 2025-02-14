@@ -1,9 +1,9 @@
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250203.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250213.4
 
 FROM golang:1.24-bookworm AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV PROTOCOL_VERSION=v2.0.1-fix
+ENV PROTOCOL_VERSION=v3.0.3
 
 RUN mkdir -p /root/bin
 

@@ -6,7 +6,7 @@
 		format json
 		level INFO
 	}
-	acme_dns cloudflare {$CLOUDFLARE_API_KEY}
+	acme_dns cloudflare {{ cloudflare_cert_key }}
 	order request_decompress before reverse_proxy
 	auto_https disable_redirects
 	storage file_system {{ data_dir }}
@@ -19,7 +19,7 @@
 http://{{ hostname }}{{ tld }}, https://{{ hostname }}{{ tld }}, http:// {
 	request_decompress
 	tls {
-		dns cloudflare {$CLOUDFLARE_API_KEY}
+		dns cloudflare {{ cloudflare_cert_key }}
 		resolvers 1.1.1.1
 	}
 	log {

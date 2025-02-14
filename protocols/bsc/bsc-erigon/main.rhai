@@ -45,34 +45,7 @@ const PLUGIN_CONFIG = #{
     services: [
         #{
             name: "bsc-erigon",
-            run_sh: `export HOME=/root && /root/bin/erigon \
-                    --port 30303 \
-                    --http.vhosts "*" \
-                    --http.corsdomain "*" \
-                    --http.addr 127.0.0.1 \
-                    --http.port ${global::RPC_PORT} \
-                    --http.api=eth,erigon,web3,net,debug,trace,txpool \
-                    --http.trace \
-                    --rpc.returndata.limit 1000000 \
-                    --rpc.batch.limit 500 \
-                    --ws \
-                    --ws.port ${global::WS_PORT} \
-                    --txpool.disable \
-                    --metrics \
-                    --metrics.addr=127.0.0.1 \
-                    --metrics.port=${global::METRICS_PORT} \
-                    --log.console.verbosity=info \
-                    --db.pagesize=16k \
-                    --db.size.limit=13TB \
-                    --datadir ${global::HOME} \
-                    --private.api.addr 127.0.0.1:9090 \
-                    --chain bsc \
-                    --snapshots=true \
-                    --rpc.gascap 100000000 \
-                    --torrent.download.rate 500mb \
-                    --maxpeers 6 \
-                    --rpc.evmtimeout 600s \
-                    --downloader.disable.ipv6=true`,
+            run_sh: `export HOME=/root && /root/bin/erigon --port 30303 --http.vhosts "*" --http.corsdomain "*" --http.addr 127.0.0.1 --http.port ${global::RPC_PORT} --http.api=eth,erigon,web3,net,debug,trace,txpool --http.trace --rpc.returndata.limit 1000000 --rpc.batch.limit 500 --ws --ws.port ${global::WS_PORT} --txpool.disable --metrics --metrics.addr=127.0.0.1 --metrics.port=${global::METRICS_PORT} --log.console.verbosity=info --db.pagesize=16k --db.size.limit=13TB --datadir ${global::HOME} --private.api.addr 127.0.0.1:9090 --chain bsc --snapshots=true --rpc.gascap 100000000 --torrent.download.rate 500mb --maxpeers 6 --rpc.evmtimeout 600s --downloader.disable.ipv6=true`,
             shutdown_timeout_secs: 120,
             use_blockchain_data: true,
             log_timestamp: false,

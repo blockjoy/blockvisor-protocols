@@ -461,9 +461,6 @@ jobs:
           context: ./${{ matrix.image_path }}
           push: false
           load: true
-          build-args: |
-            GRAFANA_LOKI_API_KEY=${{ secrets.GRAFANA_LOKI_API_KEY }}
-            GRAFANA_PROM_API_KEY=${{ secrets.GRAFANA_PROM_API_KEY }}
           build-contexts: ${{ steps.build-contexts.outputs.contexts }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -528,9 +525,6 @@ jobs:
         with:
           context: ./${{ matrix.image_path }}
           push: true
-          build-args: |
-            GRAFANA_LOKI_API_KEY=${{ secrets.GRAFANA_LOKI_API_KEY }}
-            GRAFANA_PROM_API_KEY=${{ secrets.GRAFANA_PROM_API_KEY }}
           build-contexts: ${{ steps.build-contexts.outputs.contexts }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -685,10 +679,6 @@ jobs:
         with:
           context: ./${{ matrix.image_path }}
           push: true
-          build-args: |
-            GRAFANA_LOKI_BASICAUTH=${{ secrets.GRAFANA_LOKI_BASICAUTH }}
-            GRAFANA_PROM_BASICAUTH=${{ secrets.GRAFANA_PROM_BASICAUTH }}
-            CLOUDFLARE_API_KEY=${{ secrets.CLOUDFLARE_API_KEY }}
           build-contexts: ${{ steps.build-contexts.outputs.contexts }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -857,9 +847,6 @@ jobs:
           context: ./${{ matrix.image_path }}
           push: true
           build-args: |
-            GRAFANA_LOKI_BASICAUTH=${{ secrets.GRAFANA_LOKI_BASICAUTH }}
-            GRAFANA_PROM_BASICAUTH=${{ secrets.GRAFANA_PROM_BASICAUTH }}
-            CLOUDFLARE_API_KEY=${{ secrets.CLOUDFLARE_API_KEY }}
             ${{ steps.build-args.outputs.image_args }}
           build-contexts: ${{ steps.build-contexts.outputs.contexts }}
           cache-from: |
