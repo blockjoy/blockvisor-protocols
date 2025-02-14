@@ -105,7 +105,7 @@
   org_id: null
   ticker: null
   description: Sui is a first-of-its-kind Layer 1 blockchain and smart contract platform designed to make digital asset ownership fast, private, secure, and accessible.
-  visibility: public
+  visibility: private
 - key: near
   name: Near
   org_id: null
