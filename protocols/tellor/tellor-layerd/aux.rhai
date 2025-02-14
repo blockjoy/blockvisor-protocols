@@ -1,4 +1,4 @@
-fn base_config(axelar_dir, metrics_port, p2p_port, rpc_port, rest_port, grpc_web_port, grpc_port, caddy_dir, metrics_path) { 
+fn base_config(axelar_dir, metrics_port, p2p_port, rpc_port, rest_port, grpc_web_port, grpc_port, caddy_dir, metrics_path, key_ring, seeds, trust_hash, trust_height) { 
     #{   
         config_files: [
             #{
@@ -39,19 +39,26 @@ fn base_config(axelar_dir, metrics_port, p2p_port, rpc_port, rest_port, grpc_web
                     metrics_port: `${metrics_port}`,
                     hostname: node_env().node_name,
                     node_ip: node_env().node_ip,
-                    trust_height: "415637",
-                    trust_hash: "1BCB0F657CEF35FDD28E00824F79A38E2FC9414348712B82F85B25209B02DAE5",
+                    trust_height: `${trust_height}`,
+                    trust_hash: `${trust_hash}`,
+                    seeds: `${seeds}`
                 }
             },
             #{
                 template: "/var/lib/babel/templates/app-toml.template",
                 destination: "/root/configs/app.toml",
-                params: #{},
+                params: #{
+                    rest_port: `${rest_port}`,
+                    grpc_port: `${grpc_port}`,
+                },
             },
             #{
                 template: "/var/lib/babel/templates/client-toml.template",
                 destination: "/root/configs/client.toml",
-                params: #{},
+                params: #{
+                    rpc_port: `${rpc_port}`,
+                    keyring_backend: `${key_ring}`,
+                },
             },
             #{
                 template: "/var/lib/babel/templates/genesis-json.template",
