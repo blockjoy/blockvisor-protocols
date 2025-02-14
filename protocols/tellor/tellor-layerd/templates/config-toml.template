@@ -195,7 +195,7 @@ tls_cert_file = ""
 tls_key_file = ""
 
 # pprof listen address (https://golang.org/pkg/net/http/pprof)
-pprof_laddr = "localhost:6060"
+pprof_laddr = "127.0.0.1:6060"
 
 #######################################################
 ###           P2P Configuration Options             ###
@@ -211,10 +211,10 @@ laddr = "tcp://0.0.0.0:{{ p2p_port }}"
 external_address = "{{ node_ip }}:{{ p2p_port }}"
 
 # Comma separated list of seed nodes to connect to
-seeds = "5ca2c0eccb54e907ba474ce3b6827077ae40ba53@54.234.103.186:26656,c3223c066d7e97904192a1cdb99e7676ad03d581@3.147.56.107:26656,06067c9ce50f07f4fdd3dba4a7730c62b6225080@18.222.23.49:26656"
+seeds = "{{ seeds }}"
 
 # Comma separated list of nodes to keep persistent connections to
-persistent_peers = "5ca2c0eccb54e907ba474ce3b6827077ae40ba53@54.234.103.186:26656,c3223c066d7e97904192a1cdb99e7676ad03d581@3.147.56.107:26656,06067c9ce50f07f4fdd3dba4a7730c62b6225080@18.222.23.49:26656"
+persistent_peers = "{{ seeds }}"
 
 # Path to address book
 addr_book_file = "config/addrbook.json"

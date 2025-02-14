@@ -13,13 +13,6 @@ const METRICS_PATH = "/metrics";
 const API_HOST = "http://127.0.0.1:" + global::RPC_PORT;
 
 
-let AUX_CONFIG = aux::base_config(global::PROTOCOL_DIR, global::METRICS_PORT, global::P2P_PORT, global::RPC_PORT, global::REST_PORT, global::GRPC_WEB_PORT, global::GRPC_PORT, global::CADDY_DIR, global::METRICS_PATH);
-
-const BASE_CONFIG = #{
-    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
-};
-
 const VARIANTS = #{
     "layerd-testnet-full": #{
         hostname: node_env().node_name,
@@ -28,6 +21,9 @@ const VARIANTS = #{
         key_ring: "test",
         eth_rpc_url: "https://eth-l1-sepolia.blkjy.io",
         token_bridge_contract: "0x6ac02f3887b358591b8b2d22cfb1f36fa5843867",
+        seeds: "f4786bc2a40172e29784b9f8d69567c474de8a8c@13.212.32.99:26656,7f2c8cad741c28d7a01d9f1cf2e1a87eb751afa3@52.53.226.18:26656,d87d655453277514d150df82e6305b307f138d06@54.234.103.186:26656,59fd40b86c9b65ca717b29ce37b08fdb82c8e61d@3.144.113.220:26656",
+        trust_hash: "1BCB0F657CEF35FDD28E00824F79A38E2FC9414348712B82F85B25209B02DAE5",
+        trust_height: "415637",
     },
 };
 
@@ -38,6 +34,17 @@ const KEY_NAME = VARIANT.key_name;
 const KEY_RING = VARIANT.key_ring;
 const ETH_RPC_URL = VARIANT.eth_rpc_url;
 const TOKEN_BRIDGE_CONTRACT = VARIANT.token_bridge_contract;
+const SEEDS = VARIANT.seeds;
+const TRUST_HASH = VARIANT.trust_hash;
+const TRUST_HEIGHT = VARIANT.trust_height;
+
+let AUX_CONFIG = aux::base_config(global::PROTOCOL_DIR, global::METRICS_PORT, global::P2P_PORT, global::RPC_PORT, global::REST_PORT, global::GRPC_WEB_PORT, global::GRPC_PORT, global::CADDY_DIR, global::METRICS_PATH, global::KEY_RING, global::SEEDS, global::TRUST_HASH, global::TRUST_HEIGHT);
+
+const BASE_CONFIG = #{
+    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
+    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
+};
+
 
 const BABEL_VERSION = "0.9.0";
 
