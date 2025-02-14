@@ -1,6 +1,6 @@
-ARG HEIMDALL_IMAGE=ghcr.io/blockjoy/heimdall:v20250212.1
-ARG ERIGON_IMAGE=ghcr.io/blockjoy/erigon:v20250212.1
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250212.4
+ARG HEIMDALL_IMAGE=ghcr.io/blockjoy/heimdall:v20250213.4
+ARG ERIGON_IMAGE=ghcr.io/blockjoy/erigon:v20250213.4
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250213.4
 
 FROM ${HEIMDALL_IMAGE} AS heimdall
 
