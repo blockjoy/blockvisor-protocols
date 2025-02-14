@@ -3,22 +3,22 @@
 This guide explains how to create and maintain protocol implementations for the BlockJoy platform.
 
 ## Overview
-- [File Structure](docs/HOWTO.md#file-structure)
-- [BlockJoy API Integration](docs/HOWTO.md#blockjoy-api-integration)
-  - [Protocol Metadata (protocols.yaml)](docs/HOWTO.md#protocol-metadata-protocolsyaml)
-  - [Protocol Image Metadata (babel.yaml)](docs/HOWTO.md#protocol-image-metadata-babelyaml)
-  - [Runtime Interface (Rhai scripts)](docs/HOWTO.md#runtime-interface-rhai-scripts)
-  - [Node Environment Configuration](docs/HOWTO.md#node-environment-configuration)
-  - [Protocol Variants and Configuration](docs/HOWTO.md#protocol-variants-and-configuration)
-  - [Implementation Flow](docs/HOWTO.md#implementation-flow)
-- [Configuration Files](docs/HOWTO.md#configuration-files)
-  - [base.rhai - Common protocol functions](docs/HOWTO.md#1-base-rhai-common-protocol-functions)
-  - [aux.rhai - Auxiliary, client specific configurations and functions](docs/HOWTO.md#2-aux-rhai-auxiliary-client-specific-configurations-and-functions)
-  - [Templates and Configuration Files](docs/HOWTO.md#3-templates-and-configuration-files)
-  - [Dockerfile - Protocol image configuration](docs/HOWTO.md#4-dockerfile-protocol-image-configuration)
-- [Best Practices](docs/HOWTO.md#best-practices)
-- [Example Implementation](docs/HOWTO.md#example-implementation)
-  - [Example](docs/example/)
+- [File Structure](#file-structure)
+- [BlockJoy API Integration](#blockjoy-api-integration)
+  - [Protocol Metadata (protocols.yaml)](#protocol-metadata-protocolsyaml)
+  - [Protocol Image Metadata (babel.yaml)](#protocol-image-metadata-babelyaml)
+  - [Runtime Interface (Rhai scripts)](#runtime-interface-rhai-scripts)
+  - [Node Environment Configuration](#node-environment-configuration)
+  - [Protocol Variants and Configuration](#protocol-variants-and-configuration)
+  - [Implementation Flow](#implementation-flow)
+- [Configuration Files](#configuration-files)
+  - [base.rhai - Common protocol functions](#1-base-rhai-common-protocol-functions)
+  - [aux.rhai - Auxiliary, client specific configurations and functions](#2-aux-rhai-auxiliary-client-specific-configurations-and-functions)
+  - [Templates and Configuration Files](#3-templates-and-configuration-files)
+  - [Dockerfile - Protocol image configuration](#4-dockerfile-protocol-image-configuration)
+- [Best Practices](#best-practices)
+- [Example Implementation](#example-implementation)
+  - [Example](./example/)
 
 
 ## File Structure
