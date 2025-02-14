@@ -2,13 +2,62 @@
 
 This guide explains how to create and maintain protocol implementations for the BlockJoy platform.
 
+## Overview
+- [File Structure](docs/HOWTO.md#file-structure)
+- [BlockJoy API Integration](docs/HOWTO.md#blockjoy-api-integration)
+  - [Protocol Metadata (protocols.yaml)](docs/HOWTO.md#protocol-metadata-protocolsyaml)
+  - [Protocol Image Metadata (babel.yaml)](docs/HOWTO.md#protocol-image-metadata-babelyaml)
+  - [Runtime Interface (Rhai scripts)](docs/HOWTO.md#runtime-interface-rhai-scripts)
+  - [Node Environment Configuration](docs/HOWTO.md#node-environment-configuration)
+  - [Protocol Variants and Configuration](docs/HOWTO.md#protocol-variants-and-configuration)
+  - [Implementation Flow](docs/HOWTO.md#implementation-flow)
+- [Configuration Files](docs/HOWTO.md#configuration-files)
+  - [base.rhai - Common protocol functions](docs/HOWTO.md#1-base-rhai-common-protocol-functions)
+  - [aux.rhai - Auxiliary, client specific configurations and functions](docs/HOWTO.md#2-aux-rhai-auxiliary-client-specific-configurations-and-functions)
+  - [Templates and Configuration Files](docs/HOWTO.md#3-templates-and-configuration-files)
+  - [Dockerfile - Protocol image configuration](docs/HOWTO.md#4-dockerfile-protocol-image-configuration)
+- [Best Practices](docs/HOWTO.md#best-practices)
+- [Example Implementation](docs/HOWTO.md#example-implementation)
+  - [Example](docs/example/)
+
+
+## File Structure
+```bash
+base-images/
+└── base_image/
+    ├── config/                   # (Optional)
+        └── config_files.yaml     # Base image with config files
+    └── templates/                # (Optional)
+        └── file_base.template    # Common templates for all images
+    └── base.rhai                 # Common base rhai configuration
+    └── Dockerfile                # Base Dockerfile with common utilities
+clients/
+└── consensus/
+    ├── consensus_client/
+        └── Dockerfile            # Client-specific Docker configuration
+└── exec/
+    ├── exec_client/
+        └── Dockerfile            # Client-specific Docker configuration
+└── ...                           # Other client types (e.g., load-balancer, observability, etc.)
+protocols/
+└── protocols.yaml                # Root entity for all protocol implementations
+└── your_protocol/
+    └── your_protocol-client/
+        └── templates/
+        ├── babel.yaml            # Protocol configuration and metadata
+        ├── main.rhai             # Main protocol configuration
+        ├── aux.rhai              # Auxiliary functions and configurations
+        └── Dockerfile            # Protocol-specific Docker configuration
+```
+
+
 ## BlockJoy API Integration
 
 The protocol implementation interacts with the BlockJoy API through a combination of metadata configuration (aka `babel.yaml`) and runtime interface files (aka Rhai scripts).
 
 ### Protocol Metadata (protocols.yaml)
 
-First make sure that protocol you create image for, is defined in `protocols.yaml`. This is root entity that groups all implementations of the same protocol.
+First make sure that the protocol you're creating an image for, is defined in `protocols.yaml`. This is the root entity that groups all implementations of the same protocol.
 
 ### Protocol Image Metadata (babel.yaml)
 
@@ -23,7 +72,7 @@ This metadata is used by the API for deployment planning and resource allocation
 
 ### Runtime Interface (Rhai scripts)
 
-The Rhai scripts (`main.rhai` and other imported like `aux.rhai`) serve as the primary configuration interface between your protocol image and the BlockJoy API. These files:
+The Rhai scripts (`main.rhai` and other imported scripts like `aux.rhai`) serve as the primary configuration interface between your protocol image and the BlockJoy API. These files:
 1. Access the protocol image metadata through the `node_env()` function
 2. Configure protocol image behavior based on the selected variant
 3. Initialize and manage protocol services
@@ -102,19 +151,23 @@ const PLUGIN_CONFIG = #{
         },
     ],
 };
-```
 
 ### Implementation Flow
 
 When implementing a new blockchain protocol image:
+1. **Create client(s) used by protocol being implemented:
+   - Define Dockerfile for each client
+     - Setup build for client
+     - Copy client binaries to common location for future use
+     - Copy client specific libraries to common location for future use
 
-1. **Define Protocol Image Metadata** (`babel.yaml`):
+2. **Define Protocol Image Metadata** (`babel.yaml`):
    - Set protocol image identification (version, SKU, description)
    - Define available variants and their resource requirements
    - Configure network access rules
    - Set visibility and access properties
 
-2. **Create Runtime Interface** (`main.rhai`):
+3. **Create Runtime Interface** (`main.rhai`):
    - Import base configurations
    - Define protocol-specific constants
    - Map `node_env().node_variant` to protocol configurations
@@ -128,25 +181,12 @@ When implementing a new blockchain protocol image:
 
 4. **Set Up Container** (`Dockerfile`):
    - Use appropriate base image
+   - Use related client images
    - Add protocol-specific dependencies
    - Configure runtime environment
    - Put all necessary Rhai scripts (`main.rhai` in particular) into the container (`/var/lib/babel/plugin/`)
 
 The BlockJoy API uses the metadata from `babel.yaml` to plan and create node deployments, while the RHAI files control how the node actually operates within those parameters.
-
-## Protocol Structure
-
-Each protocol should follow this structure:
-```bash
-protocols/
-└── your_protocol/
-    └── your_protocol-client/
-        └── templates/
-        ├── babel.yaml    # Protocol configuration and metadata
-        ├── main.rhai     # Main protocol configuration
-        ├── aux.rhai      # Auxiliary functions and configurations
-        └── Dockerfile    # Protocol-specific Docker configuration
-```
 
 ## Configuration Files
 
@@ -200,8 +240,8 @@ fn base_config(metrics_port, rpc_port, ws_port, caddy_dir) {
 
 Base and aux functions are imported in `main.rhai` using:
 ```rhai
-import "base" as base;
-import "aux" as aux;
+import "base" as base;        // Inherrited from the base-image used
+import "aux" as aux;          // Inherrited from the aux.rhai in protocol directory
 
 // Import auxiliary configuration
 let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR);
@@ -221,7 +261,7 @@ base::some_utility("message");
 The protocol implementation may includes template files that are processed during node initialization:
 
 **Caddyfile.template** - Reverse proxy configuration:
-```
+```bash
 {hostname}{tld} {
     reverse_proxy /debug/metrics/prometheus localhost:{metrics_port}
     reverse_proxy /ws localhost:{ws_port}
@@ -255,7 +295,6 @@ FROM ghcr.io/blockjoy/node-base:latest
 COPY --from=builder /src/build/example-node /usr/bin/
 COPY . /var/lib/babel/
 COPY templates/Caddyfile.template /var/lib/babel/templates/
-
 ```
 
 ## Best Practices
@@ -281,6 +320,6 @@ COPY templates/Caddyfile.template /var/lib/babel/templates/
 
 ## Example Implementation
 
-The example protocol implementation in `docs/example/` demonstrates how to implement a protocol.
+The example protocol implementation in [docs/example/](docs/example/) demonstrates how to implement a protocol.
 
 See also docs and examples delivered with BV bundle in `/opt/blockvisor/current/docs/`.
