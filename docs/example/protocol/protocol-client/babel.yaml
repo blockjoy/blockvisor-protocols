@@ -1,5 +1,5 @@
 version: 0.1.0
-container_uri: docker://ghcr.io/blockjoy/example-client1:latest
+container_uri: docker://ghcr.io/blockjoy/example-client:latest
 sku_code: EXPL-PROTO
 org_id: null
 description: Example Chain Client Implementation
