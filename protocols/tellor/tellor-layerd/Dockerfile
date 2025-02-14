@@ -1,3 +1,4 @@
+#1
 ARG PROTOCOL_IMAGE=ghcr.io/blockjoy/layerd:v20250213.6
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250212.4
 
