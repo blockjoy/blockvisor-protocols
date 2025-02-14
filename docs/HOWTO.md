@@ -42,12 +42,13 @@ clients/
 protocols/
 └── protocols.yaml                # Root entity for all protocol implementations
 └── your_protocol/
-    └── your_protocol-client/
+    └── your_protocol-exec_client/
         └── templates/
         ├── babel.yaml            # Protocol configuration and metadata
         ├── main.rhai             # Main protocol configuration
         ├── aux.rhai              # Auxiliary functions and configurations
         └── Dockerfile            # Protocol-specific Docker configuration
+└── ...                           # Other protocols (e.g., ethereum, optimism, etc.)
 ```
 
 
