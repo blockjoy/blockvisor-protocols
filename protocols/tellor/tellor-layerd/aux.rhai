@@ -53,11 +53,15 @@ fn base_config(axelar_dir, metrics_port, p2p_port, rpc_port, rest_port, grpc_web
                 destination: "/root/configs/client.toml",
                 params: #{},
             },
-            // #{
-            //     template: "/var/lib/babel/templates/genesis-json.template",
-            //     destination: "/root/configs/genesis.json",
-            //     params: #{},
-            // },
+            #{
+                template: "/var/lib/babel/templates/genesis-json.template",
+                destination: "/root/configs/genesis.json",
+                params: #{
+                    vote_height: "1",
+                    signed_blocks_window: "1000",
+                    minimum_gas_prices: "0.000025000000000000",
+                },
+            },
         ],
         services: [
             #{
