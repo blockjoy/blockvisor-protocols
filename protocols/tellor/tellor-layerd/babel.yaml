@@ -1,5 +1,5 @@
 version: 1.0.3
-container_uri: docker://ghcr.io/blockjoy/tellor-layerd-protocol:v20250214.5
+container_uri: docker://ghcr.io/blockjoy/tellor-layerd-protocol:v20250214.6
 sku_code: TLRLAYERD
 org_id: null
 description: Tellor Layerd
