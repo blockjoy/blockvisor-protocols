@@ -3,7 +3,7 @@ ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250213.4
 FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV OP_NODE_VERSION=op-node/v1.10.2
+ENV OP_NODE_VERSION=op-node/v1.11.0
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 # Install additional system dependencies
