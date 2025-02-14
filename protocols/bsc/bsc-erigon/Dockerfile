@@ -1,5 +1,5 @@
-ARG BSC_ERIGON_IMAGE=ghcr.io/blockjoy/bsc-erigon:v20250212.1
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250212.4
+ARG BSC_ERIGON_IMAGE=ghcr.io/blockjoy/bsc-erigon:v20250213.4
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250213.4
 
 FROM ${BSC_ERIGON_IMAGE} AS erigon
 
