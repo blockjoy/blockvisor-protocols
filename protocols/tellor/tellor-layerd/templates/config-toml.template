@@ -370,8 +370,8 @@ enable = true
 # For Cosmos SDK-based chains, trust_period should usually be about 2/3 of the unbonding time (~2
 # weeks) during which they can be financially punished (slashed) for misbehavior.
 rpc_servers = "http://tellorlayer.com:26657,http://tellorlayer.com:26657"
-trust_height = 2923280
-trust_hash = "3EA573958251B0E3A0FE674074E144AC837C94815E5AF43A1E6734CD1C4BA7FD"
+trust_height = {{ trust_height }}
+trust_hash = "{{ trust_hash }}"
 trust_period = "168h0m0s"
 
 # Time to spend discovering snapshots before initiating a restore.
