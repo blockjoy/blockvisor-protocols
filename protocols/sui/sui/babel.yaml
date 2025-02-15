@@ -1,9 +1,9 @@
-version: 1.0.1
-container_uri: docker://ghcr.io/blockjoy/sui-protocol:v20250214.1
+version: 1.0.2
+container_uri: docker://ghcr.io/blockjoy/sui-protocol:v20250215.1
 sku_code: SUI
 org_id: null
 description: Sui
-visibility: public
+visibility: private
 protocol_key: sui
 variants:
   - key: sui-node-mainnet-full
