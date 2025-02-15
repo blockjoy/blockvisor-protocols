@@ -1,5 +1,5 @@
 version: 1.1.1
-container_uri: docker://ghcr.io/blockjoy/optimism-reth-protocol:v20250215.1
+container_uri: docker://ghcr.io/blockjoy/optimism-reth-protocol:v20250215.2
 sku_code: OPRETH
 org_id: null
 description: Optimism Reth
