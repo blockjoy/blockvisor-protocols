@@ -1,5 +1,5 @@
 #7
-ARG OP_RETH_IMAGE=ghcr.io/blockjoy/op-reth:v20250213.4
+ARG OP_RETH_IMAGE=ghcr.io/blockjoy/op-reth:v20250215.1
 ARG OP_NODE_IMAGE=ghcr.io/blockjoy/op-node:v20250214.2
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250213.4
 
