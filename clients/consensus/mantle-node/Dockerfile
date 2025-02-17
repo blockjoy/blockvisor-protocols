@@ -30,4 +30,4 @@ RUN git clone --recursive https://github.com/mantlenetworkio/mantle-v2.git /mant
     git checkout ${MANTLE_VERSION} && \
     cd op-node && \
     go build -o bin/op-node ./cmd && \
-    cp bin/op-node /root/bin/
+    cp bin/op-node /root/bin/mantle-node

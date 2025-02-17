@@ -33,4 +33,4 @@ RUN mkdir -p build/bin
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     make geth && \
-    cp build/bin/geth /root/bin/mantle-op-geth
+    cp build/bin/geth /root/bin/mantle-geth
