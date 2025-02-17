@@ -121,7 +121,6 @@ const PLUGIN_CONFIG = #{
                     --l1.trustrpc \
                     --l1.rpckind=${global::L1_RPCKIND} \
                     --verifier.l1-confs=3 \
-                    --p2p.priv-path=${global::MANTLE_DIR}/p2p_node_key_txt \
                     --p2p.static=${global::VARIANT.p2p_peers} \
                     --p2p.listen.ip=0.0.0.0 \
                     --p2p.listen.tcp.port=9003 \
@@ -135,12 +134,7 @@ const PLUGIN_CONFIG = #{
                     --p2p.peerstore.path=/op-node/opnode_peerstore_db \
                     --indexer.enable=true \
                     --indexer.socket=da-indexer-api.mantle.xyz:80 \
-                    --l2.backup-unsafe-sync-rpc=${global::VARIANT.url} \
-                    --sequencer.enabled=false \
-                    --l2.engine-sync=true \
-                    --l2.skip-sync-start-check=true \
-                    --p2p.sync.req-resp=true \
-                    --p2p.agent=mantle`,
+                    --l2.backup-unsafe-sync-rpc=${global::VARIANT.url}`,
             shutdown_timeout_secs: 120,
         },
     ],
