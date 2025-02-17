@@ -123,18 +123,21 @@ const PLUGIN_CONFIG = #{
                     --verifier.l1-confs=3 \
                     --p2p.static=${global::VARIANT.p2p_peers} \
                     --p2p.listen.ip=0.0.0.0 \
-                    --p2p.listen.tcp.port=9003 \
-                    --p2p.listen.udp.port=9003 \
-                    --p2p.peer-scoring=light \
-                    --p2p.peer-banning=true \
+                    --p2p.listen.tcp=9003 \
+                    --p2p.listen.udp=9003 \
+                    --p2p.scoring.peers=light \
+                    --p2p.ban.peers=true \
                     --metrics.enabled=true \
                     --metrics.addr=127.0.0.1 \
                     --metrics.port=${global::METRICS_PORT} \
                     --p2p.discovery.path=${global::MANTLE_DIR}/opnode_discovery_db \
                     --p2p.peerstore.path=${global::MANTLE_DIR}/opnode_peerstore_db \
-                    --indexer.enable=true \
-                    --indexer.socket=da-indexer-api.mantle.xyz:80 \
-                    --l2.backup-unsafe-sync-rpc=${global::VARIANT.url}`,
+                    --da.indexer-enable=true \
+                    --da.indexer-socket=da-indexer-api.mantle.xyz:80 \
+                    --l2.backup-unsafe-sync-rpc=${global::VARIANT.url} \
+                    --l2.engine-sync \
+                    --l2.skip-sync-start-check \
+                    --p2p.sync.req-resp`,
             shutdown_timeout_secs: 120,
         },
     ],

@@ -6,14 +6,14 @@ description: Mantle Geth
 visibility: public
 protocol_key: mantle
 variants:
-  - key: mantle-geth-mainnet-archive
+  - key: geth-mainnet-archive
     min_cpu: 12
     min_memory_mb: 65536
     min_disk_gb: 9000
     sku_code: MANTLEGETH-A-MN
     archive_pointers:
       - pointer: !store_key mantle-geth-mainnet-archive-v1
-  - key: mantle-geth-testnet-archive
+  - key: geth-testnet-archive
     min_cpu: 12
     min_memory_mb: 65536
     min_disk_gb: 9000
