@@ -28,6 +28,7 @@ const VARIANTS = #{
         chainid: 5000,
         p2p_peers: "/dns4/peer0.mantle.xyz/tcp/9003/p2p/16Uiu2HAmKVKzUAns2gLhZAz1PYcbnhY3WpxNxUZYeTN1x29tNBAW,/dns4/peer1.mantle.xyz/tcp/9003/p2p/16Uiu2HAm1AiZtVp8f5C8LvpSTAXC6GtwqAVKnB3VLawWYSEBmcFN,/dns4/peer2.mantle.xyz/tcp/9003/p2p/16Uiu2HAm2UHVKiPXpovs8VbbUQVPr7feBAqBJdFsH1z5XDiLEvHT",
         config_set: "mainnet",
+        extra_args: `--config=${global::MANTLE_DIR}/config.toml`,
     },
     "geth-sepolia-archive": #{
         sequencer_url: "https://rpc.sepolia.mantle.xyz",
@@ -47,7 +48,13 @@ const L1_RPCKIND = VARIANTS[node_env().node_variant].l1_rpc_kind;
 const VARIANT = VARIANTS[node_env().node_variant];
 const SEQUENCER_URL = VARIANTS[node_env().node_variant].sequencer_url;
 
-const CONFIG = VARIANTS[node_env().node_variant].config_set;
+const CONFIG_SET = VARIANTS[node_env().node_variant].config_set;
+
+const EXTRA_GETH_ARGS = if CONFIG_SET == "mainnet" {
+    "--config=${global::MANTLE_DIR}/config.toml"
+} else {
+    ""
+};
 
 const BABEL_VERSION = "0.9.0";
 
@@ -104,7 +111,7 @@ const PLUGIN_CONFIG = #{
                     --rollup.disabletxpoolgossip=true \
                     --nodiscover \
                     --cache 8192
-                    --config=${global::MANTLE_DIR}/config.toml`,
+                    ${EXTRA_GETH_ARGS}`,
             shutdown_timeout_secs: 120,
         },
         #{
