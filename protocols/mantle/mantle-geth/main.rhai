@@ -7,10 +7,6 @@ const WS_PORT = 8546;
 const METRICS_PORT = 8181;
 const METRICS_PATH = "/debug/metrics/prometheus";
 
-const L1_URL = "https://eth-l1.blkjy.io";
-const L1_BEACON_URL = "https://lighthouse.blkjy.io";
-const L1_RPCKIND = "basic";
-
 const GETH_API = "http://127.0.0.1:" + global::RPC_PORT;
 const MANTLE_API = "http://127.0.0.1:8547";
 const DATADIR = node_env().protocol_data_path;
@@ -26,32 +22,32 @@ const BASE_CONFIG = #{
 const VARIANTS = #{
     "geth-mainnet-archive": #{
         sequencer_url: "https://rpc.mantle.xyz",
-        net_type: "main",
-        url: "https://rpc.mantle.xyz",
-        l1_url: global::L1_URL,
-        snapshot_url: "https://snapshots.mantle.xyz/mainnet.tar.zst",
-        checkpoint: "https://beaconstate.ethstaker.cc",
-        opnet: "mainnet",
-        ethnet: "mainnet",
+        l1_url: "https://eth-l1.blkjy.io",
+        l1_beacon_url: "https://lighthouse.blkjy.io",
+        l1_rpc_kind: "basic",
         chainid: 5000,
         p2p_peers: "/dns4/peer0.mantle.xyz/tcp/9003/p2p/16Uiu2HAmKVKzUAns2gLhZAz1PYcbnhY3WpxNxUZYeTN1x29tNBAW,/dns4/peer1.mantle.xyz/tcp/9003/p2p/16Uiu2HAm1AiZtVp8f5C8LvpSTAXC6GtwqAVKnB3VLawWYSEBmcFN,/dns4/peer2.mantle.xyz/tcp/9003/p2p/16Uiu2HAm2UHVKiPXpovs8VbbUQVPr7feBAqBJdFsH1z5XDiLEvHT",
+        config_set: "mainnet",
     },
-    "geth-testnet-archive": #{
-        sequencer_url: "https://rpc.testnet.mantle.xyz",
-        net_type: "test",
-        url: "https://rpc.testnet.mantle.xyz",
-        l1_url: global::L1_URL,
-        snapshot_url: "https://snapshots.mantle.xyz/testnet.tar.zst",
-        checkpoint: "https://goerli.beaconstate.ethstaker.cc",
-        opnet: "testnet",
-        ethnet: "goerli",
-        chainid: 5001,
+    "geth-sepolia-archive": #{
+        sequencer_url: "https://rpc.sepolia.mantle.xyz",
+        l1_url: "https://eth-l1-sepolia.blkjy.io",
+        l1_beacon_url: "https://lighthouse-sepolia.blkjy.io",
+        l1_rpc_kind: "basic",
+        chainid: 5003,
         p2p_peers: "/dns4/peer0.mantle.xyz/tcp/9003/p2p/16Uiu2HAmKVKzUAns2gLhZAz1PYcbnhY3WpxNxUZYeTN1x29tNBAW,/dns4/peer1.mantle.xyz/tcp/9003/p2p/16Uiu2HAm1AiZtVp8f5C8LvpSTAXC6GtwqAVKnB3VLawWYSEBmcFN,/dns4/peer2.mantle.xyz/tcp/9003/p2p/16Uiu2HAm2UHVKiPXpovs8VbbUQVPr7feBAqBJdFsH1z5XDiLEvHT",
+        config_set: "sepolia",
     },
 };
 
+const L1_URL = VARIANTS[node_env().node_variant].l1_url;
+const L1_BEACON_URL = VARIANTS[node_env().node_variant].l1_beacon_url;
+const L1_RPCKIND = VARIANTS[node_env().node_variant].l1_rpc_kind;
+
 const VARIANT = VARIANTS[node_env().node_variant];
 const SEQUENCER_URL = VARIANTS[node_env().node_variant].sequencer_url;
+
+const CONFIG = VARIANTS[node_env().node_variant].config_set;
 
 const BABEL_VERSION = "0.9.0";
 
@@ -59,6 +55,7 @@ const PLUGIN_CONFIG = #{
     init: #{
         commands: [
             `mkdir -p ${global::MANTLE_DIR}`,
+            `cp -a /root/configs/${CONFIG}/ ${global::MANTLE_DIR}/`,
             "mkdir -p /opt/netdata/var/cache/netdata",
             "mkdir -p /opt/netdata/var/lib/netdata",
             "rm -rf /opt/netdata/var/lib/netdata/*",
@@ -93,6 +90,7 @@ const PLUGIN_CONFIG = #{
                     --gcmode=archive \
                     --verbosity=3 \
                     --rollup.sequencerhttp=${global::SEQUENCER_URL} \
+                    --rollup.historicalrpc=${global::SEQUENCER_URL} \
                     --nodiscover \
                     --metrics \
                     --metrics.addr=127.0.0.1 \
@@ -105,7 +103,8 @@ const PLUGIN_CONFIG = #{
                     --nat none \
                     --rollup.disabletxpoolgossip=true \
                     --nodiscover \
-                    --cache 8192`,
+                    --cache 8192
+                    --config=${global::MANTLE_DIR}/config.toml`,
             shutdown_timeout_secs: 120,
         },
         #{
@@ -134,7 +133,7 @@ const PLUGIN_CONFIG = #{
                     --p2p.peerstore.path=${global::MANTLE_DIR}/opnode_peerstore_db \
                     --da.indexer-enable=true \
                     --da.indexer-socket=da-indexer-api.mantle.xyz:80 \
-                    --l2.backup-unsafe-sync-rpc=${global::VARIANT.url} \
+                    --l2.backup-unsafe-sync-rpc=${global::VARIANT.sequencer_url} \
                     --l2.engine-sync \
                     --l2.skip-sync-start-check \
                     --p2p.sync.req-resp`,
