@@ -15,4 +15,4 @@ COPY --from=mantle-geth /root/bin/mantle-geth /root/bin/
 
 COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/
-COPY config/* /root/config/
+COPY config /root/config
