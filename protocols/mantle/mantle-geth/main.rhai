@@ -24,7 +24,7 @@ const BASE_CONFIG = #{
 };
 
 const VARIANTS = #{
-    "mantle-geth-mainnet-archive": #{
+    "geth-mainnet-archive": #{
         sequencer_url: "https://rpc.mantle.xyz",
         net_type: "main",
         url: "https://rpc.mantle.xyz",
@@ -36,7 +36,7 @@ const VARIANTS = #{
         chainid: 5000,
         p2p_peers: "/dns4/peer0.mantle.xyz/tcp/9003/p2p/16Uiu2HAmKVKzUAns2gLhZAz1PYcbnhY3WpxNxUZYeTN1x29tNBAW,/dns4/peer1.mantle.xyz/tcp/9003/p2p/16Uiu2HAm1AiZtVp8f5C8LvpSTAXC6GtwqAVKnB3VLawWYSEBmcFN,/dns4/peer2.mantle.xyz/tcp/9003/p2p/16Uiu2HAm2UHVKiPXpovs8VbbUQVPr7feBAqBJdFsH1z5XDiLEvHT",
     },
-    "mantle-geth-testnet-archive": #{
+    "geth-testnet-archive": #{
         sequencer_url: "https://rpc.testnet.mantle.xyz",
         net_type: "test",
         url: "https://rpc.testnet.mantle.xyz",
