@@ -62,7 +62,7 @@ const PLUGIN_CONFIG = #{
     init: #{
         commands: [
             `mkdir -p ${global::MANTLE_DIR}`,
-            `cp -a /root/configs/${CONFIG}/ ${global::MANTLE_DIR}/`,
+            `cp -a /root/configs/${CONFIG_SET}/* ${global::MANTLE_DIR}/`,
             "mkdir -p /opt/netdata/var/cache/netdata",
             "mkdir -p /opt/netdata/var/lib/netdata",
             "rm -rf /opt/netdata/var/lib/netdata/*",
