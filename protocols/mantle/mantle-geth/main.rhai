@@ -9,7 +9,7 @@ const METRICS_PATH = "/debug/metrics/prometheus";
 
 const L1_URL = "https://eth-l1.blkjy.io";
 const L1_BEACON_URL = "https://lighthouse.blkjy.io";
-const L1_RPCKIND = "standard";
+const L1_RPCKIND = "basic";
 
 const GETH_API = "http://127.0.0.1:" + global::RPC_PORT;
 const MANTLE_API = "http://127.0.0.1:8547";
