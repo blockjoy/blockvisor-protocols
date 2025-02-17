@@ -280,7 +280,7 @@ jobs:
 
   push-staging:
     environment: Staging
-    needs: [detect-changes, check-protocols, push-protocols-staging]
+    needs: [detect-changes, check-protocols, push-dev,push-protocols-staging]
     if: fromJson(needs.detect-changes.outputs.version_changes)[0]
     runs-on: dev
     permissions:
