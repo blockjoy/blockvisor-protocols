@@ -60,7 +60,7 @@ const PLUGIN_CONFIG = #{
             name: "init_jwt",
             run_sh: `openssl rand -hex 32 > ${global::BASE_DIR}/jwt.txt`,
         }
-    ]
+    ],
     services: [
         #{
             name: "op-geth",
