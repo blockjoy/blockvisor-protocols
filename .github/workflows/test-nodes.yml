@@ -87,17 +87,18 @@ jobs:
     needs: [get-host]
     runs-on: ${{ needs.get-host.outputs.target_host }}
     steps:
-      - name: Cleanup nodes
+      - name: Clean up test nodes
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Finding nodes to clean up..."
           
           # Find the latest cleanup comment timestamp
-          LAST_CLEANUP=$(gh pr view ${{ inputs.pr_number }} --json comments --jq '
+          LAST_CLEANUP=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '
             .comments
             | map(select(.author.login == "github-actions"))
-            | map(select(.body | test("All nodes were deployed successfully and cleaned up")))
+            | map(select(.body | test("cleaned up|cleanup complete|nodes.*cleaned", "i")))
             | sort_by(.createdAt)
             | last
             | if . == null then "" else .createdAt end
@@ -106,18 +107,20 @@ jobs:
           echo "Last cleanup was at: $LAST_CLEANUP"
           
           # Get list of nodes from PR comments after last cleanup
-          NODES=$(gh pr view ${{ inputs.pr_number }} --json comments | jq -r --arg last "$LAST_CLEANUP" '
+          NODES=$(gh pr view ${{ github.event.pull_request.number }} --json comments | jq -r --arg last "$LAST_CLEANUP" '
             .comments
             | map(select(.author.login == "github-actions"))
-            | map(select(.body | contains("following nodes have been deployed")))
+            | map(select(.body | contains("have been deployed")))
             | map(select(
-                if $last == "" then true
-                else (.createdAt > $last)
+                if $last == "" then true  # Include all nodes if this is first cleanup
+                else (.createdAt > $last) # Otherwise only nodes since last cleanup
                 end
               ))
-            | map(.body | split("\n") 
-              | map(select(contains("running variant"))) 
-              | map(capture("- `(?<n>[a-z-]+-[a-z-]+-[a-z-]+)`, running variant `[^`]+`").n)
+            | map(.body 
+              | split("\n")
+              | map(select(contains("running variant")))
+              | map(capture("`(?<n>[^`]+)`").n)
+              | map(select(test("^[a-z-]+-[a-z-]+-[a-z-]+$")))
               | join("\n")
             )
             | join("\n")
@@ -139,6 +142,10 @@ jobs:
                 echo "Warning: Failed to delete node '$node'"
               fi
             done <<< "$NODES"
+            
+            if [ $CLEANED_NODES -gt 0 ]; then
+              gh pr comment ${{ github.event.pull_request.number }} --body "All nodes were cleaned up successfully"
+            fi
           else
             echo "No nodes found to clean up, exiting cleanly"
           fi
