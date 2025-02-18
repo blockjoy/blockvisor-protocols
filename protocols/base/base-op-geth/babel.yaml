@@ -1,4 +1,4 @@
-version: 0.0.1
+version: 0.0.2
 container_uri: docker://ghcr.io/blockjoy/base-op-geth-protocol:v20250218.10
 sku_code: BASEGETH
 org_id: null
