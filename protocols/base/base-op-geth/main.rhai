@@ -129,6 +129,21 @@ const PLUGIN_CONFIG = #{
     ],
 };
 
+
+fn application_status() {
+    let resp = run_jrpc(#{host: global::GETH_API, method: ""});
+
+    if resp.status_code == 200 {
+        "broadcasting"
+    } else {
+        "delinquent"
+    }
+}
+
+fn height() {
+    parse_hex(run_jrpc(#{ host: global::GETH_API, method: "eth_blockNumber"}).expect(200).result)
+}
+
 fn sync_status() {
     let system_timestamp = run_sh (`date +%s`).unwrap();
     let h = run_jrpc(#{host: global::BASE_API, method: "optimism_syncStatus"}).expect(200);
