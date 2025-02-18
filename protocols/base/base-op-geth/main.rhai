@@ -146,20 +146,15 @@ fn height() {
 
 fn sync_status() {
     let system_timestamp = run_sh (`date +%s`).unwrap();
-    let h = run_jrpc(#{host: global::BASE_API, method: "optimism_syncStatus"}).expect(200);
+    let h = run_jrpc(#{host: global::OPTIMISM_API, method: "optimism_syncStatus"}).expect(200);
 
     let block_timestamp = h.result.unsafe_l2.timestamp;
-    let block_number = h.result.unsafe_l2.number;
-    let head_number = h.result.head_number;
-    let safe_number = h.result.safe_l2.number;
-    let finalized_number = h.result.finalized_l2.number;
-
-    return #{
-        synced: true,
-        block_timestamp: block_timestamp,
-        block_number: block_number,
-        head_number: head_number,
-        safe_number: safe_number,
-        finalized_number: finalized_number,
-    };
+    
+    let current_timestamp = parse_int(system_timestamp);
+    
+    if block_timestamp < current_timestamp - 100 {
+        return "syncing";
+    } else {
+        return "synced";
+}
 }
