@@ -59,7 +59,6 @@ const PLUGIN_CONFIG = #{
     init: #{
         commands: [
             `mkdir -p ${global::OP_DIR}`,
-            `mkdir -p ${global::OP_DIR}`,
         ],
         jobs: [
             #{
