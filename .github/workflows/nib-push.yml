@@ -280,8 +280,11 @@ jobs:
 
   push-staging:
     environment: Staging
-    needs: [detect-changes, check-protocols, push-dev,push-protocols-staging]
-    if: fromJson(needs.detect-changes.outputs.version_changes)[0]
+    needs: [detect-changes, push-dev, push-protocols-staging]
+    if: |
+      always() && 
+      fromJson(needs.detect-changes.outputs.version_changes)[0] &&
+      (needs.push-protocols-staging.result == 'success' || needs.push-protocols-staging.result == 'skipped')
     runs-on: dev
     permissions:
       contents: write
@@ -363,8 +366,11 @@ jobs:
 
   push-prod:
     environment: Prod
-    needs: [detect-changes, push-staging, check-protocols]
-    if: fromJson(needs.detect-changes.outputs.version_changes)[0]
+    needs: [detect-changes, push-staging, push-protocols-prod]
+    if: |
+      always() && 
+      fromJson(needs.detect-changes.outputs.version_changes)[0] &&
+      (needs.push-protocols-prod.result == 'success' || needs.push-protocols-prod.result == 'skipped')
     runs-on: dev
     permissions:
       contents: read
