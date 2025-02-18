@@ -53,3 +53,4 @@ firewall_config:
       ports:
         - port: 9003
           name: port 9003
+properties: []
