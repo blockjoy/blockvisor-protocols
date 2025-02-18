@@ -1,0 +1,56 @@
+version: 0.0.1
+container_uri: docker://ghcr.io/blockjoy/base-op-geth-protocol:v20250218.10
+sku_code: BASEGETH
+org_id: null
+description: Base Geth
+visibility: public
+protocol_key: base
+variants:
+  - key: geth-mainnet-archive
+    min_cpu: 12
+    min_memory_mb: 65536
+    min_disk_gb: 9000
+    sku_code: BASEGETH-A-MN
+    archive_pointers:
+      - pointer: !store_key base-geth-mainnet-archive-v1
+  - key: geth-sepolia-archive
+    min_cpu: 12
+    min_memory_mb: 65536
+    min_disk_gb: 9000
+    sku_code: BASEGETH-A-TN
+    visibility: private
+    archive_pointers:
+      - pointer: !store_key base-geth-sepolia-archive-v1
+firewall_config:
+  default_in: deny
+  default_out: allow
+  rules:
+    - key: Allow incoming ports TCP
+      description: Allow TCP inbound traffic on ports 80, 443, 9003, 30303
+      direction: in
+      protocol: tcp
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 80
+          name: HTTP port
+        - port: 443
+          name: HTTPS port
+        - port: 9003
+          name: port 9003
+        - port: 30303
+          name: P2P port
+    - key: Allow incoming ports UDP
+      description: Allow UDP inbound traffic on port 9003
+      direction: in
+      protocol: udp
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 9003
+          name: port 9003
+properties: []
