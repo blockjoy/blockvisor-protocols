@@ -1,5 +1,5 @@
-version: 0.0.2
-container_uri: docker://ghcr.io/blockjoy/base-op-geth-protocol:v20250218.12
+version: 0.0.3
+container_uri: docker://ghcr.io/blockjoy/base-op-geth-protocol:v20250218.13
 sku_code: BASEGETH
 org_id: null
 description: Base Geth
@@ -13,6 +13,13 @@ variants:
     sku_code: BASEGETH-A-MN
     archive_pointers:
       - pointer: !store_key base-geth-mainnet-archive-v1
+  - key: geth-mainnet-full
+    min_cpu: 8
+    min_memory_mb: 32768
+    min_disk_gb: 4000
+    sku_code: BASEGETH-F-MN
+    archive_pointers:
+      - pointer: !store_key base-geth-mainnet-full-v1
   - key: geth-sepolia-archive
     min_cpu: 12
     min_memory_mb: 65536
@@ -21,6 +28,14 @@ variants:
     visibility: private
     archive_pointers:
       - pointer: !store_key base-geth-sepolia-archive-v1
+  - key: geth-sepolia-full
+    min_cpu: 8
+    min_memory_mb: 32768
+    min_disk_gb: 4000
+    sku_code: BASEGETH-F-TN
+    visibility: private
+    archive_pointers:
+      - pointer: !store_key base-geth-sepolia-full-v1
 firewall_config:
   default_in: deny
   default_out: allow
