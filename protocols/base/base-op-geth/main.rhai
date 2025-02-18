@@ -95,7 +95,6 @@ const PLUGIN_CONFIG = #{
             run_sh: `/root/bin/op-node \
                     --l2=http://127.0.0.1:8551 \
                     --l2.jwt-secret=${global::BASE_DIR}/jwt.txt \
-                    --rollup.config=${global::BASE_DIR}/rollup.json \
                     --rpc.addr=127.0.0.1 \
                     --rpc.port=8547 \
                     --l1=${global::VARIANT.l1_url} \
