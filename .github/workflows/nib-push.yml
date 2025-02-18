@@ -1,6 +1,18 @@
 name: Push to Blockjoy
 
 on:
+  workflow_dispatch:
+    inputs:
+      job_to_run:
+        description: 'Select job to run'
+        required: true
+        type: choice
+        options:
+          - all
+          - check-protocols
+          - push-dev
+          - push-staging
+          - push-prod
   pull_request:
     types: [closed]
 
@@ -14,7 +26,7 @@ env:
 jobs:
   detect-changes:
     runs-on: dev
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     outputs:
       version_changes: ${{ steps.check-versions.outputs.version_changes }}
       protocol_changes: ${{ steps.check-content.outputs.protocol_changes }}
@@ -115,9 +127,10 @@ jobs:
   check-protocols:
     needs: [detect-changes]
     if: |
-      github.event.pull_request.merged == true &&
+      (github.event.pull_request.merged == true &&
       (fromJson(needs.detect-changes.outputs.protocol_changes).include[0] ||
-       needs.detect-changes.outputs.protocols_yaml_changed == 'true')
+       needs.detect-changes.outputs.protocols_yaml_changed == 'true')) ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'check-protocols' || github.event.inputs.job_to_run == 'all'))
     runs-on: dev
     outputs:
       protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
@@ -168,7 +181,9 @@ jobs:
   push-protocols-staging:
     environment: Staging
     needs: [detect-changes, check-protocols]
-    if: needs.check-protocols.outputs.protocols_changed == 'true'
+    if: |
+      needs.check-protocols.outputs.protocols_changed == 'true' ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'push-staging' || github.event.inputs.job_to_run == 'all'))
     runs-on: dev
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -185,7 +200,9 @@ jobs:
   push-protocols-prod:
     environment: Prod
     needs: [detect-changes, check-protocols]
-    if: needs.check-protocols.outputs.protocols_changed == 'true'
+    if: |
+      needs.check-protocols.outputs.protocols_changed == 'true' ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'push-prod' || github.event.inputs.job_to_run == 'all'))
     runs-on: dev
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -202,7 +219,9 @@ jobs:
   push-dev:
     environment: Dev
     needs: [detect-changes]
-    if: fromJson(needs.detect-changes.outputs.protocol_changes).include[0]
+    if: |
+      fromJson(needs.detect-changes.outputs.protocol_changes).include[0] ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'push-dev' || github.event.inputs.job_to_run == 'all'))
     runs-on: dev
     permissions:
       contents: write
@@ -281,7 +300,9 @@ jobs:
   push-staging:
     environment: Staging
     needs: [detect-changes, check-protocols, push-dev,push-protocols-staging]
-    if: fromJson(needs.detect-changes.outputs.version_changes)[0]
+    if: |
+      fromJson(needs.detect-changes.outputs.version_changes)[0] ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'push-staging' || github.event.inputs.job_to_run == 'all'))
     runs-on: dev
     permissions:
       contents: write
@@ -364,7 +385,9 @@ jobs:
   push-prod:
     environment: Prod
     needs: [detect-changes, push-staging, check-protocols]
-    if: fromJson(needs.detect-changes.outputs.version_changes)[0]
+    if: |
+      fromJson(needs.detect-changes.outputs.version_changes)[0] ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'push-prod' || github.event.inputs.job_to_run == 'all'))
     runs-on: dev
     permissions:
       contents: read
