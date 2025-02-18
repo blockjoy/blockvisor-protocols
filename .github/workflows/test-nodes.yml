@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       matrix:
-        required: true
+        required: false
         type: string
         description: "JSON string containing the test matrix"
       version_tag:
@@ -16,7 +16,7 @@ on:
         type: number
         description: "PR number"
       pr_sha:
-        required: true
+        required: false
         type: string
         description: "PR SHA"
       event_action:

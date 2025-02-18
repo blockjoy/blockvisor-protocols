@@ -7,6 +7,7 @@ on:
       - opened      # PR is created
       - synchronize # New commits pushed
       - reopened    # Closed PR is reopened
+      - closed      # PR is closed or merged
 
 permissions:
   contents: read
@@ -984,8 +985,25 @@ jobs:
       pr_closed: false
     secrets: inherit
 
+  clean-nodes:
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.action == 'closed'
+    uses: ./.github/workflows/test-nodes.yml
+    permissions:
+      contents: write
+      pull-requests: write
+      packages: write
+      statuses: write
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
+      event_action: ${{ github.event.action }}
+      pr_merged: ${{ github.event.pull_request.merged }}
+      pr_closed: true
+    secrets: inherit
+
   workflow-status:
-    needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes]
+    needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes, clean-nodes]
     if: always() && github.event_name == 'pull_request'
     runs-on: dev
     permissions:
