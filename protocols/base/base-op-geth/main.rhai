@@ -117,9 +117,6 @@ const PLUGIN_CONFIG = #{
                     --p2p.listen.udp=9003 \
                     --p2p.scoring.peers=light \
                     --p2p.ban.peers \
-                    --metrics.enabled=true \
-                    --metrics.addr=127.0.0.1 \
-                    --metrics.port=${global::METRICS_PORT} \
                     --p2p.discovery.path=${global::BASE_DIR}/opnode_discovery_db \
                     --p2p.peerstore.path=${global::BASE_DIR}/opnode_peerstore_db \
                     --l2.backup-unsafe-sync-rpc=${global::VARIANT.url} \
