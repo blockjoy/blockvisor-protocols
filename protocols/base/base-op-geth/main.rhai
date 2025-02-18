@@ -21,6 +21,8 @@ const BASE_CONFIG = #{
     services: AUX_CONFIG.services + base::BASE_CONFIG.services,
 };
 
+const BABEL_VERSION = "0.9.0";
+
 const VARIANTS = #{
     "geth-mainnet-archive": #{
         sequencer_url: "https://mainnet-sequencer.base.org",
@@ -46,21 +48,22 @@ const VARIANT = VARIANTS[node_env().node_variant];
 const SEQUENCER_URL = VARIANTS[node_env().node_variant].sequencer_url;
 
 const PLUGIN_CONFIG = #{
-    version: "1.0.0",
-    commands: [
-        `mkdir -p ${global::BASE_DIR}`,
-        "mkdir -p /opt/netdata/var/cache/netdata",
-        "mkdir -p /opt/netdata/var/lib/netdata",
-        "rm -rf /opt/netdata/var/lib/netdata/*",
-        "chown -R root:root /opt/netdata/var/lib/netdata",
-        "chown -R root:root /opt/netdata/var/cache/netdata",
-    ],
-    jobs: [
-        #{
-            name: "init_jwt",
-            run_sh: `openssl rand -hex 32 > ${global::BASE_DIR}/jwt.txt`,
-        }
-    ],
+    init: #{
+        commands: [
+            `mkdir -p ${global::BASE_DIR}`,
+            "mkdir -p /opt/netdata/var/cache/netdata",
+            "mkdir -p /opt/netdata/var/lib/netdata",
+            "rm -rf /opt/netdata/var/lib/netdata/*",
+            "chown -R root:root /opt/netdata/var/lib/netdata",
+            "chown -R root:root /opt/netdata/var/cache/netdata",
+        ],
+        jobs: [
+            #{
+                name: "init_jwt",
+                run_sh: `openssl rand -hex 32 > ${global::BASE_DIR}/jwt.txt`,
+            }
+        ],
+    },
     services: [
         #{
             name: "op-geth",
