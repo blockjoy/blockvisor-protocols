@@ -102,6 +102,7 @@ const PLUGIN_CONFIG = #{
         #{
             name: "op-node",
             run_sh: `/root/bin/op-node \
+                    --network ${global::VARIANT.opnet} \
                     --l2=http://127.0.0.1:8551 \
                     --l2.jwt-secret=${global::BASE_DIR}/jwt.txt \
                     --rpc.addr=127.0.0.1 \
