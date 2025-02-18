@@ -1,4 +1,4 @@
-version: 1.0.1
+version: 1.0.2
 container_uri: docker://ghcr.io/blockjoy/blast-geth-protocol:v20250218.2
 sku_code: BLASTGETH
 org_id: null
