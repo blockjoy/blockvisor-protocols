@@ -1,3 +1,4 @@
+#1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250213.4
 FROM ${BASE_IMAGE}
 
