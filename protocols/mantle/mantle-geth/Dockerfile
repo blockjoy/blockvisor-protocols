@@ -1,5 +1,5 @@
-ARG MANTLE_NODE_IMAGE=ghcr.io/blockjoy/mantle-node:v20250217.1
-ARG MANTLE_GETH_IMAGE=ghcr.io/blockjoy/mantle-geth:v20250217.1
+ARG MANTLE_NODE_IMAGE=ghcr.io/blockjoy/mantle-node:v20250217.13
+ARG MANTLE_GETH_IMAGE=ghcr.io/blockjoy/mantle-geth:v20250217.11
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250213.4
 
 FROM ${MANTLE_NODE_IMAGE} AS mantle-node
