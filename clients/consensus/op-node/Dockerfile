@@ -48,6 +48,7 @@ WORKDIR /root
 RUN . "$HOME/.cargo/env" && git clone https://github.com/ethereum-optimism/optimism.git && \
     cd optimism && \
     git checkout ${OP_NODE_VERSION} && \
+    cd op-node && \
     just op-node && \
     mkdir -p /root/bin && \
     mv op-node/bin/op-node /root/bin/
