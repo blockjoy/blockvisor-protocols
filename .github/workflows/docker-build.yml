@@ -569,8 +569,12 @@ jobs:
           
           # Extract version for any client under /clients/
           if [[ "${{ matrix.image_path }}" =~ ^clients/ ]]; then
-            CLIENT_UPPER=$(echo "${CLIENT_NAME}" | tr '[:lower:]' '[:upper:]')
-            CLIENT_VERSION=$(grep -E "ENV ${CLIENT_UPPER}_VERSION=[[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
+            CLIENT_NO_HYPHEN=$(echo "${CLIENT_NAME}" | tr -d '-' | tr '[:lower:]' '[:upper:]')
+            CLIENT_WITH_UNDERSCORE=$(echo "${CLIENT_NAME}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+            
+            # Try both variants when searching for the version, allowing for path prefixes before the version
+            CLIENT_VERSION=$(grep -E "ENV (${CLIENT_NO_HYPHEN}|${CLIENT_WITH_UNDERSCORE})_VERSION=[[:space:]]*[^[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
+            
             if [[ ! -z "$CLIENT_VERSION" ]]; then
               # Remove 'v' prefix and ensure version is Docker-compatible (only alphanumeric and . - _)
               CLIENT_VERSION=${CLIENT_VERSION#v}
