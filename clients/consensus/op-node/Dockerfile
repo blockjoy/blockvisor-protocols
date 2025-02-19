@@ -51,4 +51,4 @@ RUN . "$HOME/.cargo/env" && git clone https://github.com/ethereum-optimism/optim
     cd op-node && \
     just op-node && \
     mkdir -p /root/bin && \
-    mv op-node/bin/op-node /root/bin/
+    mv bin/op-node /root/bin/
