@@ -1,6 +1,6 @@
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250220.4
 
-FROM golang:1.24-bookworm AS builder
+FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PROTOCOL_VERSION=v3.0.3
@@ -14,9 +14,3 @@ RUN git clone --depth 1 --branch $PROTOCOL_VERSION https://github.com/tellor-io/
 WORKDIR /root/layer
 RUN go build ./cmd/layerd && \
     cp ./layerd /root/bin/
-
-# Create minimal final image
-FROM ${BASE_IMAGE}
-
-# Copy binary to user's directory
-COPY --from=builder /root/bin/layerd /root/bin/
