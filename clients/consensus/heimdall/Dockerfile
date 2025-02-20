@@ -21,8 +21,8 @@ RUN useradd -r -u 1000 -m -s /bin/bash heimdall && \
     chown -R heimdall:heimdall /home/heimdall
 
 # Copy binaries to user's directory
-COPY --from=builder --chown=heimdall:heimdall /root/bin/heimdalld /home/heimdall/bin/
-COPY --from=builder --chown=heimdall:heimdall /root/bin/heimdallcli /home/heimdall/bin/
+COPY --chown=heimdall:heimdall /root/bin/heimdalld /home/heimdall/bin/
+COPY --chown=heimdall:heimdall /root/bin/heimdallcli /home/heimdall/bin/
 
 # Set PATH for the binaries
 ENV PATH="/home/heimdall/bin:${PATH}"
