@@ -38,4 +38,3 @@ ENV GOROOT="/usr/local/go"
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain ${RUST_VERSION} && \
     . "$HOME/.cargo/env" && \
     rustup target add x86_64-unknown-linux-gnu
-    
