@@ -43,7 +43,6 @@ const SEQUENCER_URL = VARIANT.sequencer_url;
 const OP_NODE_BOOTNODES = VARIANT.op_node_bootnodes;
 const L1_URL = "https://eth-l1.blkjy.io";
 const L1_BEACON_URL = "https://lighthouse.blkjy.io";
-const L1_BEACON_URL = "https://lighthouse.blkjy.io";
 
 const OP_RETH_EXTRA_ARGS = if node_env().node_variant.ends_with("-full") {
     "--full"
