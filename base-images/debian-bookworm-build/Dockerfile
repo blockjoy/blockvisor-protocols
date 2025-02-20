@@ -4,6 +4,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 ENV GO_VERSION=1.23.1
 ENV RUST_VERSION=1.75.0
+ENV NVM_VERSION=0.40.1
+ENV NODE_VERSION=21.6.2
 
 RUN apt-get update --allow-insecure-repositories \
     && apt-get install -y --no-install-recommends \
@@ -43,10 +45,10 @@ RUN . "$HOME/.cargo/env" && cargo install --git https://github.com/foundry-rs/fo
 
 ENV NVM_DIR=/root/.nvm
 RUN mkdir -p $NVM_DIR && \
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash 
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh | bash 
 
 RUN . "$NVM_DIR/nvm.sh" && \
-    nvm install 22
+    nvm install ${NODE_VERSION}
 
 RUN . "$NVM_DIR/nvm.sh" && \
     npm install -g pnpm
