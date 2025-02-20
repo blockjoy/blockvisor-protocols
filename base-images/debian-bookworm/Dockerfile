@@ -1,9 +1,12 @@
-#4
+FROM golang:1.23.1 as go-builder
+
+RUN go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest && \
+    cd / && \
+    xcaddy build --with github.com/caddy-dns/cloudflare --with github.com/blockjoy/request-decompressor
+
 FROM debian:bookworm-slim@sha256:f70dc8d6a8b6a06824c92471a1a258030836b26b043881358b967bf73de7c5ab
 
 ENV DEBIAN_FRONTEND=noninteractive
-
-ENV GO_VERSION=1.23.1
 
 RUN apt-get update --allow-insecure-repositories \
     && apt-get install -y --no-install-recommends \
@@ -25,7 +28,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     net-tools \
     nano \
     git \
-    build-essential \
     libc6 \
     libfontconfig1 \
     apt-utils \
@@ -43,24 +45,15 @@ RUN mkdir -p /etc/apt/keyrings/ && \
 RUN curl -1sLf 'https://dl.cloudsmith.io/public/caddy/xcaddy/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-xcaddy-archive-keyring.gpg && \
     curl -1sLf 'https://dl.cloudsmith.io/public/caddy/xcaddy/debian.deb.txt' > /etc/apt/sources.list.d/caddy-xcaddy.list
 
-RUN apt-get update && apt-get install -y --no-install-recommends xcaddy alloy grafana
-
-RUN wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz && \
-    rm go${GO_VERSION}.linux-amd64.tar.gz
+RUN apt-get update && apt-get install -y --no-install-recommends alloy grafana
 
 RUN wget https://packages.cloud.google.com/apt/doc/apt-key.gpg -qO /usr/share/keyrings/prometheus-archive-keyring.gpg && \
     curl -fsSL https://ftp-master.debian.org/keys/archive-key-11.asc | gpg --batch --yes --dearmor -o /usr/share/keyrings/debian-archive-keyring-11.gpg && \
     curl -fsSL https://ftp-master.debian.org/keys/archive-key-12.asc | gpg --batch --yes --dearmor -o /usr/share/keyrings/debian-archive-keyring-12.gpg && \
     curl -fsSL https://ftp-master.debian.org/keys/archive-key-12-security.asc | gpg --dearmor -o /usr/share/keyrings/debian-archive-keyring-12-security.gpg
 
-ENV PATH="/usr/local/go/bin:${PATH}"
-ENV GOROOT="/usr/local/go"
-
-RUN cd / && \
-    xcaddy build --with github.com/caddy-dns/cloudflare --with github.com/blockjoy/request-decompressor && \
-    mv ./caddy /usr/bin/ && chmod +x /usr/bin/caddy && \
-    mkdir -p /etc/caddy
+COPY --from=go-builder /caddy /usr/bin/caddy
+RUN chmod +x /usr/bin/caddy && mkdir -p /etc/caddy
 
 RUN mkdir -p /var/lib/babel/templates && \
     mkdir -p /var/lib/babel/plugin

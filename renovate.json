@@ -61,13 +61,12 @@
       ]
     },
     {
-      "description": "Disable updates for Ubuntu base images",
+      "description": "Disable updates for all external Docker images",
       "matchDatasources": [
         "docker"
       ],
       "matchPackageNames": [
-        "debian",
-        "ubuntu"
+        "/.*/"
       ],
       "enabled": false
     }
