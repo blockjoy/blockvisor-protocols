@@ -46,6 +46,7 @@ ENV GOROOT="/usr/local/go"
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain ${RUST_VERSION} && \
     . "$HOME/.cargo/env" && \
+    rustup default ${RUST_VERSION} && \
     rustup target add x86_64-unknown-linux-gnu
 
 RUN . "$HOME/.cargo/env" && cargo install --git https://github.com/foundry-rs/foundry --profile release --locked forge cast chisel anvil
