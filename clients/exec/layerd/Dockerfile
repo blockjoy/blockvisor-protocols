@@ -16,4 +16,4 @@ RUN go build ./cmd/layerd && \
     cp ./layerd /root/bin/
 
 # Copy binary to user's directory
-COPY --from=builder /root/bin/layerd /root/bin/
+COPY /root/bin/layerd /root/bin/
