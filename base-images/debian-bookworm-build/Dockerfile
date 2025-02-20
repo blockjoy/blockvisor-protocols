@@ -16,9 +16,17 @@ RUN apt-get update --allow-insecure-repositories \
     apt-transport-https \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN wget -qO - 'https://proget.makedeb.org/debian-feeds/prebuilt-mpr.pub' | gpg --dearmor | tee /usr/share/keyrings/prebuilt-mpr-archive-keyring.gpg 1> /dev/null && \
+    echo "deb [arch=all,$(dpkg --print-architecture) signed-by=/usr/share/keyrings/prebuilt-mpr-archive-keyring.gpg] https://proget.makedeb.org prebuilt-mpr $(lsb_release -cs)" | tee /etc/apt/sources.list.d/prebuilt-mpr.list && \
+    apt-get update && apt-get install -y --no-install-recommends \
+    just \
     procps \
     sysstat \
+    libclang \
+    clang \
+    libclang-dev \
+    cmake \
+    libpq-dev \
     wget \
     curl \
     software-properties-common \
