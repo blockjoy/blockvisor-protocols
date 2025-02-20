@@ -14,6 +14,3 @@ RUN git clone --depth 1 --branch $PROTOCOL_VERSION https://github.com/tellor-io/
 WORKDIR /root/layer
 RUN go build ./cmd/layerd && \
     cp ./layerd /root/bin/
-
-# Copy binary to user's directory
-COPY /root/bin/layerd /root/bin/
