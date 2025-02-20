@@ -15,3 +15,4 @@ COPY --from=lighthouse-build /root/bin/lighthouse /root/bin/
 
 COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/
+COPY templates/Caddyfile.template /var/lib/babel/templates/
