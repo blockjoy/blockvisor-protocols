@@ -1,7 +1,7 @@
 #1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250220.4
 
-FROM golang:latest AS builder
+FROM ${BASE_IMAGE}
 
 ENV HEIMDALL_VERSION=v1.0.10
 WORKDIR /var/lib/heimdall
@@ -14,9 +14,6 @@ RUN apt-get update -y && \
     mkdir -p /root/bin && \
     cp build/heimdalld /root/bin/ && \
     cp build/heimdallcli /root/bin/
-
-# Create minimal final image
-FROM ${BASE_IMAGE}
 
 # Create non-root user
 RUN useradd -r -u 1000 -m -s /bin/bash heimdall && \
