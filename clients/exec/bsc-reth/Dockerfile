@@ -18,6 +18,7 @@ RUN git clone --depth 1 --branch $BSCRETH_VERSION https://github.com/bnb-chain/r
 WORKDIR /root/reth
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/root/reth/target \
+    . "$HOME/.cargo/env" && \
     make build-bsc && \
     cp target/release/bsc-reth /root/bin/bsc-reth
 

@@ -19,6 +19,7 @@ RUN git clone https://github.com/subsquid/worker-rs.git . && \
     if [ "$WORKER_VERSION" != "latest" ]; then \
         git checkout $WORKER_VERSION; \
     fi && \
+    . "$HOME/.cargo/env" && \
     cargo build --release
 
 # Create minimal final image
