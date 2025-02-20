@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250220.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250220.2
 
 FROM ${BASE_IMAGE} as builder
 
@@ -7,15 +7,6 @@ ENV BSCRETH_VERSION=v1.1.1
 ENV RUSTUP_HOME=/usr/local/rustup
 ENV CARGO_HOME=/usr/local/cargo
 ENV PATH=/usr/local/cargo/bin:$PATH
-
-# Install build dependencies
-RUN apt-get update && \
-    apt-get install -y libclang-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install Rust toolchain
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable && \
-    rustup target add x86_64-unknown-linux-gnu
 
 RUN mkdir -p /root/bin
 
