@@ -22,7 +22,6 @@ RUN wget -qO - 'https://proget.makedeb.org/debian-feeds/prebuilt-mpr.pub' | gpg 
     just \
     procps \
     sysstat \
-    libclang \
     clang \
     libclang-dev \
     cmake \
