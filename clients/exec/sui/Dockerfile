@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250220.3
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250220.4
 ARG SUI_IMAGE=mysten/sui-node:mainnet-v1.42.2
 
 FROM ${SUI_IMAGE} AS sui_node

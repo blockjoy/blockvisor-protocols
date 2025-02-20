@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250220.3
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250220.4
 ARG ARB_NODE_IMAGE=offchainlabs/arb-node:v1.4.5-e97c1a4
 
 FROM ${ARB_NODE_IMAGE} AS arb_node
