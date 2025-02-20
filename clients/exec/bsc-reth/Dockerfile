@@ -4,9 +4,6 @@ FROM ${BASE_IMAGE} as builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV BSCRETH_VERSION=v1.1.1
-ENV RUSTUP_HOME=/usr/local/rustup
-ENV CARGO_HOME=/usr/local/cargo
-ENV PATH=/usr/local/cargo/bin:$PATH
 
 RUN mkdir -p /root/bin
 
@@ -16,7 +13,8 @@ RUN git clone --depth 1 --branch $BSCRETH_VERSION https://github.com/bnb-chain/r
 
 # Build bsc-reth with Cargo caching
 WORKDIR /root/reth
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
+RUN --mount=type=cache,target=/root/.cargo/git \
+    --mount=type=cache,target=/root/.cargo/registry \
     --mount=type=cache,target=/root/reth/target \
     . "$HOME/.cargo/env" && \
     make build-bsc && \
