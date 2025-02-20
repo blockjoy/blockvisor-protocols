@@ -1,5 +1,5 @@
-version: 1.2.3
-container_uri: docker://ghcr.io/blockjoy/base-op-reth-protocol:v20250220.2
+version: 1.2.4
+container_uri: docker://ghcr.io/blockjoy/base-op-reth-protocol:v20250220.3
 sku_code: BASEOPRETH
 org_id: null
 description: Base OP Reth node
@@ -48,4 +48,6 @@ firewall_config:
       ports:
         - port: 30303
           name: P2P port
+        - port: 9222
+          name: OP Node P2P port
 properties: []
