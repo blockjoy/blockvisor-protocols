@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250220.2
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250220.3
 
 FROM golang:1.24-bookworm AS builder
 
