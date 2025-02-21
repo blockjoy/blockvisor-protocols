@@ -1,7 +1,7 @@
 #1
-ARG BLAST_OP_NODE_IMAGE=ghcr.io/blockjoy/blast-node:v20250214.1
-ARG BLAST_OP_GETH_IMAGE=ghcr.io/blockjoy/blast-geth:v20250214.1
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250213.4
+ARG BLAST_OP_NODE_IMAGE=ghcr.io/blockjoy/blast-node:v20250220.6
+ARG BLAST_OP_GETH_IMAGE=ghcr.io/blockjoy/blast-geth:v20250220.5
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250220.1
 
 FROM ${BLAST_OP_NODE_IMAGE} AS blast-op-node
 
