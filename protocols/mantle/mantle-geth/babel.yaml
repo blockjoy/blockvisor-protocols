@@ -1,5 +1,5 @@
 version: 0.0.3
-container_uri: docker://ghcr.io/blockjoy/mantle-geth-protocol:v20250219.2
+container_uri: docker://ghcr.io/blockjoy/mantle-geth-protocol:v20250221.1
 sku_code: MANTLEGETH
 org_id: null
 description: Mantle Geth
