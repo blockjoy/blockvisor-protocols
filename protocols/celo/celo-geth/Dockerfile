@@ -1,4 +1,4 @@
-ARG CELO_GETH_IMAGE=ghcr.io/blockjoy/celo-geth:v20250220.2
+ARG CELO_GETH_IMAGE=ghcr.io/blockjoy/celo-geth:v20250221.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250220.1
 
 FROM ${CELO_GETH_IMAGE} AS celo-geth
