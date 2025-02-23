@@ -3,7 +3,7 @@ ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250221.1
 FROM ${BASE_IMAGE} AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV AXELARD_VERSION=v1.1.3
+ENV AXELARD_VERSION=v1.2.1
 ENV WASM_VERSION=v1.3.1
 ENV CGO_LDFLAGS=-lm
 
