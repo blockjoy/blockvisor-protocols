@@ -1,4 +1,4 @@
-ARG CLIENT_IMAGE=ghcr.io/blockjoy/neard:v20250221.1
+ARG CLIENT_IMAGE=ghcr.io/blockjoy/neard:v20250222.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250220.1
 
 FROM ${CLIENT_IMAGE} AS client
