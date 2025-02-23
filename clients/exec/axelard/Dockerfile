@@ -4,7 +4,7 @@ FROM ${BASE_IMAGE} AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV AXELARD_VERSION=v1.2.1
-ENV WASM_VERSION=v1.3.1
+ENV WASM_VERSION=v1.5.8
 ENV CGO_LDFLAGS=-lm
 
 # Install build dependencies
