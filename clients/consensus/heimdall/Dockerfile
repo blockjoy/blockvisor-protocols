@@ -3,7 +3,7 @@ ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250221.1
 
 FROM ${BASE_IMAGE}
 
-ENV HEIMDALL_VERSION=v1.0.10
+ENV HEIMDALL_VERSION=v1.2.0
 
 # Create non-root user first
 RUN useradd -r -u 1000 -m -s /bin/bash heimdall && \
