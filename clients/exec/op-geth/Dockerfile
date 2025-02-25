@@ -1,10 +1,10 @@
 #1
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250213.4
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250221.1
 
 FROM ${BASE_IMAGE} as builder
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV OPGETH_VERSION=v1.101411.4
+ENV OPGETH_VERSION=v1.101500.0
 ENV PATH="/usr/local/go/bin:${PATH}"
 ENV GOROOT="/usr/local/go"
 

@@ -1,24 +1,11 @@
 # 5
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250213.4
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250221.1
 
 FROM ${BASE_IMAGE} AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV OP_RETH_VERSION=v1.1.5
+ENV OP_RETH_VERSION=v1.2.0
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
-
-# Install system dependencies in a separate layer
-RUN apt-get update && \
-    apt-get install -y \
-    clang \
-    libclang-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Rust in a separate layer
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
-    . "$HOME/.cargo/env" && \
-    rustup default stable && \
-    rustup target add x86_64-unknown-linux-gnu
 
 # Clone and checkout in a separate layer
 WORKDIR /root

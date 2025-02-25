@@ -7,8 +7,6 @@ const WS_PORT = 8546;
 const METRICS_PORT = 6161;
 const METRICS_PATH = "/debug/metrics/prometheus";
 
-const L1_URL = "https://eth-l1.blkjy.io";
-const L1_BEACON_URL = "https://lighthouse.blkjy.io";
 const L1_RPCKIND = "standard";
 
 const GETH_API = "http://127.0.0.1:" + global::RPC_PORT;
@@ -28,7 +26,8 @@ const VARIANTS = #{
         sequencer_url: "https://mainnet-sequencer.optimism.io/",
         net_type: "main",
         url: "https://mainnet.optimism.io",
-        l1_url: "http://173.231.60.133",
+        l1_url: "http://eth-l1.blkjy.io",
+        l1_beacon_url: "http://lighthouse.blkjy.io",
         snapshot_url: "https://datadirs.optimism.io/mainnet-bedrock.tar.zst",
         checkpoint: "https://beaconstate.ethstaker.cc",
         opnet: "mainnet",
@@ -39,7 +38,8 @@ const VARIANTS = #{
         sequencer_url: "https://goerli-sequencer.optimism.io/",
         net_type: "test",
         url: "https://goerli.optimism.io",
-        l1_url: "https://gorilla01.lax.blockjoy.com",
+        l1_url: "https://eth-l1-sepolia.blkjy.io",
+        l1_beacon_url: "https://lighthouse-sepolia.blkjy.io",
         snapshot_url: "https://datadirs.optimism.io/goerli-bedrock.tar.zst",
         checkpoint: "https://goerli.beaconstate.ethstaker.cc",
         opnet: "sepolia",
@@ -49,7 +49,9 @@ const VARIANTS = #{
 };
 
 const VARIANT = VARIANTS[node_env().node_variant];
-const SEQUENCER_URL = VARIANTS[node_env().node_variant].sequencer_url;
+const SEQUENCER_URL = VARIANT.sequencer_url;
+const L1_URL = VARIANT.l1_url;
+const L1_BEACON_URL = VARIANT.l1_beacon_url;
 
 const BABEL_VERSION = "0.9.0";
 
@@ -57,10 +59,6 @@ const PLUGIN_CONFIG = #{
     init: #{
         commands: [
             `mkdir -p ${global::OP_DIR}`,
-            "mkdir -p /opt/netdata/var/cache/netdata",
-            "mkdir -p /opt/netdata/var/lib/netdata",
-            "rm -rf /opt/netdata/var/lib/netdata/*",
-            "rm -rf /opt/netdata/var/cache/netdata/*",
         ],
         jobs: [
             #{
@@ -72,69 +70,17 @@ const PLUGIN_CONFIG = #{
     services: [
         #{
             name: "op-geth",
-            run_sh: `/root/bin/op-geth \
-                    --ws \
-                    --ws.port=${global::WS_PORT} \
-                    --ws.addr=0.0.0.0 \
-                    --ws.origins="*" \
-                    --http \
-                    --http.api="eth,net,web3,debug" \
-                    --http.port=${global::RPC_PORT} \
-                    --http.addr=0.0.0.0 \
-                    --http.vhosts="*" \
-                    --http.corsdomain="*" \
-                    --authrpc.addr=127.0.0.1 \
-                    --authrpc.jwtsecret=${global::OP_DIR}/jwt.txt \
-                    --authrpc.port=8551 \
-                    --authrpc.vhosts="*" \
-                    --rollup.historicalrpc="http://127.0.0.1:8548" \
-                    --gcmode=archive \
-                    --verbosity=3 \
-                    --rollup.sequencerhttp=${global::SEQUENCER_URL} \
-                    --nodiscover \
-                    --metrics \
-                    --metrics.addr=127.0.0.1 \
-                    --metrics.port=${global::METRICS_PORT} \
-                    --syncmode=full \
-                    --maxpeers=0 \
-                    --datadir=${global::OP_DIR}/geth \
-                    --snapshot=false \
-                    --networkid=${global::VARIANT.chainid} \
-                    --nat none \
-                    --rollup.disabletxpoolgossip=true \
-                    --nodiscover \
-                    --op-network=op-${global::VARIANT.opnet} \
-                    --cache 8192`,
+            run_sh: `/root/bin/op-geth --ws --ws.port=${global::WS_PORT} --ws.addr=127.0.0.1 --ws.origins="*" --http --http.api="eth,net,web3,debug" --http.port=${global::RPC_PORT} --http.addr=127.0.0.1 --http.vhosts="*" --http.corsdomain="*" --authrpc.addr=127.0.0.1 --authrpc.jwtsecret=${global::OP_DIR}/jwt.txt --authrpc.port=8551 --authrpc.vhosts="*" --rollup.historicalrpc="http://127.0.0.1:8548" --gcmode=archive --verbosity=3 --rollup.sequencerhttp=${global::SEQUENCER_URL} --nodiscover --metrics --metrics.addr=127.0.0.1 --metrics.port=${global::METRICS_PORT} --syncmode=full --maxpeers=0 --datadir=${global::OP_DIR}/geth --snapshot=false --networkid=${global::VARIANT.chainid} --nat none --rollup.disabletxpoolgossip=true --nodiscover --op-network=op-${global::VARIANT.opnet} --cache 8192`,
             shutdown_timeout_secs: 120,
         },
         #{
             name: "op-node",
-            run_sh: `/root/bin/op-node \
-                    --network=${global::VARIANT.opnet} \
-                    --rpc.addr=0.0.0.0 \
-                    --rpc.port=8547 \
-                    --l1=${global::L1_URL} \
-                    --l1.beacon=${global::L1_BEACON_URL} \
-                    --l1.trustrpc \
-                    --l1.rpckind=${global::L1_RPCKIND} \
-                    --l2=http://127.0.0.1:8551 \
-                    --l2.jwt-secret=${global::OP_DIR}/jwt.txt`,
+            run_sh: `/root/bin/op-node --network=${global::VARIANT.opnet} --rpc.addr=127.0.0.1 --rpc.port=8547 --l1=${global::L1_URL} --l1.beacon=${global::L1_BEACON_URL} --l1.trustrpc --l1.rpckind=${global::L1_RPCKIND} --l2=http://127.0.0.1:8551 --l2.jwt-secret=${global::OP_DIR}/jwt.txt`,
             shutdown_timeout_secs: 120,
         },
         #{
             name: "op-l2geth",
-            run_sh: `USING_OVM=true \
-                    ETH1_SYNC_SERVICE_ENABLE=false \
-                    RPC_API=eth,rollup,net,web3,debug \
-                    RPC_ADDR=127.0.0.1 \
-                    RPC_CORS_DOMAIN=* \
-                    RPC_ENABLE=true \
-                    RPC_PORT=8548 \
-                    RPC_VHOSTS=* \
-                    /root/bin/op-l2geth \
-                    --datadir ${global::OP_DIR}/l2geth \
-                    --port 30304 \
-                    --nousb`,
+            run_sh: `USING_OVM=true ETH1_SYNC_SERVICE_ENABLE=false RPC_API=eth,rollup,net,web3,debug RPC_ADDR=127.0.0.1 RPC_CORS_DOMAIN=* RPC_ENABLE=true RPC_PORT=8548 RPC_VHOSTS=* /root/bin/op-l2geth --datadir ${global::OP_DIR}/l2geth --port 30304 --nousb`,
             shutdown_timeout_secs: 120,
         },
     ],
@@ -149,19 +95,8 @@ const PLUGIN_CONFIG = #{
             "caddy/**",
         ],
     },
-    scheduled: [
-        #{
-            name: "netdata_update",
-            schedule: "30 15 12 * * * *",
-            function: "netdata_update",
-            param: "param",        
-        }
-    ],
+    scheduled: [],
 };
-
-fn netdata_update() {
-    run_sh(`wget -O /tmp/netdata-kickstart.sh https://get.netdata.cloud/kickstart.sh && sh /tmp/netdata-kickstart.sh --stable-channel --disable-telemetry --non-interactive --dont-start-it --native-only --disable-cloud`);
-}
 
 fn application_status() {
     let resp = run_jrpc(#{host: global::GETH_API, method: ""});

@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250213.4
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250221.1
 
 FROM ${BASE_IMAGE} as builder
 
@@ -33,4 +33,4 @@ RUN mkdir -p build/bin
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     make geth && \
-    cp build/bin/geth /root/bin/mantle-op-geth
+    cp build/bin/geth /root/bin/mantle-geth

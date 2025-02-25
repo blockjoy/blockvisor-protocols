@@ -1,5 +1,5 @@
-version: 1.0.0
-container_uri: docker://ghcr.io/blockjoy/optimism-reth-protocol:v20250214.1
+version: 1.1.4
+container_uri: docker://ghcr.io/blockjoy/optimism-reth-protocol:v20250223.1
 sku_code: OPRETH
 org_id: null
 description: Optimism Reth
@@ -18,7 +18,7 @@ variants:
     min_memory_mb: 32768
     min_disk_gb: 1000
     sku_code: OPRETH-F-MN
-    visibility: private
+    visibility: public
     archive_pointers:
       - pointer: !store_key optimism-reth-mainnet-full-v1
 firewall_config:

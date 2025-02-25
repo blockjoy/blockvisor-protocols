@@ -1,5 +1,5 @@
-ARG FANTOM_OPERA_IMAGE=ghcr.io/blockjoy/opera:v20250213.4
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250213.4
+ARG FANTOM_OPERA_IMAGE=ghcr.io/blockjoy/opera:v20250222.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250220.1
 
 FROM ${FANTOM_OPERA_IMAGE} AS fantom-opera
 

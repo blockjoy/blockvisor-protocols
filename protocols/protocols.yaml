@@ -105,7 +105,7 @@
   org_id: null
   ticker: null
   description: Sui is a first-of-its-kind Layer 1 blockchain and smart contract platform designed to make digital asset ownership fast, private, secure, and accessible.
-  visibility: public
+  visibility: private
 - key: near
   name: Near
   org_id: null
@@ -117,4 +117,10 @@
   org_id: null
   ticker: null
   description: Boba Network is a multichain Layer 2 optimistic rollup solution that operates across multiple blockchains (including Ethereum and BNB), offering EVM compatibility, fast transactions, and lower fees, while uniquely enabling hybrid dApps that can connect blockchain with off-chain computations.
+  visibility: public
+- key: mantle
+  name: Mantle
+  org_id: null
+  ticker: null
+  description: Mantle Network is a high-performance Ethereum Layer 2 solution that uses optimistic rollups with Data Availability (DA) sampling, offering fast finality, low transaction costs, and strong security through its modular blockchain architecture, while maintaining full EVM compatibility and leveraging a unique token economic model that aligns network growth with user value.
   visibility: public

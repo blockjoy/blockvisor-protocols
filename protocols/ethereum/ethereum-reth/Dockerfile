@@ -1,7 +1,7 @@
 #1
-ARG RETH_IMAGE=ghcr.io/blockjoy/reth:v20250213.4
-ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v20250213.4
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250213.4
+ARG RETH_IMAGE=ghcr.io/blockjoy/reth:v20250222.1
+ARG LIGHTHOUSE_IMAGE=ghcr.io/blockjoy/lighthouse:v20250222.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250220.1
 
 FROM ${RETH_IMAGE} AS reth
 
@@ -15,3 +15,4 @@ COPY --from=lighthouse-build /root/bin/lighthouse /root/bin/
 
 COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/
+COPY templates/Caddyfile.template /var/lib/babel/templates/

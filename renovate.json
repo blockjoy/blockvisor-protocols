@@ -61,13 +61,14 @@
       ]
     },
     {
-      "description": "Disable updates for Ubuntu base images",
+      "description": "Disable updates for external images",
       "matchDatasources": [
         "docker"
       ],
       "matchPackageNames": [
         "debian",
-        "ubuntu"
+        "ubuntu",
+        "golang"
       ],
       "enabled": false
     }

@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250213.4
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250221.1
 FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -30,4 +30,4 @@ RUN git clone --recursive https://github.com/mantlenetworkio/mantle-v2.git /mant
     git checkout ${MANTLE_VERSION} && \
     cd op-node && \
     go build -o bin/op-node ./cmd && \
-    cp bin/op-node /root/bin/
+    cp bin/op-node /root/bin/mantle-node

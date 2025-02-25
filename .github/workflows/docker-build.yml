@@ -7,6 +7,7 @@ on:
       - opened      # PR is created
       - synchronize # New commits pushed
       - reopened    # Closed PR is reopened
+      - closed      # PR is closed or merged
 
 permissions:
   contents: read
@@ -456,7 +457,7 @@ jobs:
             --allow-insecure-entitlement network.host
 
       - name: Build base image
-        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6
+        uses: docker/build-push-action@0adf9959216b96bec444f325f1e493d4aa344497 # v6
         with:
           context: ./${{ matrix.image_path }}
           push: false
@@ -521,7 +522,7 @@ jobs:
 
       - name: Push base image
         if: success()
-        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6
+        uses: docker/build-push-action@0adf9959216b96bec444f325f1e493d4aa344497 # v6
         with:
           context: ./${{ matrix.image_path }}
           push: true
@@ -568,8 +569,12 @@ jobs:
           
           # Extract version for any client under /clients/
           if [[ "${{ matrix.image_path }}" =~ ^clients/ ]]; then
-            CLIENT_UPPER=$(echo "${CLIENT_NAME}" | tr '[:lower:]' '[:upper:]')
-            CLIENT_VERSION=$(grep -E "ENV ${CLIENT_UPPER}_VERSION=[[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
+            CLIENT_NO_HYPHEN=$(echo "${CLIENT_NAME}" | tr -d '-' | tr '[:lower:]' '[:upper:]')
+            CLIENT_WITH_UNDERSCORE=$(echo "${CLIENT_NAME}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+            
+            # Try both variants when searching for the version, allowing for path prefixes before the version
+            CLIENT_VERSION=$(grep -E "ENV (${CLIENT_NO_HYPHEN}|${CLIENT_WITH_UNDERSCORE})_VERSION=[[:space:]]*[^[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
+            
             if [[ ! -z "$CLIENT_VERSION" ]]; then
               # Remove 'v' prefix and ensure version is Docker-compatible (only alphanumeric and . - _)
               CLIENT_VERSION=${CLIENT_VERSION#v}
@@ -675,7 +680,7 @@ jobs:
             --debug
             --allow-insecure-entitlement network.host
       - name: Build and push client images
-        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6
+        uses: docker/build-push-action@0adf9959216b96bec444f325f1e493d4aa344497 # v6
         with:
           context: ./${{ matrix.image_path }}
           push: true
@@ -842,7 +847,7 @@ jobs:
             --debug
             --allow-insecure-entitlement network.host
       - name: Build and push protocol images
-        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6
+        uses: docker/build-push-action@0adf9959216b96bec444f325f1e493d4aa344497 # v6
         with:
           context: ./${{ matrix.image_path }}
           push: true
@@ -984,8 +989,25 @@ jobs:
       pr_closed: false
     secrets: inherit
 
+  clean-nodes:
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.action == 'closed'
+    uses: ./.github/workflows/test-nodes.yml
+    permissions:
+      contents: write
+      pull-requests: write
+      packages: write
+      statuses: write
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
+      event_action: ${{ github.event.action }}
+      pr_merged: ${{ github.event.pull_request.merged }}
+      pr_closed: true
+    secrets: inherit
+
   workflow-status:
-    needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes]
+    needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes, clean-nodes]
     if: always() && github.event_name == 'pull_request'
     runs-on: dev
     permissions:
