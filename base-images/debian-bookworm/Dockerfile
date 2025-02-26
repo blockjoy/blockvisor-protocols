@@ -1,4 +1,4 @@
-FROM golang:1.23.1 as go-builder
+FROM golang:1.23.1 AS go-builder
 
 RUN go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest && \
     cd / && \
