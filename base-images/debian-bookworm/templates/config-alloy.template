@@ -146,7 +146,7 @@ loki.source.journal "logs_default_journal_scrape" {
 
 loki.write "logs_default" {
 	endpoint {
-		url = "http://logs.blkjy.io/insert/loki/api/v1/push"
+		url = "https://logs.blkjy.io/insert/loki/api/v1/push"
 
 		basic_auth {
 			username = "blockjoy"
