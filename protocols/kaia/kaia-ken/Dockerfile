@@ -1,5 +1,5 @@
 ARG KAIA_KEN_IMAGE=ghcr.io/blockjoy/ken:v20250222.1
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250220.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250226.3
 
 FROM ${KAIA_KEN_IMAGE} AS kaia_ken
 

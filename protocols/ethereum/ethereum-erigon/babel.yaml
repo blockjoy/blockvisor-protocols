@@ -1,4 +1,4 @@
-version: 1.0.2
+version: 1.0.3
 container_uri: docker://ghcr.io/blockjoy/ethereum-erigon-protocol:v20250226.1
 sku_code: ETHERI
 org_id: null
