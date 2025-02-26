@@ -13,14 +13,6 @@ variants:
     sku_code: MANTLEGETH-A-MN
     archive_pointers:
       - pointer: !store_key mantle-geth-mainnet-archive-v1
-  - key: geth-sepolia-archive
-    min_cpu: 12
-    min_memory_mb: 65536
-    min_disk_gb: 9000
-    sku_code: MANTLEGETH-A-TN
-    visibility: private
-    archive_pointers:
-      - pointer: !store_key mantle-geth-sepolia-archive-v1
 firewall_config:
   default_in: deny
   default_out: allow
