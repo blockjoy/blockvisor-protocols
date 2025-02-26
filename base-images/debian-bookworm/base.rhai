@@ -7,6 +7,14 @@ export const BASE_CONFIG = #{
                 node_name: node_env().node_name
             },
         },
+        #{
+            template: "/var/lib/babel/templates/grafana-datasource.template",
+            destination: "/usr/share/grafana/conf/provisioning/datasources/datasource.yml",
+            params: #{
+                grafana_prometheus_key: get_secret("grafana-prometheus-key").as_string(),
+                grafana_loki_key: get_secret("grafana-loki-key").as_string(),
+            },
+        }
     ],
     services : [
         #{
