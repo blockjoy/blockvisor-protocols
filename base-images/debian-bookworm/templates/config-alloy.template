@@ -146,10 +146,10 @@ loki.source.journal "logs_default_journal_scrape" {
 
 loki.write "logs_default" {
 	endpoint {
-		url = "https://logs-prod-012.grafana.net/loki/api/v1/push"
+		url = "https://logs.blkjy.io/insert/loki/api/v1/push"
 
 		basic_auth {
-			username = "760471"
+			username = "blockjoy"
 			password = "{{ grafana_loki_key }}"
 		}
 	}
