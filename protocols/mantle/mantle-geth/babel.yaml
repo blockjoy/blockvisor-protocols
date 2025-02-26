@@ -1,5 +1,5 @@
 version: 0.0.4
-container_uri: docker://ghcr.io/blockjoy/mantle-geth-protocol:v20250226.1
+container_uri: docker://ghcr.io/blockjoy/mantle-geth-protocol:v20250226.2
 sku_code: MANTLEGETH
 org_id: null
 description: Mantle Geth
@@ -13,14 +13,6 @@ variants:
     sku_code: MANTLEGETH-A-MN
     archive_pointers:
       - pointer: !store_key mantle-geth-mainnet-archive-v1
-  - key: geth-sepolia-archive
-    min_cpu: 12
-    min_memory_mb: 65536
-    min_disk_gb: 9000
-    sku_code: MANTLEGETH-A-TN
-    visibility: private
-    archive_pointers:
-      - pointer: !store_key mantle-geth-sepolia-archive-v1
 firewall_config:
   default_in: deny
   default_out: allow

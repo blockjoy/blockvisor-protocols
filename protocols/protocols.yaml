@@ -100,12 +100,6 @@
   ticker: null
   description: Tellor is a decentralized oracle protocol that provides on-chain data about the real-world, with the power of community to verify and validate it.
   visibility: public
-- key: sui
-  name: Sui
-  org_id: null
-  ticker: null
-  description: Sui is a first-of-its-kind Layer 1 blockchain and smart contract platform designed to make digital asset ownership fast, private, secure, and accessible.
-  visibility: private
 - key: near
   name: Near
   org_id: null
