@@ -6,13 +6,6 @@ const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const METRICS_PORT = 6161;
 
-let AUX_CONFIG = aux::base_config(global::METRICS_PORT,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
-
-const BASE_CONFIG  = #{
-    config_files: AUX_CONFIG.config_files+base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services+base::BASE_CONFIG.services,
-};
-
 const VARIANTS = #{
     "erigon-goerli-full": #{
         net: "goerli",
@@ -56,9 +49,9 @@ const EXTRA_ERIGON_ARGS = if node_env().node_variant.ends_with("-full") {
     ""
 };
 
-const BABEL_VERSION = "0.9.0";
-
 const PLUGIN_CONFIG = #{
+    config_files: base::config_files() + aux::config_files(global::METRICS_PORT,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR),
+    aux_services: base::aux_services() + aux::aux_services(),
     init: #{
         commands: [
             `mkdir -p ${global::HOME}`,
@@ -101,11 +94,11 @@ const PLUGIN_CONFIG = #{
 
 fn application_status() {
     let resp = run_jrpc(#{host: global::API_HOST, method: ""});
-    
+
     if resp.status_code == 200 {
-        "broadcasting"
+        #{state: "broadcasting", health: "healthy"}
     } else {
-        "delinquent"
+        #{state: "delinquent", health: "healthy"}
     }
 }
 

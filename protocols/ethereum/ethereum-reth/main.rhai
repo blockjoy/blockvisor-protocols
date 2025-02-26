@@ -6,13 +6,6 @@ const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const METRICS_PORT = 6665;
 
-let AUX_CONFIG = aux::base_config(global::METRICS_PORT,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
-// trigger
-const BASE_CONFIG  = #{
-    config_files: AUX_CONFIG.config_files+base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services+base::BASE_CONFIG.services,
-};
-
 const VARIANTS = #{
     "reth-sepolia-full": #{
         net: "sepolia",
@@ -44,9 +37,9 @@ const RETH_EXTRA_ARGS = if node_env().node_variant.ends_with("-full") {
     ""
 };
 
-const BABEL_VERSION = "0.9.0";
-
-const PLUGIN_CONFIG = #{
+fn plugin_config() {#{
+    config_files: base::config_files() + aux::config_files(global::METRICS_PORT,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR),
+    aux_services: base::aux_services() + aux::aux_services(),
     init: #{
         commands: [
             `mkdir -p ${global::HOME}`,
@@ -74,7 +67,7 @@ const PLUGIN_CONFIG = #{
             shutdown_timeout_secs: 120,
             use_blockchain_data: true,
             log_timestamp: false,
-        },  
+        },
     ],
     alternative_download: #{
         run_sh: "echo dummy"
@@ -84,16 +77,16 @@ const PLUGIN_CONFIG = #{
             "jwt.hex",
         ]
     }
-};
+}}
 
 fn application_status() {
     /// "uploading", "downloading", "initializing" statuses are automatically handled by BV if BABEL_CONFIG const is defined
     let resp = run_jrpc(#{host: global::API_HOST, method: "/"});
-    
+
     if resp.status_code == 200 {
-        "broadcasting"
+        #{state: "broadcasting", health: "healthy"}
     } else {
-        "delinquent"
+        #{state: "delinquent", health: "healthy"}
     }
 }
 

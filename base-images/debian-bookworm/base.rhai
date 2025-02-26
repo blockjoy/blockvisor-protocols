@@ -1,5 +1,5 @@
-export const BASE_CONFIG = #{
-    config_files: [
+fn config_files() {
+    [
         #{
             template: "/var/lib/babel/templates/caddy-dashboard.template",
             destination: "/var/lib/grafana/dashboards/caddy-dashboard.json",
@@ -15,8 +15,11 @@ export const BASE_CONFIG = #{
                 grafana_loki_key: get_secret("grafana-loki-key").as_string(),
             },
         }
-    ],
-    services : [
+    ]
+}
+
+fn aux_services() {
+    [
         #{
             name: "grafana",
             run_sh: "GF_USERS_DEFAULT_ROLE=Viewer \
