@@ -75,7 +75,7 @@ const PLUGIN_CONFIG = #{
     services: [
         #{
             name: "erigon",
-            run_sh: `export HOME=/root && /root/bin/erigon --datadir=${global::HOME} --chain=${global::NET} --healthcheck=true --port=30303 --http.port=${global::RPC_PORT} --authrpc.port=8551 --torrent.port=42069 --private.api.addr=127.0.0.1:9090 --http --ws --ws.port=${global::WS_PORT} --http.api=eth,debug,net,trace,web3,erigon --nat=none --authrpc.jwtsecret=${global::HOME}/jwt.hex --metrics --metrics.port=${global::METRICS_PORT} --metrics.addr=127.0.0.1 --torrent.download.rate=100mb --http.vhosts localhost --downloader.disable.ipv6 --caplin.backfilling=true --caplin.backfilling.blob=true --caplin.backfilling.blob.no-pruning=true --caplin.archive=true --beacon.api=beacon,builder,config,debug,node,validator,lighthouse --internalcl ${global::EXTRA_ERIGON_ARGS}`,
+            run_sh: `export HOME=/root && /root/bin/erigon --datadir=${global::HOME} --chain=${global::NET} --healthcheck=true --port=30303 --http.port=${global::RPC_PORT} --authrpc.port=8551 --torrent.port=42069 --private.api.addr=127.0.0.1:9090 --http --ws --ws.port=${global::WS_PORT} --http.api=eth,debug,net,trace,web3,erigon --nat=none --authrpc.jwtsecret=${global::HOME}/jwt.hex --metrics --metrics.port=${global::METRICS_PORT} --metrics.addr=127.0.0.1 --torrent.download.rate=100mb --http.vhosts 127.0.0.1 --downloader.disable.ipv6 --caplin.backfilling=true --caplin.backfilling.blob=true --caplin.backfilling.blob.no-pruning=true --caplin.archive=true --beacon.api=beacon,builder,config,debug,node,validator,lighthouse --internalcl ${global::EXTRA_ERIGON_ARGS}`,
             shutdown_timeout_secs: 120,
             use_blockchain_data: true,
             log_timestamp: false,
