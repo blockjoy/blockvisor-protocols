@@ -61,7 +61,6 @@ RUN mkdir -p /var/lib/babel/templates && \
 RUN mkdir -p /etc/grafana /var/lib/grafana /usr/share/grafana/conf/provisioning/datasources \
     /usr/share/grafana/conf/provisioning/dashboards /var/lib/grafana/dashboards
 
-COPY config/grafana-datasource.yml /usr/share/grafana/conf/provisioning/datasources/datasource.yml
 COPY config/grafana-dashboard.yml /usr/share/grafana/conf/provisioning/dashboards/dashboard.yml
 
 RUN apt-get autoremove -y && apt-get clean && \
@@ -69,5 +68,6 @@ RUN apt-get autoremove -y && apt-get clean && \
 
 COPY base.rhai /var/lib/babel/plugin/base.rhai
 COPY templates/caddy-dashboard.template /var/lib/babel/templates/
+COPY templates/grafana-datasource.template /var/lib/babel/templates/
 COPY templates/Caddyfile.template /var/lib/babel/templates/
 COPY templates/config-alloy.template /var/lib/babel/templates/
