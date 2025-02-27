@@ -1,0 +1,35 @@
+# BlockJoy Business Source License 1.1 (BJ-BSL 1.1)
+
+**Licensed Work**: BlockJoy Software (all versions distributed by BlockJoy Inc.)  
+**Licensor**: BlockJoy Inc.  
+**Effective Date**: March 1, 2025  
+
+## License Grant
+Subject to the terms and conditions of this License, Licensor hereby grants to Licensee a non-exclusive, royalty-free, worldwide, non-transferable, non-sublicensable license to use, copy, modify, and distribute the Licensed Work, including the right to create derivative works thereof, solely as permitted by the Additional Use Grant below.
+
+## Additional Use Grant
+You may use the Licensed Work for any purpose, including production use, provided that:  
+- You may not use the Licensed Work to provide a "Nodes as a Service" (NaaS) or "Validators as a Service" (VaaS) offering.  
+- **Definition of NaaS**: A "Nodes as a Service" offering is a commercial service where the Licensed Work is used to host, manage, or provide access to blockchain nodes for third parties (other than your employees or contractors acting on your behalf) in exchange for a fee, subscription, or other compensation.  
+- **Definition of VaaS**: A "Validators as a Service" offering is a commercial service where the Licensed Work is used to host, manage, or provide access to blockchain validators or staking functionality for third parties (other than your employees or contractors acting on your behalf) in exchange for a fee, subscription, or other compensation.
+
+## Restrictions
+- **No NaaS or VaaS**: The use of the Licensed Work to offer Nodes as a Service or Validators as a Service is expressly prohibited without a separate written commercial license from BlockJoy Inc. BlockJoy Inc. reserves the right to grant such licenses at its sole discretion.
+- **Source Code Availability**: If you distribute the Licensed Work or any derivative works, you must make the source code available under this License and include a copy of this License with such distribution.
+- **Attribution**: You must retain all copyright, patent, trademark, and attribution notices present in the Licensed Work.
+
+## Change Date and Change License
+- **Change Date**: April 1, 2030.  
+- **Change License**: On the Change Date, this License will automatically convert to the Apache License 2.0 for the Licensed Work as it existed on the Effective Date or the most recent version prior to the Change Date, unless otherwise specified by BlockJoy Inc.
+
+## Warranty Disclaimer
+The Licensed Work is provided "as is," without warranty of any kind, express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or non-infringement. In no event shall Licensor be liable for any claim, damages, or other liability arising from the use of the Licensed Work.
+
+## Termination
+This License terminates automatically if Licensee breaches any of its terms, including the Additional Use Grant or Restrictions. Upon termination, Licensee must cease all use and distribution of the Licensed Work.
+
+## Governing Law
+This License is governed by the laws of Delaware, USA, excluding its conflict of law provisions.
+
+## Miscellaneous
+This License constitutes the entire agreement between the parties with respect to the Licensed Work. Amendments must be in writing and signed by Licensor.
