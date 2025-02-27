@@ -1,6 +1,16 @@
-# blockjoy-protocols
+# BlockJoy Protocols
 
 This repository contains Docker configurations for blockchain protocol nodes and their associated clients. It includes protocol implementations and client software configurations for use with the BlockJoy platform.
+
+## Overview
+
+BlockJoy Protocols is a comprehensive collection of containerized blockchain node implementations designed to run on the BlockJoy platform. This repository provides standardized, production-ready Docker configurations for deploying and managing a wide variety of blockchain protocols.
+
+Key features:
+- Containerized blockchain node implementations for 20+ protocols
+- Standardized configuration and deployment patterns
+- Resource-optimized variants (full, archive, etc.)
+- Integrated with BlockJoy platform services
 
 ## Repository Structure
 
@@ -31,7 +41,78 @@ This repository contains Docker configurations for blockchain protocol nodes and
 │   └── ...                   # Other protocol configurations
 ```
 
-## Documentation
+## Supported Protocols
 
-- [Protocol Development Guide](docs/HOWTO.md) - Learn how to create and maintain protocol implementations
-- Example implementation in `example` directory
+This repository includes implementations for numerous blockchain protocols, including:
+
+- Ethereum and EVM-compatible chains (Optimism, Arbitrum, Base, etc.)
+- Layer 1 blockchains (Avalanche, Near, Sui, etc.)
+- Layer 2 solutions (Arbitrum, Optimism, Polygon, etc.)
+- Specialized protocols (Tellor, SQD, etc.)
+
+Each protocol implementation follows a standardized structure and includes:
+- Container image definitions
+- Protocol configuration metadata (`babel.yaml`)
+- Configuration templates and runtime scripts
+
+## Getting Started
+
+### Prerequisites
+
+- Docker 20.10.0 or later
+- Access to BlockJoy platform services (for production use)
+- Git LFS for downloading large files
+
+### Development
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/blockjoy/blockjoy-protocols.git
+   cd blockjoy-protocols
+   ```
+
+2. **Examine protocol implementations**:
+   Browse the `protocols/` directory to see existing implementations.
+
+3. **Create a new protocol implementation**:
+   Follow the [Protocol Development Guide](docs/HOWTO.md) for detailed instructions.
+
+### Creating a New Protocol Implementation
+
+To create a new protocol implementation:
+
+1. Ensure clients are available in the `clients/` directory
+2. Create a new directory in `protocols/<protocol-name>/<protocol-name>-<client>/`
+3. Create required files:
+   - `babel.yaml` - Protocol metadata and configuration
+   - `main.rhai` - Main protocol interface
+   - `aux.rhai` - Auxiliary functions
+   - `Dockerfile` - Container configuration
+   - `templates/` - Configuration templates
+
+See the [Protocol Development Guide](docs/HOWTO.md) and example in `docs/example/` for a detailed walkthrough.
+
+## Runtime Architecture
+
+Protocol images use a standardized runtime interface based on:
+- Metadata configuration (`babel.yaml`)
+- Runtime interface (`main.rhai` and other Rhai scripts)
+- Container configuration (`Dockerfile`)
+
+The BlockJoy platform uses this interface to:
+- Plan and allocate resources for node deployments
+- Configure networking and firewall rules
+- Initialize and manage protocol services
+- Monitor node health and status
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
