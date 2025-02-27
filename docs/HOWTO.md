@@ -152,6 +152,7 @@ const PLUGIN_CONFIG = #{
         },
     ],
 };
+```
 
 ### Implementation Flow
 
