@@ -72,7 +72,6 @@ const PLUGIN_CONFIG = #{
                     --metrics \
                     --metrics.addr=127.0.0.1 \
                     --metrics.port=${global::METRICS_PORT} \
-                    ${global::VARIANT.extra_args} \
                     ${global::EXTRA_ARGS}`,
             shutdown_timeout_secs: 120,
             use_blockchain_data: true,
