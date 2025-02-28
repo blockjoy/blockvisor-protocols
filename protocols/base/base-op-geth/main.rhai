@@ -14,15 +14,6 @@ const BASE_API = "http://127.0.0.1:8547";
 const DATADIR = node_env().protocol_data_path;
 const BASE_DIR = node_env().protocol_data_path + "/base";
 
-let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
-
-const BASE_CONFIG = #{
-    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
-};
-
-const BABEL_VERSION = "0.9.0";
-
 const VARIANTS = #{
     "geth-mainnet-archive": #{
         sequencer_url: "https://mainnet-sequencer.base.org",
@@ -65,7 +56,9 @@ const VARIANTS = #{
 const VARIANT = VARIANTS[node_env().node_variant];
 const SEQUENCER_URL = VARIANTS[node_env().node_variant].sequencer_url;
 
-const PLUGIN_CONFIG = #{
+fn plugin_config() {#{
+    config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH),
+    aux_services: base::aux_services() + aux::aux_services(),
     init: #{
         commands: [
             `mkdir -p ${global::BASE_DIR}`,
@@ -116,6 +109,8 @@ const PLUGIN_CONFIG = #{
                     --nat none \
                     --op-network=${global::VARIANT.opnet}`,
             shutdown_timeout_secs: 120,
+            use_blockchain_data: true,
+            log_timestamp: false,
         },
         #{
             name: "op-node",
@@ -141,9 +136,11 @@ const PLUGIN_CONFIG = #{
                     --p2p.bootnodes=${global::VARIANT.p2p_peers} \
                     --rollup.load-protocol-versions=true`,
             shutdown_timeout_secs: 120,
+            use_blockchain_data: true,
+            log_timestamp: false,
         },
     ],
-};
+}}
 
 
 fn application_status() {

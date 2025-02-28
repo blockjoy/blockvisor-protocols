@@ -49,7 +49,7 @@ const EXTRA_ERIGON_ARGS = if node_env().node_variant.ends_with("-full") {
     ""
 };
 
-const PLUGIN_CONFIG = #{
+fn plugin_config() {#{
     config_files: base::config_files() + aux::config_files(global::METRICS_PORT,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR),
     aux_services: base::aux_services() + aux::aux_services(),
     init: #{
@@ -90,7 +90,7 @@ const PLUGIN_CONFIG = #{
             "caddy/**",
         ]
     }
-};
+}}
 
 fn application_status() {
     let resp = run_jrpc(#{host: global::API_HOST, method: ""});
