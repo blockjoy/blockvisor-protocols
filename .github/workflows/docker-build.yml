@@ -450,14 +450,14 @@ jobs:
           echo "Current image path: '${{ matrix.image_path }}'"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3
         with:
           buildkitd-flags: |
             --debug
             --allow-insecure-entitlement network.host
 
       - name: Build base image
-        uses: docker/build-push-action@0adf9959216b96bec444f325f1e493d4aa344497 # v6
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6
         with:
           context: ./${{ matrix.image_path }}
           push: false
@@ -522,7 +522,7 @@ jobs:
 
       - name: Push base image
         if: success()
-        uses: docker/build-push-action@0adf9959216b96bec444f325f1e493d4aa344497 # v6
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6
         with:
           context: ./${{ matrix.image_path }}
           push: true
@@ -674,13 +674,13 @@ jobs:
           echo "Valid images: ${VALID_IMAGES}"
           echo "Current image path: '${{ matrix.image_path }}'"
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3
         with:
           buildkitd-flags: |
             --debug
             --allow-insecure-entitlement network.host
       - name: Build and push client images
-        uses: docker/build-push-action@0adf9959216b96bec444f325f1e493d4aa344497 # v6
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6
         with:
           context: ./${{ matrix.image_path }}
           push: true
@@ -841,13 +841,13 @@ jobs:
           echo "$IMAGE_ARGS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3
         with:
           buildkitd-flags: |
             --debug
             --allow-insecure-entitlement network.host
       - name: Build and push protocol images
-        uses: docker/build-push-action@0adf9959216b96bec444f325f1e493d4aa344497 # v6
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6
         with:
           context: ./${{ matrix.image_path }}
           push: true
