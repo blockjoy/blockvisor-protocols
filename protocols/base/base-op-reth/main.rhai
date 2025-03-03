@@ -44,8 +44,6 @@ const OP_RETH_EXTRA_ARGS = if node_env().node_variant.ends_with("-full") {
     ""
 };
 
-const BABEL_VERSION = "0.9.0";
-
 fn plugins_config() {
     #{
         aux_services: base::aux_services() + aux::aux_services(),

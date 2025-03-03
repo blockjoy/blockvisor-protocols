@@ -32,7 +32,6 @@ const VARIANTS = #{
 
 const VARIANT = VARIANTS[node_env().node_variant];
 const API_HOST = "http://127.0.0.1:" + global::RPC_PORT;
-const BABEL_VERSION = "0.1.0";
 
 // Determine extra args based on variant
 const EXTRA_ARGS = if node_env().node_variant.ends_with("-full") {

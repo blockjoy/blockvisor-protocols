@@ -27,8 +27,6 @@ const SEQUENCER_URL = VARIANT.url;
 const L1_URL = VARIANT.l1_url;
 const L1_BEACON_URL = VARIANT.l1_beacon_url;
 
-const BABEL_VERSION = "0.9.0";
-
 fn plugin_config() {
     #{
         config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR),

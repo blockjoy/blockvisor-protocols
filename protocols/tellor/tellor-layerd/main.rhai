@@ -12,8 +12,6 @@ const METRICS_PORT = 26660;
 const METRICS_PATH = "/metrics";
 const API_HOST = "http://127.0.0.1:" + global::RPC_PORT;
 
-const BABEL_VERSION = "0.9.0";
-
 const VARIANTS = #{
     "layerd-testnet-full": #{
         hostname: node_env().node_name,

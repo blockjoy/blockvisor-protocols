@@ -44,7 +44,6 @@ const NETWORK = VARIANTS[node_env().node_variant].network;
 
 const CONFIG_DIR = `/root/config/${global::NETWORK}`;
 
-const BABEL_VERSION = "0.9.0";
 
 fn plugin_config() {
     #{

@@ -37,8 +37,6 @@ const NITRO_EXTRA_ARGS = if node_env().node_variant.ends_with("-archive") {
     ""
 };
 
-const BABEL_VERSION = "0.9.0";
-
 fn plugin_config() {
     #{
         config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR),

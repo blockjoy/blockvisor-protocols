@@ -21,8 +21,6 @@ const VARIANTS = #{
 const VARIANT = VARIANTS[node_env().node_variant];
 const HOSTNAME = VARIANT.hostname;
 
-const BABEL_VERSION = "0.9.0";
-
 fn plugin_config() {
     #{
         config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::CADDY_DIR, global::P2P_PORT, global::REST_PORT, global::GRPC_WEB_PORT, global::GRPC_PORT),

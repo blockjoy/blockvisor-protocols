@@ -1,7 +1,6 @@
 import "base" as base;
 import "aux" as aux;
 
-const BABEL_VERSION = "1.11.0";
 const WORKDIR = "/root";
 const DATADIR = node_env().protocol_data_path + "/subsquid";
 const KEYPATH = DATADIR + "/.subsquid-key";

@@ -20,8 +20,6 @@ const HOME = node_env().protocol_data_path + "/bsc";
 const NET = VARIANTS[node_env().node_variant].net;
 const CHAIN_ID = VARIANTS[node_env().node_variant].chain_id;
 
-const BABEL_VERSION = "1.11.0";
-
 fn plugin_config() {
     #{
         config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR),

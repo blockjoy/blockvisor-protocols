@@ -23,8 +23,6 @@ const P2P_SEEDS = VARIANTS[node_env().node_variant].p2p_seeds;
 const BOOTNODES = VARIANTS[node_env().node_variant].bootnodes;
 const NETWORK = VARIANTS[node_env().node_variant].network;
 
-const BABEL_VERSION = "1.7.1";
-
 fn plugin_config() {
     #{
         config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR),

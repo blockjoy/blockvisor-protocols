@@ -33,8 +33,6 @@ const BEACON_URL = VARIANTS[node_env().node_variant].beacon_url;
 const P2P_NODES = VARIANTS[node_env().node_variant].p2p_nodes;
 const CONFIG_DIR = "/root/config/" + global::VARIANT.network;
 
-const BABEL_VERSION = "0.9.0";
-
 fn plugin_config() {
     #{
         config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR),

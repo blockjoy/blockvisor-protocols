@@ -1,7 +1,6 @@
 import "base" as base;
 import "aux" as aux;
 
-const BABEL_VERSION = "1.13.1";
 const WORKDIR = "/root";
 const DATA_DIR = node_env().protocol_data_path + "/sui";
 const RPC_PORT = 9000;

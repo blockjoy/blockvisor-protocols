@@ -22,8 +22,6 @@ const EXTERNAL_API_HOST = "https://api.avax.network/";
 const DATA_DIRECTORY = node_env().protocol_data_path + "/avalanche";
 const CONFIG_DIR = "/root/avalanche";
 
-const BABEL_VERSION = "0.9.0";
-
 fn plugin_config() {
     #{
         config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::CADDY_DIR),

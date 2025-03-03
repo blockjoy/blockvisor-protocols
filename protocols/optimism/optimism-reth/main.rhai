@@ -44,8 +44,6 @@ const EXTRA_RETH_ARGS = if VARIANT.keys().contains("extra_reth_args") {
     ""
 };
 
-const BABEL_VERSION = "1.11.0";
-
 fn plugin_config() {
     #{
         config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR),
