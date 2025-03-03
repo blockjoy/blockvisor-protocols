@@ -67,8 +67,8 @@ Each protocol implementation follows a standardized structure and includes:
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/blockjoy/blockjoy-protocols.git
-   cd blockjoy-protocols
+   git clone https://github.com/blockjoy/blockvisor-protocols.git
+   cd blockvisor-protocols
    ```
 
 2. **Examine protocol implementations**:
