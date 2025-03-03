@@ -61,9 +61,9 @@ fn application_status() {
         headers: #{"Content-Type" : "application/json"},
       });
     if res.status_code != 200 {
-       "delinquent";
+        #{state: "broadcasting", health: "healthy"}
     } else {
-        "broadcasting";
+        #{state: "delinquent", health: "healthy"}
     }
 }
 

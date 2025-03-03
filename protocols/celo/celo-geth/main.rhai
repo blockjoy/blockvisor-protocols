@@ -53,14 +53,14 @@ fn plugin_config() {
 
 fn application_status() {
     let resp = parse_hex(run_jrpc(#{host: global::CELO_API, method: "eth_chainId"}).expect(200).result);
-  
+
     if resp == 42220 {
-        "broadcasting"
+        #{state: "broadcasting", health: "healthy"}
     } else {
-        "delinquent"
+        #{state: "delinquent", health: "healthy"}
     }
 }
-  
+
 fn height() {
     let resp = run_jrpc(#{host: global::CELO_API, method: "eth_blockNumber"});
     if resp.status_code != 200 {

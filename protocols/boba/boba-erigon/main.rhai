@@ -64,9 +64,9 @@ fn application_status() {
     let resp = run_jrpc(#{host: global::API_HOST, method: "/"});
 
     if resp.status_code == 200 {
-        "broadcasting"
+        #{state: "broadcasting", health: "healthy"}
     } else {
-        "delinquent"
+        #{state: "delinquent", health: "healthy"}
     }
 }
 

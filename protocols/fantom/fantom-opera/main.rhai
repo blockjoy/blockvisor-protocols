@@ -50,11 +50,11 @@ fn plugin_config() {
 
 fn application_status() {
     let resp = run_jrpc(#{host: global::FANTOM_API, method: "/"});
-    
+
     if resp.status_code == 200 {
-        "broadcasting"
+        #{state: "broadcasting", health: "healthy"}
     } else {
-        "delinquent"
+        #{state: "delinquent", health: "healthy"}
     }
 }
 

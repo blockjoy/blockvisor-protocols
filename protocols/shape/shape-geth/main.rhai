@@ -93,9 +93,9 @@ fn application_status() {
     let resp = run_jrpc(#{host: global::GETH_API, method: ""});
 
     if resp.status_code == 200 {
-        "broadcasting"
+        #{state: "broadcasting", health: "healthy"}
     } else {
-        "delinquent"
+        #{state: "delinquent", health: "healthy"}
     }
 }
 
@@ -108,9 +108,9 @@ fn sync_status() {
     let h = run_jrpc(#{host: global::SHAPE_API, method: "optimism_syncStatus"}).expect(200);
 
     let block_timestamp = h.result.unsafe_l2.timestamp;
-    
+
     let current_timestamp = parse_int(system_timestamp);
-    
+
     if block_timestamp < current_timestamp - 100 {
         return "syncing";
     } else {

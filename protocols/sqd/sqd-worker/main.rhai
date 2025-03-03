@@ -71,9 +71,9 @@ fn plugin_config() {
 fn application_status() {
     let result = run_sh(`curl --write-out '%{http_code}' --silent --output /dev/null ${global::METRICS_API}`).unwrap();
     if result == "200" {
-        "broadcasting"
+        #{state: "broadcasting", health: "healthy"}
     } else {
-        "delinquent"
+        #{state: "delinquent", health: "healthy"}
     }
 }
 

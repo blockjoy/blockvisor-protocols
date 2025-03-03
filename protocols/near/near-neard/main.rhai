@@ -74,9 +74,9 @@ fn application_status() {
         }).expect(200);
 
     if result.result.sync_info.syncing == false {
-        return "broadcasting";
+        #{state: "broadcasting", health: "healthy"}
     } else {
-        return "delinquent";
+        #{state: "delinquent", health: "healthy"}
     }
 }
 

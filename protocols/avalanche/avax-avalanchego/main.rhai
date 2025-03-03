@@ -75,12 +75,12 @@ fn application_status() {
 
     if result.healthy == "false" {
         if result.result.checks.bootstrapped.error == "subnets not bootstrapped" {
-            "broadcasting"
+            #{state: "broadcasting", health: "healthy"}
         } else {
-            "delinquent"
+            #{state: "delinquent", health: "healthy"}
         }
     } else {
-        "broadcasting"
+        #{state: "broadcasting", health: "healthy"}
     }
 }
 

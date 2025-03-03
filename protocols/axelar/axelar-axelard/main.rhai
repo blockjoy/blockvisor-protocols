@@ -67,16 +67,16 @@ fn application_status() {
         }).expect(200);
 
     if result.result.sync_info.catching_up == false {
-        "broadcasting"
+        #{state: "broadcasting", health: "healthy"}
     } else {
-        "delinquent"
+        #{state: "delinquent", health: "healthy"}
     }
 }
 
 /// Returns the height of the blockchain (in blocks).
 fn height() {
-    parse_int(run_jrpc(#{ 
-        host: global::API_HOST, 
+    parse_int(run_jrpc(#{
+        host: global::API_HOST,
         method: "status",
         headers: [["content-type", "application/json"]]
     }).expect(200).result.sync_info.latest_block_height)
