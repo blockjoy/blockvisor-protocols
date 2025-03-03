@@ -11,13 +11,6 @@ const METRICS_PATH = "/metrics";
 const ENV = node_env();
 const CADDY_DIR = DATADIR + "/caddy";
 
-let AUX_CONFIG = aux::base_config(global::DATADIR, global::KEYPATH, global::METRICS_PORT, global::METRICS_PATH, global::CADDY_DIR);
-
-const BASE_CONFIG = #{
-    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
-};
-
 const VARIANTS = #{
     "sqd-worker-mainnet": #{
         url: "https://testnet-api.helium.wtf/v1/",
@@ -29,47 +22,51 @@ const VARIANTS = #{
 print(`Debug - network value: ${node_env().node_variant}`);
 const ENV_FILE = VARIANTS[node_env().node_variant].env_file;
 
-const PLUGIN_CONFIG = #{
-    init: #{
-        commands: [
-            `mkdir -p ${global::CADDY_DIR}`,
-            `mkdir -p ${global::DATADIR}`,
+fn plugin_config() {
+    #{
+        config_files: base::config_files() + aux::config_files(global::DATADIR, global::KEYPATH, global::METRICS_PORT, global::METRICS_PATH, global::CADDY_DIR),
+        aux_services: base::aux_services() + aux::aux_services(),
+        init: #{
+            commands: [
+                `mkdir -p ${global::CADDY_DIR}`,
+                `mkdir -p ${global::DATADIR}`,
+            ],
+            jobs: []
+        },
+        services: [
+            #{
+                name: "sqd",
+                run_sh: `. /root/${global::ENV_FILE} && /root/bin/worker | tee ${global::DATADIR}/subsquid.log`,
+            },
         ],
-        jobs: []
-    },
-    services: [
-        #{
-            name: "sqd",
-            run_sh: `. /root/${global::ENV_FILE} && /root/bin/worker | tee ${global::DATADIR}/subsquid.log`,
+        alternative_download: #{
+            run_sh: `echo TBD`,
+            restart_config: #{
+                backoff_timeout_ms: 60000,
+                backoff_base_ms: 10000,
+                max_retries: 3,
+            },
         },
-    ],
-    alternative_download: #{
-        run_sh: `echo TBD`,
-        restart_config: #{
-            backoff_timeout_ms: 60000,
-            backoff_base_ms: 10000,
-            max_retries: 3,
+        upload: #{
+            exclude: [
+                ".subsquid-key",
+                "**/*",
+            ],
         },
-    },
-    upload: #{
-        exclude: [
-            ".subsquid-key",
-            "**/*",
+        scheduled: [
+            #{
+                /// Unique name of the task.
+                name: "clear_log",
+                /// Cron schedule expression.
+                schedule: "0 0 0 */4 * * *",
+                /// Function name to be executed according to schedule.
+                function: "clear_log",
+                /// [optional] Parameter to ba passed to function.
+                param: "param",
+            },
         ],
-    },
-    scheduled: [
-        #{
-            /// Unique name of the task.
-            name: "clear_log",
-            /// Cron schedule expression.
-            schedule: "0 0 0 */4 * * *",
-            /// Function name to be executed according to schedule.
-            function: "clear_log",
-            /// [optional] Parameter to ba passed to function.
-            param: "param",
-        },
-    ],
-};
+    }
+}
 
 fn application_status() {
     let result = run_sh(`curl --write-out '%{http_code}' --silent --output /dev/null ${global::METRICS_API}`).unwrap();

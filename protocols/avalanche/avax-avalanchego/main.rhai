@@ -4,13 +4,7 @@ import "aux" as aux;
 const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 9650;
 const METRICS_PORT = 9651;
-
-let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::CADDY_DIR);
-
-const BASE_CONFIG = #{
-    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
-};
+const METRICS_PATH = "/ext/metrics";
 
 const NETS = #{
     mainnet: #{
@@ -30,43 +24,47 @@ const CONFIG_DIR = "/root/avalanche";
 
 const BABEL_VERSION = "0.9.0";
 
-const PLUGIN_CONFIG = #{
-    init: #{
-        commands: [
-            `mkdir -p ${global::DATA_DIRECTORY}`,
-            `cp -a ${global::CONFIG_DIR}/* ${global::DATA_DIRECTORY}`,
-        ],
-        jobs: []
-    },
-    services: [
-        #{
-            name: "avax",
-            run_sh: `/root/bin/avalanchego --data-dir ${global::DATA_DIRECTORY} --chain-config-dir ${global::DATA_DIRECTORY}/configs/chains`,
-            shutdown_timeout_secs: 150,
-            log_buffer_capacity_mb: 256,
-            use_blockchain_data: true,
-            log_timestamp: false,
+fn plugin_config() {
+    #{
+        config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::CADDY_DIR),
+        aux_services: base::aux_services() + aux::aux_services(),
+        init: #{
+            commands: [
+                `mkdir -p ${global::DATA_DIRECTORY}`,
+                `cp -a ${global::CONFIG_DIR}/* ${global::DATA_DIRECTORY}`,
+            ],
+            jobs: []
         },
-    ],
-    pre_upload: #{
-        commands: [
-            `rm -rf ${global::DATA_DIRECTORY}/staking/*`,
+        services: [
+            #{
+                name: "avax",
+                run_sh: `/root/bin/avalanchego --data-dir ${global::DATA_DIRECTORY} --chain-config-dir ${global::DATA_DIRECTORY}/configs/chains`,
+                shutdown_timeout_secs: 150,
+                log_buffer_capacity_mb: 256,
+                use_blockchain_data: true,
+                log_timestamp: false,
+            },
         ],
-        jobs: []
-    },
-    upload: #{
-        exclude: [
-            "logs",
-            "plugins",
-            "*LOCK",
-            "staking",
-            "configs"
-        ],
-    },
-    alternative_download: #{
-        run_sh: "echo dummy"
-    },
-};
+        pre_upload: #{
+            commands: [
+                `rm -rf ${global::DATA_DIRECTORY}/staking/*`,
+            ],
+            jobs: []
+        },
+        upload: #{
+            exclude: [
+                "logs",
+                "plugins",
+                "*LOCK",
+                "staking",
+                "configs"
+            ],
+        },
+        alternative_download: #{
+            run_sh: "echo dummy"
+        },
+    }
+}
 
 fn application_status() {
     let path = "ext/health";

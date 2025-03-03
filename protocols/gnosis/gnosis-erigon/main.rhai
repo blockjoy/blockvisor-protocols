@@ -7,13 +7,6 @@ const WS_PORT = 8546;
 const METRICS_PORT = 6262;
 const METRICS_PATH = "/debug/metrics/prometheus";
 
-let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
-
-const BASE_CONFIG = #{
-    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
-};
-
 const VARIANTS = #{
     "erigon-mainnet-full": #{
         url: "https://checkpoint.gnosischain.com",
@@ -44,37 +37,41 @@ const LIGHTHOUSE_ARGS = if VARIANTS[node_env().node_variant].keys().contains("ex
 
 const BABEL_VERSION = "0.9.0";
 
-const PLUGIN_CONFIG = #{
-    init: #{
-        commands: [
-            `mkdir -p ${global::HOME}`,
-            `mkdir -p ${global::CADDY_DIR}`,
-        ],
-        jobs: [
+fn plugin_config() {
+    #{
+        config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR),
+        aux_services: base::aux_services() + aux::aux_services(),
+        init: #{
+            commands: [
+                `mkdir -p ${global::HOME}`,
+                `mkdir -p ${global::CADDY_DIR}`,
+            ],
+            jobs: [
+                #{
+                    name: "create_jwt",
+                    run_sh: `export HOME=/root && openssl rand -hex 32 | tr -d "\n" > ${global::HOME}/jwt.hex`,
+                }
+            ]
+        },
+        services: [
             #{
-                name: "create_jwt",
-                run_sh: `export HOME=/root && openssl rand -hex 32 | tr -d "\n" > ${global::HOME}/jwt.hex`,
-            }
-        ]
-    },
-    services: [
-        #{
-            name: "erigon",
-            run_sh: `export HOME=/root && mkdir -p ${global::HOME} && /root/bin/erigon --datadir=${global::HOME} --chain=${global::NET} --healthcheck=true --port=30303 --http.port=${global::RPC_PORT} --authrpc.addr=127.0.0.1 --authrpc.port=8551 --torrent.port=42069 --private.api.addr=127.0.0.1:9090 --http --ws --ws.port ${global::WS_PORT} --http.addr=127.0.0.1 --http.api=eth,debug,net,trace,web3,erigon --nat=none --authrpc.jwtsecret=${global::HOME}/jwt.hex --torrent.download.rate=100mb --metrics --metrics.port=${global::METRICS_PORT} --metrics.addr=127.0.0.1 --http.vhosts="*" --downloader.disable.ipv6 --beacon.api.addr=127.0.0.1 ${global::ERIGON_ARGS}`,
-            shutdown_timeout_secs: 120,
-            use_blockchain_data: true,
+                name: "erigon",
+                run_sh: `export HOME=/root && mkdir -p ${global::HOME} && /root/bin/erigon --datadir=${global::HOME} --chain=${global::NET} --healthcheck=true --port=30303 --http.port=${global::RPC_PORT} --authrpc.addr=127.0.0.1 --authrpc.port=8551 --torrent.port=42069 --private.api.addr=127.0.0.1:9090 --http --ws --ws.port ${global::WS_PORT} --http.addr=127.0.0.1 --http.api=eth,debug,net,trace,web3,erigon --nat=none --authrpc.jwtsecret=${global::HOME}/jwt.hex --torrent.download.rate=100mb --metrics --metrics.port=${global::METRICS_PORT} --metrics.addr=127.0.0.1 --http.vhosts="*" --downloader.disable.ipv6 --beacon.api.addr=127.0.0.1 ${global::ERIGON_ARGS}`,
+                shutdown_timeout_secs: 120,
+                use_blockchain_data: true,
+            },
+            #{
+                name: "lighthouse",
+                run_sh: `/root/bin/lighthouse bn --datadir ${global::HOME}/lighthouse --network ${global::NET} --checkpoint-sync-url ${global::CHECKPOINT_URL} --http --http-address 127.0.0.1 --http-port 6868 --execution-endpoint http://127.0.0.1:8551 --execution-jwt ${global::HOME}/jwt.hex --metrics ${global::LIGHTHOUSE_ARGS}`,
+                shutdown_timeout_secs: 120,
+                use_blockchain_data: true,
+            },
+        ],
+        alternative_download: #{
+            run_sh: "echo dummy"
         },
-        #{
-            name: "lighthouse",
-            run_sh: `/root/bin/lighthouse bn --datadir ${global::HOME}/lighthouse --network ${global::NET} --checkpoint-sync-url ${global::CHECKPOINT_URL} --http --http-address 127.0.0.1 --http-port 6868 --execution-endpoint http://127.0.0.1:8551 --execution-jwt ${global::HOME}/jwt.hex --metrics ${global::LIGHTHOUSE_ARGS}`,
-            shutdown_timeout_secs: 120,
-            use_blockchain_data: true,
-        },
-    ],
-    alternative_download: #{
-        run_sh: "echo dummy"
-    },
-};
+    }
+}
 
 fn application_status() {
     let resp = run_jrpc(#{host: global::API_HOST, method: ""});
@@ -93,7 +90,7 @@ fn address() {
 fn height() {
     let resp = run_jrpc(#{host: global::API_HOST, method: "eth_blockNumber"});
     if resp.status_code != 200 {
-    throw resp;
+        throw resp;
     }
     let h = parse_json(resp.body);
     parse_int(sub_string(h.result,2),16)

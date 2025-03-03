@@ -15,19 +15,11 @@ const L1_RPCKIND = "standard";
 const RETH_API = "http://127.0.0.1:" + global::RPC_PORT;
 const OPTIMISM_API = "http://127.0.0.1:" + global::OPT_API_PORT;
 
-let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
-
-const BASE_CONFIG = #{
-    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
-};
-
 const VARIANTS = #{
     "op-reth-mainnet-archive": #{
         sequencer_url: "https://mainnet-sequencer.optimism.io/",
         opnet: "op-mainnet",
         chain: "optimism",
-
     },
     "op-reth-mainnet-full": #{
         sequencer_url: "https://mainnet-sequencer.optimism.io/",
@@ -54,48 +46,51 @@ const EXTRA_RETH_ARGS = if VARIANT.keys().contains("extra_reth_args") {
 
 const BABEL_VERSION = "1.11.0";
 
-const PLUGIN_CONFIG = #{
-    init: #{
-        commands: [
-            `mkdir -p ${global::OP_DIR}`,
-        ],
-        jobs: [
+fn plugin_config() {
+    #{
+        config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR),
+        aux_services: base::aux_services() + aux::aux_services(),
+        init: #{
+            commands: [
+                `mkdir -p ${global::OP_DIR}`,
+            ],
+            jobs: [
+                #{
+                    name: "init_job",
+                    run_sh: `mkdir -p ${global::OP_DIR} && openssl rand -hex 32 > ${global::OP_DIR}/jwt.txt`,
+                },
+            ],
+        },
+        services: [
             #{
-                name: "init_job",
-                run_sh: `mkdir -p ${global::OP_DIR} && openssl rand -hex 32 > ${global::OP_DIR}/jwt.txt`,
+                name: "op-reth",
+                run_sh: `/root/bin/op-reth node --chain ${global::CHAIN} --rollup.sequencer-http ${global::SEQUENCER_URL} --http --http.addr 0.0.0.0 --http.port ${global::RPC_PORT} --http.corsdomain "*" --ws --ws.port ${global::WS_PORT} --ws.origins "*" --authrpc.port 8551 --http.api eth,web3,net,txpool,debug,trace --authrpc.jwtsecret ${global::OP_DIR}/jwt.txt --datadir ${global::OP_DIR}/op-reth --metrics 127.0.0.1:${global::METRICS_PORT} --rpc.max-blocks-per-filter=0 --rpc.gascap 18446744073709551615 --log.file.directory ${global::OP_DIR}/op-reth ${global::EXTRA_RETH_ARGS}`,
+                shutdown_timeout_secs: 120,
+            },
+            #{
+                name: "op-node",
+                run_sh: `/root/bin/op-node --network=${global::OPNET} --rpc.addr=0.0.0.0 --rpc.port=${global::OPT_API_PORT} --l1=${global::L1_URL} --l1.beacon=${global::L1_BEACON_URL} --l1.trustrpc --l1.rpckind=${global::L1_RPCKIND} --l2=http://127.0.0.1:8551 --l2.jwt-secret=${global::OP_DIR}/jwt.txt --syncmode=execution-layer`,
+                shutdown_timeout_secs: 120,
             },
         ],
-    },
-    services: [
-        #{
-            name: "op-reth",
-            run_sh: `/root/bin/op-reth node --chain ${global::CHAIN} --rollup.sequencer-http ${global::SEQUENCER_URL} --http --http.addr 0.0.0.0 --http.port ${global::RPC_PORT} --http.corsdomain "*" --ws --ws.port ${global::WS_PORT} --ws.origins "*" --authrpc.port 8551 --http.api eth,web3,net,txpool,debug,trace --authrpc.jwtsecret ${global::OP_DIR}/jwt.txt --datadir ${global::OP_DIR}/op-reth --metrics 127.0.0.1:${global::METRICS_PORT} --rpc.max-blocks-per-filter=0 --rpc.gascap 18446744073709551615 --log.file.directory ${global::OP_DIR}/op-reth ${global::EXTRA_RETH_ARGS}`,
-            shutdown_timeout_secs: 120,
+        download: #{
+            max_connections: 5,
         },
-        #{
-            name: "op-node",
-            run_sh: `/root/bin/op-node --network=${global::OPNET} --rpc.addr=0.0.0.0 --rpc.port=${global::OPT_API_PORT} --l1=${global::L1_URL} --l1.beacon=${global::L1_BEACON_URL} --l1.trustrpc --l1.rpckind=${global::L1_RPCKIND} --l2=http://127.0.0.1:8551 --l2.jwt-secret=${global::OP_DIR}/jwt.txt --syncmode=execution-layer`,
-            shutdown_timeout_secs: 120,
+        alternative_download: #{
+            run_sh: "echo this",
+            restart: "never",
         },
-    ],
-    download: #{
-        max_connections: 5,
-    },
-    alternative_download: #{
-        run_sh: "echo this",
-        restart: "never",
-    },
-    upload: #{
-        exclude: [
-            "jwt.txt",
-            "bedrock.tar.zst",
-            "bedrock.tar",
-            "**/*.log*",
-        ],
-    },
-    scheduled: [
-    ],
-};
+        upload: #{
+            exclude: [
+                "jwt.txt",
+                "bedrock.tar.zst",
+                "bedrock.tar",
+                "**/*.log*",
+            ],
+        },
+        scheduled: [],
+    }
+}
 
 fn application_status() {
     let resp = run_jrpc(#{host: global::RETH_API, method: ""});

@@ -21,40 +21,37 @@ const VARIANTS = #{
 
 const NET = VARIANTS[node_env().node_variant].network;
 
-let AUX_CONFIG = aux::base_config(global::DATA_DIR, global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::CADDY_DIR, global::NET);
-
-const BASE_CONFIG = #{
-    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
-};
-
-const PLUGIN_CONFIG = #{
-    init: #{
-        commands: [
-            `mkdir -p ${global::DATA_DIR}/db`,
-            `mkdir -p ${global::DATA_DIR}/config`,
-            `mkdir -p ${global::CADDY_DIR}`,
-        ],
-        jobs: [
-            #{
-                name: "init",
-                run_sh: `curl -fLJO https://github.com/MystenLabs/sui-genesis/raw/main/${global::NET}/genesis.blob --output-dir ${global::DATA_DIR}/config/`,
-            }
-        ]
-    },
-    services: [
-        #{
-            name: "sui",
-            run_sh: `/root/bin/sui-node --config-path /root/bin/fullnode.yaml`,
+fn plugin_config() {
+    #{
+        config_files: base::config_files() + aux::config_files(global::DATA_DIR, global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::CADDY_DIR, global::NET),
+        aux_services: base::aux_services() + aux::aux_services(),
+        init: #{
+            commands: [
+                `mkdir -p ${global::DATA_DIR}/db`,
+                `mkdir -p ${global::DATA_DIR}/config`,
+                `mkdir -p ${global::CADDY_DIR}`,
+            ],
+            jobs: [
+                #{
+                    name: "init",
+                    run_sh: `curl -fLJO https://github.com/MystenLabs/sui-genesis/raw/main/${global::NET}/genesis.blob --output-dir ${global::DATA_DIR}/config/`,
+                }
+            ]
         },
-    ],
-    upload: #{
-        exclude: [
-            "caddy/**",
+        services: [
+            #{
+                name: "sui",
+                run_sh: `/root/bin/sui-node --config-path /root/bin/fullnode.yaml`,
+            },
         ],
-    },
-    scheduled: [],
-};
+        upload: #{
+            exclude: [
+                "caddy/**",
+            ],
+        },
+        scheduled: [],
+    }
+}
 
 fn application_status() {
     let resp = run_jrpc(#{host: global::API_HOST, method: "sui_getChainIdentifier", headers: [["content-type", "application/json"]]}).expect(200).result.to_string();

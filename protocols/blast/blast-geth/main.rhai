@@ -16,13 +16,6 @@ const GETH_API = "http://127.0.0.1:" + global::RPC_PORT;
 const BLAST_API = `http://127.0.0.1:${global::OP_NODE_RPC_PORT}`;
 const BLAST_DIR = node_env().protocol_data_path + "/blast";
 
-let AUX_CONFIG = aux::base_config(global::BLAST_DIR, global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
-
-const BASE_CONFIG = #{
-    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
-};
-
 const VARIANTS = #{
     "geth-mainnet-archive": #{
         sequencer_url: "https://sequencer.blast.io",
@@ -42,41 +35,45 @@ const CONFIG_DIR = "/root/config/" + global::VARIANT.network;
 
 const BABEL_VERSION = "0.9.0";
 
-const PLUGIN_CONFIG = #{
-    init: #{
-        commands: [
-            `mkdir -p ${global::BLAST_DIR}/geth`,
-            `mkdir -p ${global::CADDY_DIR}`,
-            `cp -a ${global::CONFIG_DIR}/* ${global::BLAST_DIR}`,
-        ],
-        jobs: [
+fn plugin_config() {
+    #{
+        config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR),
+        aux_services: base::aux_services() + aux::aux_services(),
+        init: #{
+            commands: [
+                `mkdir -p ${global::BLAST_DIR}/geth`,
+                `mkdir -p ${global::CADDY_DIR}`,
+                `cp -a ${global::CONFIG_DIR}/* ${global::BLAST_DIR}`,
+            ],
+            jobs: [
+                #{
+                    name: "init_job",
+                    run_sh: `openssl rand -hex 32 > ${global::BLAST_DIR}/jwt.txt`,
+                }
+            ]
+        },
+        services: [
             #{
-                name: "init_job",
-                run_sh: `openssl rand -hex 32 > ${global::BLAST_DIR}/jwt.txt`,
-            }
-        ]
-    },
-    services: [
-        #{
-            name: "op-geth",
-            run_sh: `/root/bin/blast-geth --datadir=${global::BLAST_DIR} --http --http.corsdomain="*" --http.vhosts="*" --http.addr=127.0.0.1 --http.port=${global::RPC_PORT} --http.api=web3,debug,eth,txpool,net,engine --ws --ws.addr=127.0.0.1 --ws.port=${global::WS_PORT} --ws.origins="*" --ws.api=debug,eth,txpool,net,engine --authrpc.addr=127.0.0.1 --authrpc.port=${global::AUTHRPC_PORT} --authrpc.vhosts="*" --authrpc.jwtsecret=${global::BLAST_DIR}/jwt.txt --syncmode=full --gcmode=archive --nodiscover --maxpeers=100 --rollup.disabletxpoolgossip=true --rollup.sequencerhttp=${global::SEQUENCER_URL} --metrics --metrics.addr=127.0.0.1 --metrics.port ${global::METRICS_PORT} --override.canyon=0 --override.ecotone=1716843599`,
-            shutdown_timeout_secs: 120,
-        },
-        #{
-            name: "op-node",
-            run_sh: `/root/bin/blast-node --l1=${global::L1_URL} --l1.rpckind=basic --l1.beacon=${global::BEACON_URL} --l2=http://127.0.0.1:${global::AUTHRPC_PORT} --l2.jwt-secret=${global::BLAST_DIR}/jwt.txt --rollup.config=${global::BLAST_DIR}/rollup.json --p2p.bootnodes=${global::P2P_NODES} --metrics.enabled --metrics.addr=127.0.0.1 --metrics.port=${global::OP_NODE_METRICS_PORT}`,
-            shutdown_timeout_secs: 120,
-        },
-    ],
-    download: #{
-        max_connections: 5,
-    },
-    upload: #{
-        exclude: [
-            "jwt.txt",
+                name: "op-geth",
+                run_sh: `/root/bin/blast-geth --datadir=${global::BLAST_DIR} --http --http.corsdomain="*" --http.vhosts="*" --http.addr=127.0.0.1 --http.port=${global::RPC_PORT} --http.api=web3,debug,eth,txpool,net,engine --ws --ws.addr=127.0.0.1 --ws.port=${global::WS_PORT} --ws.origins="*" --ws.api=debug,eth,txpool,net,engine --authrpc.addr=127.0.0.1 --authrpc.port=${global::AUTHRPC_PORT} --authrpc.vhosts="*" --authrpc.jwtsecret=${global::BLAST_DIR}/jwt.txt --syncmode=full --gcmode=archive --nodiscover --maxpeers=100 --rollup.disabletxpoolgossip=true --rollup.sequencerhttp=${global::SEQUENCER_URL} --metrics --metrics.addr=127.0.0.1 --metrics.port ${global::METRICS_PORT} --override.canyon=0 --override.ecotone=1716843599`,
+                shutdown_timeout_secs: 120,
+            },
+            #{
+                name: "op-node",
+                run_sh: `/root/bin/blast-node --l1=${global::L1_URL} --l1.rpckind=basic --l1.beacon=${global::BEACON_URL} --l2=http://127.0.0.1:${global::AUTHRPC_PORT} --l2.jwt-secret=${global::BLAST_DIR}/jwt.txt --rollup.config=${global::BLAST_DIR}/rollup.json --p2p.bootnodes=${global::P2P_NODES} --metrics.enabled --metrics.addr=127.0.0.1 --metrics.port=${global::OP_NODE_METRICS_PORT}`,
+                shutdown_timeout_secs: 120,
+            },
         ],
-    },
-};
+        download: #{
+            max_connections: 5,
+        },
+        upload: #{
+            exclude: [
+                "jwt.txt",
+            ],
+        },
+    }
+}
 
 fn application_status() {
     let resp = parse_hex(run_jrpc(#{host: global::GETH_API, method: "eth_chainId"}).expect(200).result);

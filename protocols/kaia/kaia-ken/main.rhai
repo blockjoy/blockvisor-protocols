@@ -7,12 +7,6 @@ const WS_PORT = 8552;
 const METRICS_PORT = 61001;
 const METRICS_PATH = "/metrics";
 
-let AUX_CONFIG = aux::base_config(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
-const BASE_CONFIG  = #{
-    config_files: AUX_CONFIG.config_files+base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services+base::BASE_CONFIG.services,
-};
-
 const VARIANTS = #{
     "ken-mainnet-full": #{
         network_name: "cypress",
@@ -38,28 +32,32 @@ const KAIA_KEN_EXTRA_ARGS = if node_env().node_variant.ends_with("-archive") {
 
 const BABEL_VERSION = "0.9.0";
 
-const PLUGIN_CONFIG = #{
-    init: #{
-        commands: [
-            `mkdir -p ${global::HOME}`,
-            `mkdir -p ${global::CADDY_DIR}`,
-        ],
-        jobs: [],
-    },
-    services: [
-        #{
-            name: "ken",
-            run_sh: `/root/bin/ken --${global::CHAIN} --gcmode ${global::SYNC_TYPE} --datadir ${global::HOME} --rpc.concurrencylimit 8000 --rpcreadtimeout 180 --rpcexecutiontimeout 180 --rpc --rpcaddr 127.0.0.1 --rpcapi klay,eth,net,web3,rpc,debug --rpcport ${global::RPC_PORT} --ws --wsaddr 127.0.0.1 --wsapi klay,eth,net,web3,rpc,debug --wsport ${global::WS_PORT} --wsorigins "*" --metrics --prometheus --prometheusport ${global::METRICS_PORT} ${global::KAIA_KEN_EXTRA_ARGS}`,
-            shutdown_timeout_secs: 120,
-            use_blockchain_data: true,
-            log_timestamp: false,
+fn plugin_config() {
+    #{
+        config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR),
+        aux_services: base::aux_services() + aux::aux_services(),
+        init: #{
+            commands: [
+                `mkdir -p ${global::HOME}`,
+                `mkdir -p ${global::CADDY_DIR}`,
+            ],
+            jobs: [],
         },
-    ],
-    upload: #{
-        exclude: [],
-        url_expires_secs: 604799,
+        services: [
+            #{
+                name: "ken",
+                run_sh: `/root/bin/ken --${global::CHAIN} --gcmode ${global::SYNC_TYPE} --datadir ${global::HOME} --rpc.concurrencylimit 8000 --rpcreadtimeout 180 --rpcexecutiontimeout 180 --rpc --rpcaddr 127.0.0.1 --rpcapi klay,eth,net,web3,rpc,debug --rpcport ${global::RPC_PORT} --ws --wsaddr 127.0.0.1 --wsapi klay,eth,net,web3,rpc,debug --wsport ${global::WS_PORT} --wsorigins "*" --metrics --prometheus --prometheusport ${global::METRICS_PORT} ${global::KAIA_KEN_EXTRA_ARGS}`,
+                shutdown_timeout_secs: 120,
+                use_blockchain_data: true,
+                log_timestamp: false,
+            },
+        ],
+        upload: #{
+            exclude: [],
+            url_expires_secs: 604799,
+        }
     }
-};
+}
 
 fn application_status() {
     let resp = run_jrpc(#{ host: global::API_HOST, method: "eth_syncing"});

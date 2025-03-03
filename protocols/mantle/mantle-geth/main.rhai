@@ -12,13 +12,6 @@ const MANTLE_API = "http://127.0.0.1:8547";
 const DATADIR = node_env().protocol_data_path;
 const MANTLE_DIR = node_env().protocol_data_path + "/mantle";
 
-let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR, global::METRICS_PATH);
-
-const BASE_CONFIG = #{
-    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
-};
-
 const VARIANTS = #{
     "geth-mainnet-archive": #{
         sequencer_url: "https://rpc.mantle.xyz",
@@ -58,27 +51,30 @@ const EXTRA_GETH_ARGS = if CONFIG_SET == "mainnet" {
 
 const BABEL_VERSION = "0.9.0";
 
-const PLUGIN_CONFIG = #{
-    init: #{
-        commands: [
-            `mkdir -p ${global::MANTLE_DIR}`,
-            `cp -a /root/config/${CONFIG_SET}/* ${global::MANTLE_DIR}/`,
-            "mkdir -p /opt/netdata/var/cache/netdata",
-            "mkdir -p /opt/netdata/var/lib/netdata",
-            "rm -rf /opt/netdata/var/lib/netdata/*",
-            "rm -rf /opt/netdata/var/cache/netdata/*",
-        ],
-        jobs: [
+fn plugin_config() {
+    #{
+        config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR),
+        aux_services: base::aux_services() + aux::aux_services(),
+        init: #{
+            commands: [
+                `mkdir -p ${global::MANTLE_DIR}`,
+                `cp -a /root/config/${CONFIG_SET}/* ${global::MANTLE_DIR}/`,
+                "mkdir -p /opt/netdata/var/cache/netdata",
+                "mkdir -p /opt/netdata/var/lib/netdata",
+                "rm -rf /opt/netdata/var/lib/netdata/*",
+                "rm -rf /opt/netdata/var/cache/netdata/*",
+            ],
+            jobs: [
+                #{
+                    name: "init_job",
+                    run_sh: `openssl rand -hex 32 > ${global::MANTLE_DIR}/jwt.txt`,
+                }
+            ]
+        },
+        services: [
             #{
-                name: "init_job",
-                run_sh: `openssl rand -hex 32 > ${global::MANTLE_DIR}/jwt.txt`,
-            }
-        ]
-    },
-    services: [
-        #{
-            name: "mantle-geth",
-            run_sh: `/root/bin/mantle-geth \
+                name: "mantle-geth",
+                run_sh: `/root/bin/mantle-geth \
                     --ws \
                     --ws.port=${global::WS_PORT} \
                     --ws.addr=127.0.0.1 \
@@ -112,11 +108,11 @@ const PLUGIN_CONFIG = #{
                     --nodiscover \
                     --cache 8192
                     ${EXTRA_GETH_ARGS}`,
-            shutdown_timeout_secs: 120,
-        },
-        #{
-            name: "mantle-node",
-            run_sh: `/root/bin/mantle-node \
+                shutdown_timeout_secs: 120,
+            },
+            #{
+                name: "mantle-node",
+                run_sh: `/root/bin/mantle-node \
                     --l2=http://127.0.0.1:8551 \
                     --l2.jwt-secret=${global::MANTLE_DIR}/jwt.txt \
                     --rollup.config=${global::MANTLE_DIR}/rollup.json \
@@ -141,21 +137,22 @@ const PLUGIN_CONFIG = #{
                     --l2.engine-sync \
                     --l2.skip-sync-start-check \
                     --p2p.sync.req-resp`,
-            shutdown_timeout_secs: 120,
-        },
-    ],
-    download: #{
-        max_connections: 5,
-    },
-    upload: #{
-        exclude: [
-            "jwt.txt",
-            "bedrock.tar.zst",
-            "bedrock.tar",
-            "caddy/**",
+                shutdown_timeout_secs: 120,
+            },
         ],
-    },
-};
+        download: #{
+            max_connections: 5,
+        },
+        upload: #{
+            exclude: [
+                "jwt.txt",
+                "bedrock.tar.zst",
+                "bedrock.tar",
+                "caddy/**",
+            ],
+        },
+    }
+}
 
 fn application_status() {
     let resp = run_jrpc(#{host: global::GETH_API, method: ""});

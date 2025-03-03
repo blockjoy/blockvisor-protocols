@@ -1,7 +1,6 @@
 import "base" as base;
 import "aux" as aux;
 
-
 const HEIMDALL_DIR = node_env().protocol_data_path + "/heimdall";
 const ERIGON_DIR = node_env().protocol_data_path + "/erigon";
 const CADDY_DIR = node_env().data_mount_point + "/caddy";
@@ -10,12 +9,6 @@ const WS_PORT = 8546;
 const HEIMDALL_PORT = 1317;
 const METRICS_PORT = 7071;
 const METRICS_PATH = "/debug/metrics/prometheus";
-
-let AUX_CONFIG = aux::base_config(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
-const BASE_CONFIG  = #{
-    config_files: AUX_CONFIG.config_files+base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services+base::BASE_CONFIG.services,
-};
 
 const VARIANTS = #{
     "erigon-mainnet-archive": #{
@@ -31,30 +24,34 @@ const BOOTNODES = VARIANTS[node_env().node_variant].bootnodes;
 const NETWORK = VARIANTS[node_env().node_variant].network;
 
 const BABEL_VERSION = "1.7.1";
-const PLUGIN_CONFIG = #{
-    init: #{
-        commands: [
-            `mkdir -p ${global::CADDY_DIR}`,
-            `mkdir -p ${global::ERIGON_DIR}`,
-            `mkdir -p ${global::HEIMDALL_DIR}`,
-        ],
-        jobs: []
-    },
-    services: [
-        #{
-            name: "heimdall",
-            run_sh: `/root/bin/heimdalld start --home=${global::HEIMDALL_DIR} --chain=${global::NETWORK} --bor_rpc_url ${global::API_HOST} --rest-server --seeds ${global::P2P_SEEDS} --node tcp://127.0.0.1:26657`,
-        },
-        #{
-            name: "erigon",
-            run_sh: `/root/bin/erigon --datadir ${global::ERIGON_DIR} --chain ${global::NETWORK} --snapshots=false --bootnodes=${global::BOOTNODES} --trustedpeers=${global::BOOTNODES}  --staticpeers=${global::BOOTNODES}  --maxpeers=400 --snap.stop --http.addr 127.0.0.1 --http.port ${global::RPC_PORT} --http.compression --http.vhosts=* --http.corsdomain=* --http.api=eth,debug,net,trace,web3,erigon,bor --ws --ws.port ${global::WS_PORT} --ws.compression --rpc.gascap=300000000 --metrics --metrics.addr=127.0.0.1 --metrics.port=${global::METRICS_PORT} --bodies.cache=5G --rpc.batch.limit=200000 --db.pagesize=16k --batchSize=2048MB --p2p.protocol=66 --db.size.limit=15TB --rpc.returndata.limit=1000000 --downloader.disable.ipv6 --bor.heimdall=http://127.0.0.1:${global::HEIMDALL_PORT}`,
-        },
-    ],
-    upload: #{
-        exclude: [],
-    },
-};
 
+fn plugin_config() {
+    #{
+        config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR),
+        aux_services: base::aux_services() + aux::aux_services(),
+        init: #{
+            commands: [
+                `mkdir -p ${global::CADDY_DIR}`,
+                `mkdir -p ${global::ERIGON_DIR}`,
+                `mkdir -p ${global::HEIMDALL_DIR}`,
+            ],
+            jobs: []
+        },
+        services: [
+            #{
+                name: "heimdall",
+                run_sh: `/root/bin/heimdalld start --home=${global::HEIMDALL_DIR} --chain=${global::NETWORK} --bor_rpc_url ${global::API_HOST} --rest-server --seeds ${global::P2P_SEEDS} --node tcp://127.0.0.1:26657`,
+            },
+            #{
+                name: "erigon",
+                run_sh: `/root/bin/erigon --datadir ${global::ERIGON_DIR} --chain ${global::NETWORK} --snapshots=false --bootnodes=${global::BOOTNODES} --trustedpeers=${global::BOOTNODES}  --staticpeers=${global::BOOTNODES}  --maxpeers=400 --snap.stop --http.addr 127.0.0.1 --http.port ${global::RPC_PORT} --http.compression --http.vhosts=* --http.corsdomain=* --http.api=eth,debug,net,trace,web3,erigon,bor --ws --ws.port ${global::WS_PORT} --ws.compression --rpc.gascap=300000000 --metrics --metrics.addr=127.0.0.1 --metrics.port=${global::METRICS_PORT} --bodies.cache=5G --rpc.batch.limit=200000 --db.pagesize=16k --batchSize=2048MB --p2p.protocol=66 --db.size.limit=15TB --rpc.returndata.limit=1000000 --downloader.disable.ipv6 --bor.heimdall=http://127.0.0.1:${global::HEIMDALL_PORT}`,
+            },
+        ],
+        upload: #{
+            exclude: [],
+        },
+    }
+}
 
 fn application_status() {
     let res = run_jrpc(#{
