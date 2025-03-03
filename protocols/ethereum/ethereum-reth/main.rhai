@@ -58,15 +58,11 @@ fn plugin_config() {#{
             name: "reth",
             run_sh: `export HOME=/root && /root/bin/reth node --datadir=${global::HOME} --chain=${global::NET} --http --http.addr=127.0.0.1 --http.port=${global::RPC_PORT} --http.api=eth,net,web3,debug,trace,txpool --ws --ws.addr=127.0.0.1 --ws.port=${global::WS_PORT} --ws.api=eth,net,web3,debug,trace,txpool --rpc.gascap 18446744073709551615 --metrics=127.0.0.1:${global::METRICS_PORT} --authrpc.jwtsecret=${global::HOME}/jwt.hex ${global::RETH_EXTRA_ARGS}`,
             shutdown_timeout_secs: 120,
-            use_blockchain_data: true,
-            log_timestamp: false,
         },
         #{
             name: "lighthouse",
             run_sh: `RUST_LOG=info /root/bin/lighthouse bn --network ${global::NET} --datadir ${global::LIGHTHOUSE_DIR} --checkpoint-sync-url ${global::CHECKPOINT_URL}  --disable-deposit-contract-sync --http  --http-address 127.0.0.1 --http-port 5052  --execution-endpoint http://127.0.0.1:8551  --execution-jwt ${global::HOME}/jwt.hex  --metrics --metrics-port 9002 --prune-blobs false --reconstruct-historic-states --block-cache-size 64 --genesis-backfill --historic-state-cache-size 4 --disable-backfill-rate-limiting`,
             shutdown_timeout_secs: 120,
-            use_blockchain_data: true,
-            log_timestamp: false,
         },
     ],
     alternative_download: #{

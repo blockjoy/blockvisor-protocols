@@ -1,4 +1,4 @@
-fn config_files(metrics_port, metrics_path, rpc_port, caddy_dir, p2p_port, rest_port, grpc_web_port, grpc_port) { 
+fn config_files(metrics_port, metrics_path, rpc_port, caddy_dir, p2p_port, rest_port, grpc_web_port, grpc_port) {
     [
         #{
             template: "/var/lib/babel/templates/config-alloy.template",
@@ -67,7 +67,6 @@ fn aux_services() {
         #{
             name: "caddy",
             run_sh: "/usr/bin/caddy run --config /etc/caddy/Caddyfile",
-            log_timestamp: false,
         }
     ]
 }

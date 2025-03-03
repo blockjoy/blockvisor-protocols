@@ -18,7 +18,7 @@ fn config_files(metrics_port, metrics_path, rpc_port, ws_port, caddy_dir) {
             destination: "/etc/caddy/Caddyfile",
             params: #{
                 rpc_port: `${rpc_port}`,
-                ws_port: `${ws_port}`,                    
+                ws_port: `${ws_port}`,
                 hostname: node_env().node_name,
                 node_ip: node_env().node_ip,
                 tld: ".n0des.xyz",
@@ -40,7 +40,6 @@ fn aux_services() {
         #{
             name: "caddy",
             run_sh: "/usr/bin/caddy run --config /etc/caddy/Caddyfile",
-            log_timestamp: false,
         },
     ]
 }

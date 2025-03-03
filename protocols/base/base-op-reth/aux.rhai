@@ -1,4 +1,4 @@
-fn config_files(metrics_port, metrics_path, rpc_port, ws_port, authrpc_port, op_rpc_port, caddy_dir) { 
+fn config_files(metrics_port, metrics_path, rpc_port, ws_port, authrpc_port, op_rpc_port, caddy_dir) {
     [
         #{
             template: "/var/lib/babel/templates/config-alloy.template",
@@ -40,7 +40,6 @@ fn aux_services() {
         #{
             name: "caddy",
             run_sh: "/usr/bin/caddy run --config /etc/caddy/Caddyfile",
-            log_timestamp: false
         }
     ]
 }

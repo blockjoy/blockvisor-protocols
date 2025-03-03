@@ -40,7 +40,6 @@ fn aux_services() {
         #{
             name: "caddy",
             run_sh: "/usr/bin/caddy run --config /etc/caddy/Caddyfile",
-            log_timestamp: false
         }
     ]
 }

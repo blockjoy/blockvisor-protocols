@@ -42,12 +42,10 @@ fn aux_services() {
         #{
             name: "alloy",
             run_sh: `/usr/bin/alloy run --server.http.listen-addr=127.0.0.1:12346 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy`,
-            log_timestamp: false,
         },
         #{
             name: "caddy",
             run_sh: "/usr/bin/caddy run --config /etc/caddy/Caddyfile",
-            log_timestamp: false
         }
     ]
 }

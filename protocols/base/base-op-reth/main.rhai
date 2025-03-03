@@ -67,16 +67,12 @@ fn plugins_config() {
                 name: "op-reth",
                 run_sh: `export HOME=/root && /root/bin/op-reth node --chain ${global::CHAIN} --rollup.sequencer-http ${global::SEQUENCER_URL} --http --http.addr 127.0.0.1 --http.port ${global::RPC_PORT} --http.corsdomain "*" --ws --ws.port ${global::WS_PORT} --authrpc.port ${global::AUTHRPC_PORT} --http.api eth,web3,net,txpool,debug,trace --authrpc.jwtsecret ${global::HOME}/jwt.hex --datadir ${global::HOME} --metrics 127.0.0.1:${global::METRICS_PORT} --log.file.directory ${global::HOME} --rpc.gascap 18446744073709551615`,
                 shutdown_timeout_secs: 120,
-                use_blockchain_data: true,
-                log_timestamp: false,
             },
             #{
                 name: "op-node",
                 run_sh: `export HOME=/root && /root/bin/op-node --network=${global::NET} --rpc.addr=127.0.0.1 --rpc.port=${global::OP_RPC_PORT} --l1=${global::L1_URL} --l1.beacon=${global::L1_BEACON_URL} --l1.trustrpc --l2.enginekind=reth --l2=http://127.0.0.1:${global::AUTHRPC_PORT} --l2.jwt-secret=${global::HOME}/jwt.hex --syncmode=execution-layer --p2p.bootnodes=${global::OP_NODE_BOOTNODES}`,
                 shutdown_timeout_secs: 120,
-                use_blockchain_data: true,
-                log_timestamp: false,
-            },  
+            },
         ],
         alternative_download: #{
             run_sh: "echo dummy"
@@ -92,7 +88,7 @@ fn plugins_config() {
 fn application_status() {
     /// "uploading", "downloading", "initializing" statuses are automatically handled by BV if BABEL_CONFIG const is defined
     let resp = run_jrpc(#{host: global::API_HOST, method: "/"});
-    
+
     if resp.status_code == 200 {
         "broadcasting"
     } else {

@@ -44,13 +44,12 @@ fn plugin_config() {
                 run_sh: `/root/bin/neard --home=${global::DATA_DIR} run --rpc-prometheus-addr 127.0.0.1:${global::METRICS_PORT}`,
                 shutdown_timeout_secs: 300,
                 needs: [],
-                log_timestamp: false,
             }
         ],
-        pre_upload: #{        
+        pre_upload: #{
             commands: [
                 `echo "Preparing to upload"`,
-            ],        
+            ],
             jobs: [
                 #{
                     name: "upload_prep",

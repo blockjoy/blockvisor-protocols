@@ -74,8 +74,6 @@ const PLUGIN_CONFIG = #{
                     --metrics.port=${global::METRICS_PORT} \
                     ${global::EXTRA_ARGS}`,
             shutdown_timeout_secs: 120,
-            use_blockchain_data: true,
-            log_timestamp: false,
         },
     ],
     config_files: BASE_CONFIG.config_files,
@@ -84,7 +82,7 @@ const PLUGIN_CONFIG = #{
 // Required status functions
 fn application_status() {
     let resp = parse_hex(run_jrpc(#{host: global::API_HOST, method: "eth_chainId"}).expect(200).result);
-    
+
     if resp == 1 { // Example chain ID
         "broadcasting"
     } else {

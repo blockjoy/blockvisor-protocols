@@ -10,7 +10,7 @@ const PRIV_API_PORT = 9090;
 const METRICS_PORT = 6262;
 const METRICS_PATH = "/debug/metrics/prometheus";
 
-const VARIANTS = #{   
+const VARIANTS = #{
     "erigon-mainnet-archive": #{
         url: "https://mainnet.boba.network",
         network: "boba-mainnet",
@@ -50,13 +50,11 @@ fn plugin_config() {
                 name: "erigon",
                 run_sh: `/root/bin/erigon --datadir=${global::HOME} --private.api.addr=127.0.0.1:${global::PRIV_API_PORT} --http.addr=127.0.0.1 --http.port=${global::RPC_PORT} --http.corsdomain="*" --http.vhosts="*" --ws --ws.port ${global::WS_PORT} --metrics --metrics.addr=127.0.0.1 --metrics.port=${global::METRICS_PORT} --bodies.cache=5G --rpc.batch.limit=200000 --db.pagesize=16k --downloader.disable.ipv6 --authrpc.addr=127.0.0.1 --authrpc.port=${global::AUTH_RPC_PORT} --authrpc.vhosts="*" --authrpc.jwtsecret=${global::HOME}/jwt.hex --chain=${global::NET} --http.api=eth,debug,net,engine,web3,debug,trace --rollup.sequencerhttp=${global::SEQUENCER_URL} --db.size.limit=8TB`,
                 shutdown_timeout_secs: 120,
-                use_blockchain_data: true,
             },
             #{
                 name: "op-node",
                 run_sh: `/root/bin/op-node --l1=${global::L1_URL} --l1.beacon=${global::L1_BEACON_URL} --l2=http://127.0.0.1:${global::AUTH_RPC_PORT} --l2.jwt-secret=${global::HOME}/jwt.hex --network=${global::NET} --rpc.addr=127.0.0.1 --rpc.port=${global::OP_RPC_PORT}`,
                 shutdown_timeout_secs: 120,
-                use_blockchain_data: true,
             },
         ],
     }
@@ -64,7 +62,7 @@ fn plugin_config() {
 
 fn application_status() {
     let resp = run_jrpc(#{host: global::API_HOST, method: "/"});
-    
+
     if resp.status_code == 200 {
         "broadcasting"
     } else {

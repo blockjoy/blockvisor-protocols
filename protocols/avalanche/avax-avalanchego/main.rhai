@@ -41,8 +41,6 @@ fn plugin_config() {
                 run_sh: `/root/bin/avalanchego --data-dir ${global::DATA_DIRECTORY} --chain-config-dir ${global::DATA_DIRECTORY}/configs/chains`,
                 shutdown_timeout_secs: 150,
                 log_buffer_capacity_mb: 256,
-                use_blockchain_data: true,
-                log_timestamp: false,
             },
         ],
         pre_upload: #{
@@ -68,13 +66,13 @@ fn plugin_config() {
 
 fn application_status() {
     let path = "ext/health";
-    let data = #{host: global::API_HOST + path, 
-        method: "health.health", 
+    let data = #{host: global::API_HOST + path,
+        method: "health.health",
         headers: #{"content-type": "application/json"}
     };
     let resp = run_jrpc(data);
     let result = parse_json(resp.body);
-    
+
     if result.healthy == "false" {
         if result.result.checks.bootstrapped.error == "subnets not bootstrapped" {
             "broadcasting"
@@ -88,8 +86,8 @@ fn application_status() {
 
 fn height() {
     let path = "ext/bc/C/rpc";
-    let data = #{host: global::API_HOST + path, 
-        method: "eth_blockNumber", 
+    let data = #{host: global::API_HOST + path,
+        method: "eth_blockNumber",
         headers: #{"content-type": "application/json"}
     };
     let resp = run_jrpc(data);
@@ -121,8 +119,8 @@ fn sync_status() {
 
 fn get_latest_block_height_from_external_api() {
     let path = "ext/bc/C/rpc";
-    let data = #{host: global::EXTERNAL_API_HOST + path, 
-        method: "eth_blockNumber", 
+    let data = #{host: global::EXTERNAL_API_HOST + path,
+        method: "eth_blockNumber",
         headers: #{"content-type": "application/json"}
     };
     let resp = run_jrpc(data);

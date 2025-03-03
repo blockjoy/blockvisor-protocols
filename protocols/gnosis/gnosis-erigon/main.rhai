@@ -58,13 +58,11 @@ fn plugin_config() {
                 name: "erigon",
                 run_sh: `export HOME=/root && mkdir -p ${global::HOME} && /root/bin/erigon --datadir=${global::HOME} --chain=${global::NET} --healthcheck=true --port=30303 --http.port=${global::RPC_PORT} --authrpc.addr=127.0.0.1 --authrpc.port=8551 --torrent.port=42069 --private.api.addr=127.0.0.1:9090 --http --ws --ws.port ${global::WS_PORT} --http.addr=127.0.0.1 --http.api=eth,debug,net,trace,web3,erigon --nat=none --authrpc.jwtsecret=${global::HOME}/jwt.hex --torrent.download.rate=100mb --metrics --metrics.port=${global::METRICS_PORT} --metrics.addr=127.0.0.1 --http.vhosts="*" --downloader.disable.ipv6 --beacon.api.addr=127.0.0.1 ${global::ERIGON_ARGS}`,
                 shutdown_timeout_secs: 120,
-                use_blockchain_data: true,
             },
             #{
                 name: "lighthouse",
                 run_sh: `/root/bin/lighthouse bn --datadir ${global::HOME}/lighthouse --network ${global::NET} --checkpoint-sync-url ${global::CHECKPOINT_URL} --http --http-address 127.0.0.1 --http-port 6868 --execution-endpoint http://127.0.0.1:8551 --execution-jwt ${global::HOME}/jwt.hex --metrics ${global::LIGHTHOUSE_ARGS}`,
                 shutdown_timeout_secs: 120,
-                use_blockchain_data: true,
             },
         ],
         alternative_download: #{
@@ -75,7 +73,7 @@ fn plugin_config() {
 
 fn application_status() {
     let resp = run_jrpc(#{host: global::API_HOST, method: ""});
-    
+
     if resp.status_code == 200 {
         "broadcasting"
     } else {
@@ -119,7 +117,7 @@ fn sync_status() {
 
     let system_timestamp = run_sh (`date +%s`).unwrap();
     let current_timestamp = parse_int(system_timestamp);
-    
+
     if resp1.status_code > 225 {
         "syncing"
     } else if (block_timestamp < current_timestamp - 100) {

@@ -1,11 +1,11 @@
-fn config_files(metrics_port, metrics_path, rpc_port, caddy_dir) { 
+fn config_files(metrics_port, metrics_path, rpc_port, caddy_dir) {
     [
         #{
             template: "/var/lib/babel/templates/Caddyfile.template",
             destination: "/etc/caddy/Caddyfile",
             params: #{
                 rpc_port: `${rpc_port}`,
-                ws_port: `${rpc_port}`,   
+                ws_port: `${rpc_port}`,
                 metrics_port: `${metrics_port}`,
                 metrics_path: `${metrics_path}`,
                 hostname: node_env().node_name,
@@ -40,7 +40,6 @@ fn aux_services() {
         #{
             name: "caddy",
             run_sh: "/usr/bin/caddy run --config /etc/caddy/Caddyfile",
-            log_timestamp: false,
         }
     ]
 }
