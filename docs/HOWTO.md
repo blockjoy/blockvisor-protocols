@@ -116,6 +116,43 @@ pub struct NodeEnv {
 }
 ```
 
+### Implementation Flow
+
+When implementing a new blockchain protocol image:
+1. **Create client(s) used by protocol being implemented:
+   - Define Dockerfile for each client
+     - Setup build for client
+     - Copy client binaries to common location for future use
+     - Copy client specific libraries to common location for future use
+
+2. **Define Protocol Image Metadata** (`babel.yaml`):
+   - Set protocol image identification (version, SKU, description)
+   - Define available variants and their resource requirements
+   - Configure network access rules
+   - Set visibility and access properties
+
+3. **Create Runtime Interface** (`main.rhai`):
+   - Import base configurations
+   - Define protocol-specific constants
+   - Map `node_env().node_variant` to protocol configurations
+   - Configure services and initialization steps
+   - Implement required status functions
+
+3. **Add Auxiliary Functions** (`aux.rhai`):
+   - Define reusable configurations
+   - Set up template processing
+   - Configure additional services
+
+4. **Set Up Container** (`Dockerfile`):
+   - Use appropriate base image
+   - Use related client images
+   - Add protocol-specific dependencies
+   - Configure runtime environment
+   - Put all necessary Rhai scripts (`main.rhai` in particular) into the container (`/var/lib/babel/plugin/`)
+
+The BlockJoy API uses the metadata from `babel.yaml` to plan and create node deployments, while the RHAI files control how the node actually operates within those parameters.
+
+
 ### Protocol Variants and Configuration
 
 1. Define available variants in `babel.yaml`:
@@ -155,42 +192,6 @@ fn plugin_config() {#{
         ],
 }}
 ```
-
-### Implementation Flow
-
-When implementing a new blockchain protocol image:
-1. **Create client(s) used by protocol being implemented:
-   - Define Dockerfile for each client
-     - Setup build for client
-     - Copy client binaries to common location for future use
-     - Copy client specific libraries to common location for future use
-
-2. **Define Protocol Image Metadata** (`babel.yaml`):
-   - Set protocol image identification (version, SKU, description)
-   - Define available variants and their resource requirements
-   - Configure network access rules
-   - Set visibility and access properties
-
-3. **Create Runtime Interface** (`main.rhai`):
-   - Import base configurations
-   - Define protocol-specific constants
-   - Map `node_env().node_variant` to protocol configurations
-   - Configure services and initialization steps
-   - Implement required status functions
-
-3. **Add Auxiliary Functions** (`aux.rhai`):
-   - Define reusable configurations
-   - Set up template processing
-   - Configure additional services
-
-4. **Set Up Container** (`Dockerfile`):
-   - Use appropriate base image
-   - Use related client images
-   - Add protocol-specific dependencies
-   - Configure runtime environment
-   - Put all necessary Rhai scripts (`main.rhai` in particular) into the container (`/var/lib/babel/plugin/`)
-
-The BlockJoy API uses the metadata from `babel.yaml` to plan and create node deployments, while the RHAI files control how the node actually operates within those parameters.
 
 ## Configuration Files
 
