@@ -56,7 +56,7 @@ fn plugin_config() {
         init: #{
             commands: [
                 `mkdir -p ${global::MANTLE_DIR}`,
-                `cp -a /root/config/${CONFIG_SET}/* ${global::MANTLE_DIR}/`,
+                `cp -a /root/config/${global::CONFIG_SET}/* ${global::MANTLE_DIR}/`,
                 "mkdir -p /opt/netdata/var/cache/netdata",
                 "mkdir -p /opt/netdata/var/lib/netdata",
                 "rm -rf /opt/netdata/var/lib/netdata/*",
@@ -105,7 +105,7 @@ fn plugin_config() {
                     --rollup.disabletxpoolgossip=true \
                     --nodiscover \
                     --cache 8192
-                    ${EXTRA_GETH_ARGS}`,
+                    ${global::EXTRA_GETH_ARGS}`,
                 shutdown_timeout_secs: 120,
             },
             #{
