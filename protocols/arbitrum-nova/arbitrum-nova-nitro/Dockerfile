@@ -1,6 +1,6 @@
 #1
 ARG NITRO_IMAGE=ghcr.io/blockjoy/nitro:v20250222.1
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250226.3
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250303.2
 
 FROM ${NITRO_IMAGE} AS nitro
 
