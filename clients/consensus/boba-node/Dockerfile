@@ -1,5 +1,5 @@
 #7
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250221.1
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250304.4
 FROM ${BASE_IMAGE} AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
