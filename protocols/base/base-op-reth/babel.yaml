@@ -1,5 +1,5 @@
 version: 1.2.5
-container_uri: docker://ghcr.io/blockjoy/base-op-reth-protocol:v20250226.1
+container_uri: docker://ghcr.io/blockjoy/base-op-reth-protocol:v20250304.4
 sku_code: BASEOPRETH
 org_id: null
 description: Base OP Reth node
