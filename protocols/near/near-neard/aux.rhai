@@ -1,4 +1,4 @@
-fn config_files(metrics_port, metrics_path, rpc_port, ws_port, caddy_dir) {
+fn config_files(metrics_port, metrics_path, rpc_port, caddy_dir) {
     [
         #{
             template: "/var/lib/babel/templates/config-alloy.template",

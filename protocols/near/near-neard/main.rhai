@@ -24,7 +24,7 @@ const NET = VARIANTS[node_env().node_variant].network;
 
 fn plugin_config() {
     #{
-        config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR),
+        config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::CADDY_DIR),
         aux_services: base::aux_services() + aux::aux_services(),
         init: #{
             commands: [

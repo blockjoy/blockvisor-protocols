@@ -707,7 +707,6 @@ jobs:
       runner_hostname: ${{ steps.get-hostname.outputs.hostname }}
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
-      fail-fast: false
     permissions:
       contents: read
       packages: write
