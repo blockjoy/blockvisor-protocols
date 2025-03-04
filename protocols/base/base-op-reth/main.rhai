@@ -44,7 +44,7 @@ const OP_RETH_EXTRA_ARGS = if node_env().node_variant.ends_with("-full") {
     ""
 };
 
-fn plugins_config() {
+fn plugin_config() {
     #{
         aux_services: base::aux_services() + aux::aux_services(),
         config_files: base::config_files() + aux::config_files(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::AUTHRPC_PORT,global::OP_RPC_PORT,global::CADDY_DIR),
