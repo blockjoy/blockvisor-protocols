@@ -321,6 +321,6 @@ COPY templates/Caddyfile.template /var/lib/babel/templates/
 
 ## Example Implementation
 
-The example protocol implementation in [docs/example/](docs/example/) demonstrates how to implement a protocol.
+The example protocol implementation in [example/](example/) demonstrates how to implement a protocol.
 
 See also docs and examples delivered with BV bundle in `/opt/blockvisor/current/docs/`.

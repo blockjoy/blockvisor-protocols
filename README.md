@@ -1,10 +1,10 @@
-# BlockJoy Protocols
+# Blockvisor Protocols
 
 This repository contains Docker configurations for blockchain protocol nodes and their associated clients. It includes protocol implementations and client software configurations for use with the BlockJoy platform.
 
 ## Overview
 
-BlockJoy Protocols is a comprehensive collection of containerized blockchain node implementations designed to run on the BlockJoy platform. This repository provides standardized, production-ready Docker configurations for deploying and managing a wide variety of blockchain protocols.
+Blockvisor Protocols is a comprehensive collection of containerized blockchain node implementations designed to run on the BlockJoy platform. This repository provides standardized, production-ready Docker configurations for deploying and managing a wide variety of blockchain protocols.
 
 Key features:
 - Containerized blockchain node implementations for 20+ protocols
@@ -67,8 +67,8 @@ Each protocol implementation follows a standardized structure and includes:
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/blockjoy/blockjoy-protocols.git
-   cd blockjoy-protocols
+   git clone https://github.com/blockjoy/blockvisor-protocols.git
+   cd blockvisor-protocols
    ```
 
 2. **Examine protocol implementations**:
