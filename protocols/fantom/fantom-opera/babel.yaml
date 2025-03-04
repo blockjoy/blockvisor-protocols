@@ -1,5 +1,5 @@
 version: 1.0.1
-container_uri: docker://ghcr.io/blockjoy/fantom-opera-protocol:v20250304.3
+container_uri: docker://ghcr.io/blockjoy/fantom-opera-protocol:v20250304.4
 sku_code: FTMOPERA
 org_id: null
 description: Fantom Opera

@@ -1,4 +1,4 @@
-FROM ghcr.io/blockjoy/debian-bookworm:v20250303.2
+FROM ghcr.io/blockjoy/debian-bookworm:v20250304.4
 
 ENV DEBIAN_FRONTEND=noninteractive
 
