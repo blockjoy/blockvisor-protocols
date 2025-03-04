@@ -1,7 +1,6 @@
 import "base" as base;
 import "aux" as aux;
 
-const BABEL_VERSION = "1.13.1";
 const WORKDIR = "/root";
 const DATA_DIR = node_env().protocol_data_path + "/near";
 const RPC_PORT = 3030;
@@ -23,52 +22,48 @@ const VARIANTS = #{
 
 const NET = VARIANTS[node_env().node_variant].network;
 
-let AUX_CONFIG = aux::base_config(global::DATA_DIR, global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::CADDY_DIR);
-
-const BASE_CONFIG = #{
-    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
-};
-
-const PLUGIN_CONFIG = #{
-    init: #{
-        commands: [
-            `mkdir -p ${global::CADDY_DIR}`,
-        ],
-        jobs: [
+fn plugin_config() {
+    #{
+        config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::CADDY_DIR),
+        aux_services: base::aux_services() + aux::aux_services(),
+        init: #{
+            commands: [
+                `mkdir -p ${global::CADDY_DIR}`,
+            ],
+            jobs: [
+                #{
+                    name: "init",
+                    run_sh: `/root/bin/neard --home=${global::DATA_DIR} init --chain-id ${global::NET} --download-genesis --boot-nodes ${global::VARIANTS[node_env().node_variant].bootnodes} && rm ${global::DATA_DIR}/config.json && mv /root/bin/config.json ${global::DATA_DIR}/config.json`,
+                }
+            ]
+        },
+        services: [
             #{
-                name: "init",
-                run_sh: `/root/bin/neard --home=${global::DATA_DIR} init --chain-id ${global::NET} --download-genesis --boot-nodes ${global::VARIANTS[node_env().node_variant].bootnodes} && rm ${global::DATA_DIR}/config.json && mv /root/bin/config.json ${global::DATA_DIR}/config.json`,
+                name: "near",
+                run_sh: `/root/bin/neard --home=${global::DATA_DIR} run --rpc-prometheus-addr 127.0.0.1:${global::METRICS_PORT}`,
+                shutdown_timeout_secs: 300,
+                needs: [],
             }
-        ]
-    },
-    services: [
-        #{
-            name: "near",
-            run_sh: `/root/bin/neard --home=${global::DATA_DIR} run --rpc-prometheus-addr 127.0.0.1:${global::METRICS_PORT}`,
-            shutdown_timeout_secs: 300,
-            needs: [],
-            log_timestamp: false,
-        }
-    ],
-    pre_upload: #{        
-        commands: [
-            `echo "Preparing to upload"`,
-        ],        
-        jobs: [
-            #{
-                name: "upload_prep",
-                run_sh: `sleep 300`,
-            }
-        ]
-    },
-    upload: #{
-        exclude: [
-            "caddy/**",
         ],
-    },
-    scheduled: [],
-};
+        pre_upload: #{
+            commands: [
+                `echo "Preparing to upload"`,
+            ],
+            jobs: [
+                #{
+                    name: "upload_prep",
+                    run_sh: `sleep 300`,
+                }
+            ]
+        },
+        upload: #{
+            exclude: [
+                "caddy/**",
+            ],
+        },
+        scheduled: [],
+    }
+}
 
 fn application_status() {
     let result = run_jrpc(#{
@@ -78,9 +73,9 @@ fn application_status() {
         }).expect(200);
 
     if result.result.sync_info.syncing == false {
-        return "broadcasting";
+        #{state: "broadcasting", health: "healthy"}
     } else {
-        return "delinquent";
+        #{state: "delinquent", health: "healthy"}
     }
 }
 

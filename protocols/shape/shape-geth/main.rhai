@@ -15,13 +15,6 @@ const GETH_API = "http://127.0.0.1:" + global::RPC_PORT;
 const SHAPE_API = "http://127.0.0.1:8547";
 const SHAPE_DIR = node_env().protocol_data_path + "/shape";
 
-let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::OP_NODE_RPC_PORT, global::AUTHRPC_PORT, global::CADDY_DIR, global::METRICS_PATH);
-
-const BASE_CONFIG = #{
-    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
-};
-
 const VARIANTS = #{
     "geth-mainnet-full": #{
         sequencer_url: "https://shape-mainnet-sequencer.g.alchemy.com",
@@ -51,55 +44,57 @@ const NETWORK = VARIANTS[node_env().node_variant].network;
 
 const CONFIG_DIR = `/root/config/${global::NETWORK}`;
 
-const BABEL_VERSION = "0.9.0";
 
-const PLUGIN_CONFIG = #{
-    init: #{
-        commands: [
-            `mkdir -p ${global::SHAPE_DIR}/geth`,
-            `mkdir -p ${global::CADDY_DIR}`,
-            `cp -a ${global::CONFIG_DIR}/rollup.json ${global::SHAPE_DIR}`,
-            `cp -a ${global::CONFIG_DIR}/genesis.json ${global::SHAPE_DIR}/geth`,
-        ],
-        jobs: [
+fn plugin_config() {
+    #{
+        config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR),
+        aux_services: base::aux_services() + aux::aux_services(),
+        init: #{
+            commands: [
+                `mkdir -p ${global::SHAPE_DIR}/geth`,
+                `mkdir -p ${global::CADDY_DIR}`,
+                `cp -a ${global::CONFIG_DIR}/rollup.json ${global::SHAPE_DIR}`,
+                `cp -a ${global::CONFIG_DIR}/genesis.json ${global::SHAPE_DIR}/geth`,
+            ],
+            jobs: [
+                #{
+                    name: "init_job",
+                    run_sh: `openssl rand -hex 32 > ${global::SHAPE_DIR}/jwt.txt`,
+                }
+            ]
+        },
+        services: [
             #{
-                name: "init_job",
-                run_sh: `openssl rand -hex 32 > ${global::SHAPE_DIR}/jwt.txt`,
-            }
-        ]
-    },
-    services: [
-        #{
-            name: "op-geth",
-            run_sh: `/root/bin/op-geth --op-network ${global::OP_NETWORK} --syncmode=snap --ws --ws.port=${global::WS_PORT} --ws.addr=127.0.0.1 --ws.origins="*" --http --http.api="eth,net,web3,debug" --http.port=${global::RPC_PORT} --http.addr=127.0.0.1 --http.vhosts="*" --http.corsdomain="*" --authrpc.addr=127.0.0.1 --authrpc.jwtsecret=${global::SHAPE_DIR}/jwt.txt --authrpc.port=${global::AUTHRPC_PORT} --authrpc.vhosts="*" --verbosity=3 --rollup.sequencerhttp=${global::SEQUENCER_URL} --metrics --metrics.addr=127.0.0.1 --metrics.port=${global::METRICS_PORT} --datadir=${global::SHAPE_DIR}/ --rollup.disabletxpoolgossip=true --nodiscover --maxpeers=0`,
-            shutdown_timeout_secs: 120,
-        },
-        #{
-            name: "op-node",
-            run_sh: `/root/bin/op-node --network ${global::OP_NETWORK} --p2p.bootnodes=${global::BOOTNODES} --rpc.addr=127.0.0.1 --rpc.port=${global::OP_NODE_RPC_PORT} --l1=${global::L1_URL} --l1.beacon=${global::BEACON_URL} --l1.rpckind=${global::L1_RPCKIND} --l2=http://127.0.0.1:${global::AUTHRPC_PORT} --l2.jwt-secret=${global::SHAPE_DIR}/jwt.txt`,
-            shutdown_timeout_secs: 120,
-        },
-    ],
-    download: #{
-        max_connections: 5,
-    },
-    upload: #{
-        exclude: [
-            "jwt.txt",
-            "bedrock.tar.zst",
-            "bedrock.tar",
-            "caddy/**",
+                name: "op-geth",
+                run_sh: `/root/bin/op-geth --op-network ${global::OP_NETWORK} --syncmode=snap --ws --ws.port=${global::WS_PORT} --ws.addr=127.0.0.1 --ws.origins="*" --http --http.api="eth,net,web3,debug" --http.port=${global::RPC_PORT} --http.addr=127.0.0.1 --http.vhosts="*" --http.corsdomain="*" --authrpc.addr=127.0.0.1 --authrpc.jwtsecret=${global::SHAPE_DIR}/jwt.txt --authrpc.port=${global::AUTHRPC_PORT} --authrpc.vhosts="*" --verbosity=3 --rollup.sequencerhttp=${global::SEQUENCER_URL} --metrics --metrics.addr=127.0.0.1 --metrics.port=${global::METRICS_PORT} --datadir=${global::SHAPE_DIR}/ --rollup.disabletxpoolgossip=true --nodiscover --maxpeers=0`,
+                shutdown_timeout_secs: 120,
+            },
+            #{
+                name: "op-node",
+                run_sh: `/root/bin/op-node --network ${global::OP_NETWORK} --p2p.bootnodes=${global::BOOTNODES} --rpc.addr=127.0.0.1 --rpc.port=${global::OP_NODE_RPC_PORT} --l1=${global::L1_URL} --l1.beacon=${global::BEACON_URL} --l1.rpckind=${global::L1_RPCKIND} --l2=http://127.0.0.1:${global::AUTHRPC_PORT} --l2.jwt-secret=${global::SHAPE_DIR}/jwt.txt`,
+                shutdown_timeout_secs: 120,
+            },
         ],
-    },
-};
+        download: #{
+            max_connections: 5,
+        },
+        upload: #{
+            exclude: [
+                "jwt.txt",
+                "bedrock.tar.zst",
+                "bedrock.tar",
+                "caddy/**",
+            ],
+        },
+}}
 
 fn application_status() {
     let resp = run_jrpc(#{host: global::GETH_API, method: ""});
 
     if resp.status_code == 200 {
-        "broadcasting"
+        #{state: "broadcasting", health: "healthy"}
     } else {
-        "delinquent"
+        #{state: "delinquent", health: "healthy"}
     }
 }
 
@@ -108,16 +103,16 @@ fn height() {
 }
 
 fn sync_status() {
-        let system_timestamp = run_sh (`date +%s`).unwrap();
-        let h = run_jrpc(#{host: global::SHAPE_API, method: "optimism_syncStatus"}).expect(200);
+    let system_timestamp = run_sh (`date +%s`).unwrap();
+    let h = run_jrpc(#{host: global::SHAPE_API, method: "optimism_syncStatus"}).expect(200);
 
-        let block_timestamp = h.result.unsafe_l2.timestamp;
-        
-        let current_timestamp = parse_int(system_timestamp);
-        
-        if block_timestamp < current_timestamp - 100 {
-            return "syncing";
-        } else {
-            return "synced";
+    let block_timestamp = h.result.unsafe_l2.timestamp;
+
+    let current_timestamp = parse_int(system_timestamp);
+
+    if block_timestamp < current_timestamp - 100 {
+        return "syncing";
+    } else {
+        return "synced";
     }
 }

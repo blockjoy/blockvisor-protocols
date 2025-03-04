@@ -1,12 +1,12 @@
-fn config_files(metrics_port, metrics_path, rpc_port, ws_port, caddy_dir) {
+fn config_files(data_dir, metrics_port, metrics_path, rpc_port, caddy_dir, network) {
     [
         #{
             template: "/var/lib/babel/templates/config-alloy.template",
             destination: "/etc/alloy/config.alloy",
             params: #{
                 hostname: node_env().node_name,
-                tld: ".n0des.xzy",
-                blockchain: "optimism_reth",
+                tld: ".n0des.xyz",
+                blockchain: node_env().node_protocol,
                 metrics_port: `${metrics_port}`,
                 metrics_path: `${metrics_path}`,
                 grafana_loki_key: get_secret("grafana-loki-key").as_string(),
@@ -17,16 +17,27 @@ fn config_files(metrics_port, metrics_path, rpc_port, ws_port, caddy_dir) {
             template: "/var/lib/babel/templates/Caddyfile.template",
             destination: "/etc/caddy/Caddyfile",
             params: #{
-                rpc_port: `${rpc_port}`,
-                ws_port: `${ws_port}`,
                 metrics_port: `${metrics_port}`,
                 metrics_path: `${metrics_path}`,
                 hostname: node_env().node_name,
                 node_ip: node_env().node_ip,
                 tld: ".n0des.xyz",
                 data_dir: `${caddy_dir}`,
+                rpc_port: `${rpc_port}`,
+                ws_port: `${rpc_port}`,  // Using same port for WebSocket
                 cloudflare_cert_key: get_secret("cloudflare-cert-key").as_string(),
-            },
+            }
+        },
+        #{
+            template: "/var/lib/babel/templates/fullnode-yaml.template",
+            destination: "/root/bin/fullnode.yaml",
+            params: #{
+                rpc_port: `${rpc_port}`,
+                metrics_port: `${metrics_port}`,
+                node_ip: node_env().node_ip,
+                global_dir: `${data_dir}`,
+                network: `${network}`,
+            }
         },
     ]
 }
@@ -40,6 +51,6 @@ fn aux_services() {
         #{
             name: "caddy",
             run_sh: "/usr/bin/caddy run --config /etc/caddy/Caddyfile",
-        },
+        }
     ]
 }

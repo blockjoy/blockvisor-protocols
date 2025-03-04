@@ -1,7 +1,6 @@
 import "base" as base;
 import "aux" as aux;
 
-
 const HEIMDALL_DIR = node_env().protocol_data_path + "/heimdall";
 const BOR_DIR = node_env().protocol_data_path + "/bor";
 const CADDY_DIR = node_env().data_mount_point + "/caddy";
@@ -10,12 +9,6 @@ const WS_PORT = 8546;
 const HEIMDALL_PORT = 1317;
 const METRICS_PORT = 7071;
 const METRICS_PATH = "/debug/metrics/prometheus";
-
-let AUX_CONFIG = aux::base_config(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
-const BASE_CONFIG  = #{
-    config_files: AUX_CONFIG.config_files+base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services+base::BASE_CONFIG.services,
-};
 
 const VARIANTS = #{
     "bor-mainnet-full": #{
@@ -32,39 +25,41 @@ const BOOTNODES = VARIANTS[node_env().node_variant].bootnodes;
 const NETWORK = VARIANTS[node_env().node_variant].network;
 const CHAIN_ID = VARIANTS[node_env().node_variant].chain_id;
 
-const BABEL_VERSION = "1.7.1";
-const PLUGIN_CONFIG = #{
-    init: #{
-        commands: [
-            `mkdir -p ${global::CADDY_DIR}`,
-            `mkdir -p ${global::BOR_DIR}`,
-            `mkdir -p ${global::HEIMDALL_DIR}`,
+fn plugin_config() {
+    #{
+        config_files: base::config_files() + aux::config_files(global::METRICS_PORT, global::METRICS_PATH, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR),
+        aux_services: base::aux_services() + aux::aux_services(),
+        init: #{
+            commands: [
+                `mkdir -p ${global::CADDY_DIR}`,
+                `mkdir -p ${global::BOR_DIR}`,
+                `mkdir -p ${global::HEIMDALL_DIR}`,
+            ],
+            jobs: []
+        },
+        services: [
+            #{
+                name: "heimdall",
+                run_sh: `/root/bin/heimdalld start --moniker blockjoy --home ${global::HEIMDALL_DIR} --p2p.seeds ${global::P2P_SEEDS} --bor_rpc_url http://127.0.0.1:${global::RPC_PORT} --chain ${global::NETWORK} --rest-server`,
+            },
+            #{
+                name: "bor",
+                run_sh: `/root/bin/bor server -datadir ${global::BOR_DIR} -chain ${global::NETWORK} -syncmode full -metrics -metrics.prometheus-addr 127.0.0.1:${global::METRICS_PORT} -maxpeers 200 -bor.heimdall http://127.0.0.1:${global::HEIMDALL_PORT} -http -http.addr 127.0.0.1 -http.port ${global::RPC_PORT} -http.corsdomain "*" -http.api eth,net,web3,txpool,bor -ws -ws.addr 127.0.0.1 -ws.port ${global::WS_PORT} -ws.origins "*" -ws.api eth,net,web3,txpool,bor -gcmode full -rpc.evmtimeout 300s -rpc.gascap 0 -rpc.returndatalimit 0 -bootnodes ${global::BOOTNODES}`,
+            },
         ],
-        jobs: []
-    },
-    services: [
-        #{
-            name: "heimdall",
-            run_sh: `/root/bin/heimdalld start --moniker blockjoy --home ${global::HEIMDALL_DIR} --p2p.seeds ${global::P2P_SEEDS} --bor_rpc_url http://127.0.0.1:${global::RPC_PORT} --chain ${global::NETWORK} --rest-server`,
+        upload: #{
+            exclude: [],
         },
-        #{
-            name: "bor",
-            run_sh: `/root/bin/bor server -datadir ${global::BOR_DIR} -chain ${global::NETWORK} -syncmode full -metrics -metrics.prometheus-addr 127.0.0.1:${global::METRICS_PORT} -maxpeers 200 -bor.heimdall http://127.0.0.1:${global::HEIMDALL_PORT} -http -http.addr 127.0.0.1 -http.port ${global::RPC_PORT} -http.corsdomain "*" -http.api eth,net,web3,txpool,bor -ws -ws.addr 127.0.0.1 -ws.port ${global::WS_PORT} -ws.origins "*" -ws.api eth,net,web3,txpool,bor -gcmode full -rpc.evmtimeout 300s -rpc.gascap 0 -rpc.returndatalimit 0 -bootnodes ${global::BOOTNODES}`,
-        },
-    ],
-    upload: #{
-        exclude: [],
-    },
-};
-
+    }
+}
 
 fn application_status() {
     let resp = parse_hex(run_jrpc(#{host: global::API_HOST, method: "eth_chainId"}).expect(200).result);
 
     if resp == global::CHAIN_ID {
-        "broadcasting"
+        #{state: "broadcasting", health: "healthy"}
     } else {
-        "delinquent"
+        #{state: "delinquent", health: "healthy"}
     }
 }
 

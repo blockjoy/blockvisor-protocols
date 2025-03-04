@@ -6,13 +6,6 @@ const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const METRICS_PORT = 6161;
 
-let AUX_CONFIG = aux::base_config(global::METRICS_PORT,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR);
-
-const BASE_CONFIG  = #{
-    config_files: AUX_CONFIG.config_files+base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services+base::BASE_CONFIG.services,
-};
-
 const VARIANTS = #{
     "erigon-goerli-full": #{
         net: "goerli",
@@ -56,9 +49,9 @@ const EXTRA_ERIGON_ARGS = if node_env().node_variant.ends_with("-full") {
     ""
 };
 
-const BABEL_VERSION = "0.9.0";
-
-const PLUGIN_CONFIG = #{
+fn plugin_config() {#{
+    config_files: base::config_files() + aux::config_files(global::METRICS_PORT,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR),
+    aux_services: base::aux_services() + aux::aux_services(),
     init: #{
         commands: [
             `mkdir -p ${global::HOME}`,
@@ -77,15 +70,11 @@ const PLUGIN_CONFIG = #{
             name: "erigon",
             run_sh: `export HOME=/root && /root/bin/erigon --datadir=${global::HOME} --chain=${global::NET} --healthcheck=true --port=30303 --http.port=${global::RPC_PORT} --authrpc.port=8551 --torrent.port=42069 --private.api.addr=127.0.0.1:9090 --http --ws --ws.port=${global::WS_PORT} --http.api=eth,debug,net,trace,web3,erigon --nat=none --authrpc.jwtsecret=${global::HOME}/jwt.hex --metrics --metrics.port=${global::METRICS_PORT} --metrics.addr=127.0.0.1 --torrent.download.rate=100mb --http.vhosts 127.0.0.1 --downloader.disable.ipv6 --caplin.backfilling=true --caplin.backfilling.blob=true --caplin.backfilling.blob.no-pruning=true --caplin.archive=true --beacon.api=beacon,builder,config,debug,node,validator,lighthouse --internalcl ${global::EXTRA_ERIGON_ARGS}`,
             shutdown_timeout_secs: 120,
-            use_blockchain_data: true,
-            log_timestamp: false,
         },
         #{
             name: "lighthouse",
             run_sh: `RUST_LOG=info /root/bin/lighthouse bn --network ${global::NET} --datadir ${global::LIGHTHOUSE_DIR} --checkpoint-sync-url ${global::CHECKPOINT_URL} --disable-deposit-contract-sync --http --http-address 127.0.0.1 --http-port 5052 --execution-endpoint http://127.0.0.1:8551 --execution-jwt ${global::HOME}/jwt.hex --metrics --metrics-port 9002 --prune-blobs false --reconstruct-historic-states --block-cache-size 64 --genesis-backfill --historic-state-cache-size 4 --disable-backfill-rate-limiting`,
             shutdown_timeout_secs: 120,
-            use_blockchain_data: true,
-            log_timestamp: false,
         },
     ],
     alternative_download: #{
@@ -97,15 +86,15 @@ const PLUGIN_CONFIG = #{
             "caddy/**",
         ]
     }
-};
+}}
 
 fn application_status() {
     let resp = run_jrpc(#{host: global::API_HOST, method: ""});
-    
+
     if resp.status_code == 200 {
-        "broadcasting"
+        #{state: "broadcasting", health: "healthy"}
     } else {
-        "delinquent"
+        #{state: "delinquent", health: "healthy"}
     }
 }
 

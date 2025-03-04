@@ -233,7 +233,6 @@ fn base_config(metrics_port, rpc_port, ws_port, caddy_dir) {
             #{
                 name: "caddy",
                 run_sh: `/usr/bin/caddy run --config /etc/caddy/Caddyfile`,
-                log_timestamp: false,
             }
         ]
     }
