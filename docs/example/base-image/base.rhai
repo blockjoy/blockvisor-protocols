@@ -1,21 +1,25 @@
-export const BASE_CONFIG = #{
-    config_files: [
+fn config_files() {
+    [
         #{
-            template: "/var/lib/babel/templates/caddy-dashboard.template",
-            destination: "/var/lib/grafana/dashboards/caddy-dashboard.json",
+            template: "/some/template.template",
+            destination: "/some/destination/config",
             params: #{
-                node_name: node_env().node_name
+                param1: "value1",
+                param2: "value2",
             },
         },
-    ],
-    services : [
+    ]
+}
+
+fn aux_services() {
+    [
         #{
-            name: "grafana",
-            run_sh: "GF_USERS_DEFAULT_ROLE=Viewer \
-                    GF_AUTH_ANONYMOUS_ENABLED=true \
-                    GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer \
-                    GF_ROLE_VIEWER_EDITORS_CAN_SAVE=false \
-                    grafana-server --homepath /usr/share/grafana --config /etc/grafana/grafana.ini"
+            name: "binary1",
+            run_sh: "/usr/bin/binary1 run",
         },
+        #{
+            name: "binary2",
+            run_sh: "/usr/bin/binary2 run",
+        }
     ]
 }

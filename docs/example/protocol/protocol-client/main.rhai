@@ -41,42 +41,46 @@ const EXTRA_ARGS = if node_env().node_variant.ends_with("-full") {
 };
 
 // Plugin configuration
-const PLUGIN_CONFIG = #{
-    init: #{
-        commands: [
-            `mkdir -p ${global::EXAMPLE_DIR}`,
-            `mkdir -p ${global::CADDY_DIR}`,
-        ],
-        jobs: [
+fn plugin_config() {
+     #{
+        aux_services: base::aux_services() + aux::aux_services(),
+        config_files: base::config_files() + aux::config_files(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::CADDY_DIR),
+        init: #{
+            commands: [
+                `mkdir -p ${global::EXAMPLE_DIR}`,
+                `mkdir -p ${global::CADDY_DIR}`,
+            ],
+            jobs: [
+                #{
+                    name: "init_job",
+                    run_sh: `openssl rand -hex 32 > ${global::EXAMPLE_DIR}/jwt.txt`,
+                },
+            ],
+        },
+        services: [
             #{
-                name: "init_job",
-                run_sh: `openssl rand -hex 32 > ${global::EXAMPLE_DIR}/jwt.txt`,
+                name: "example-node",
+                run_sh: `/usr/bin/example-node \
+                        --datadir=${global::EXAMPLE_DIR} \
+                        --network=${global::VARIANT.network} \
+                        --http \
+                        --http.addr=127.0.0.1 \
+                        --http.port=${global::RPC_PORT} \
+                        --http.api=eth,net,web3 \
+                        --ws \
+                        --ws.addr=127.0.0.1 \
+                        --ws.port=${global::WS_PORT} \
+                        --ws.api=eth,net,web3 \
+                        --metrics \
+                        --metrics.addr=127.0.0.1 \
+                        --metrics.port=${global::METRICS_PORT} \
+                        ${global::EXTRA_ARGS}`,
+                shutdown_timeout_secs: 120,
             },
         ],
-    },
-    services: BASE_CONFIG.services + [
-        #{
-            name: "example-node",
-            run_sh: `/usr/bin/example-node \
-                    --datadir=${global::EXAMPLE_DIR} \
-                    --network=${global::VARIANT.network} \
-                    --http \
-                    --http.addr=127.0.0.1 \
-                    --http.port=${global::RPC_PORT} \
-                    --http.api=eth,net,web3 \
-                    --ws \
-                    --ws.addr=127.0.0.1 \
-                    --ws.port=${global::WS_PORT} \
-                    --ws.api=eth,net,web3 \
-                    --metrics \
-                    --metrics.addr=127.0.0.1 \
-                    --metrics.port=${global::METRICS_PORT} \
-                    ${global::EXTRA_ARGS}`,
-            shutdown_timeout_secs: 120,
-        },
-    ],
-    config_files: BASE_CONFIG.config_files,
-};
+        config_files: BASE_CONFIG.config_files,
+    }
+}
 
 // Required status functions
 fn application_status() {

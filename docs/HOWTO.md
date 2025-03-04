@@ -142,16 +142,18 @@ const VARIANTS = #{
 const VARIANT = VARIANTS[node_env().node_variant];
 
 // Use in service configuration
-const PLUGIN_CONFIG = #{
+fn plugin_config() {#{
+        aux_services: base::aux_services() + aux::aux_services(), // explained below
+        config_files: base::config_files() + aux::config_files(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT, global::AUTHRPC_PORT,global::OP_RPC_PORT,global::CADDY_DIR), // explained below
     services: [
-        #{
-            name: "example-node",
-            run_sh: `/usr/bin/example-node \
-                    --network=${VARIANT.network} \
-                    ${VARIANT.extra_args}`,
-        },
-    ],
-};
+            #{
+                name: "example-node",
+                run_sh: `/usr/bin/example-node \
+                        --network=${global::VARIANT.network} \
+                        ${global::VARIANT.extra_args}`,
+            },
+        ],
+}}
 ```
 
 ### Implementation Flow
@@ -200,22 +202,37 @@ The `base.rhai` file is part of the base image and provides common utility funct
 
 ```rhai
 // Base configuration that protocols can extend
-export const BASE_CONFIG = #{
-    config_files: [],
-    services: [],
-};
+fn config_files() {
+    [
+        #{
+            template: "/some/template.template",
+            destination: "/some/destination/config",
+            params: #{
+                param1: "value1",
+                param2: "value2",
+            },
+        },
+    ]
+}
 
-// Some utility function
-fn some_utility(param) {
-    return param;
+fn aux_services() {
+    [
+        #{
+            name: "binary1",
+            run_sh: "/usr/bin/binary1 run",
+        },
+        #{
+            name: "binary2",
+            run_sh: "/usr/bin/binary2 run",
+        }
+    ]
 }
 ```
 
 ### 2. aux.rhai - Auxiliary, client specific configurations and functions
 ```rhai
-fn base_config(metrics_port, rpc_port, ws_port, caddy_dir) {
-    #{
-        config_files: [
+fn config_files() {
+        [
             #{
                 template: "/var/lib/babel/templates/Caddyfile.template",
                 destination: "/etc/caddy/Caddyfile",
@@ -228,15 +245,17 @@ fn base_config(metrics_port, rpc_port, ws_port, caddy_dir) {
                     data_dir: `${caddy_dir}`,
                 }
             }
-        ],
-        services: [
+        ]
+}
+fn aux_services() {            
+        [
             #{
                 name: "caddy",
                 run_sh: `/usr/bin/caddy run --config /etc/caddy/Caddyfile`,
-            }
+            },
         ]
-    }
 }
+
 ```
 
 Base and aux functions are imported in `main.rhai` using:
@@ -245,17 +264,18 @@ import "base" as base;        // Inherrited from the base-image used
 import "aux" as aux;          // Inherrited from the aux.rhai in protocol directory
 
 // Import auxiliary configuration
-let AUX_CONFIG = aux::base_config(global::METRICS_PORT, global::RPC_PORT, global::WS_PORT, global::CADDY_DIR);
-
-// Merge with base configuration
-const BASE_CONFIG = #{
-    config_files: AUX_CONFIG.config_files + base::BASE_CONFIG.config_files,
-    services: AUX_CONFIG.services + base::BASE_CONFIG.services,
-};
-
-
-base::some_utility("message");
-```
+fn plugin_config() {
+        aux_services: base::aux_services() + aux::aux_services(), // pull from base.rhai and aux.rhai
+        config_files: base::config_files() + aux::config_files(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::AUTHRPC_PORT,global::OP_RPC_PORT,global::CADDY_DIR), // use global variables to interpolate into configs and pull them in
+        services : [
+            #{
+                name: "example-node",   
+                run_sh: `/usr/bin/example-node \
+                        --network=${global::VARIANT.network} \
+                        ${global::VARIANT.extra_args}`,
+            },
+        ]
+}
 
 ### 3. Templates and Configuration Files
 
