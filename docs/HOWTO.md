@@ -58,7 +58,7 @@ The protocol implementation interacts with the BlockJoy API through a combinatio
 
 ### Protocol Metadata (protocols.yaml)
 
-First make sure that the protocol you're creating an image for, is defined in `protocols.yaml`. This is the root entity that groups all implementations of the same protocol.
+First make sure that the protocol you're creating an image for is defined in `protocols.yaml`. This is the root entity that groups all implementations of the same protocol.
 
 ### Protocol Image Metadata (babel.yaml)
 
@@ -74,8 +74,8 @@ This metadata is used by the API for deployment planning and resource allocation
 ### Runtime Interface (Rhai scripts)
 
 The Rhai scripts (`main.rhai` and other imported scripts like `aux.rhai`) serve as the primary configuration interface between your protocol image and the BlockJoy API. These files:
-1. Access the protocol image metadata through the `node_env()` function
-2. Configure protocol image behavior based on the selected variant
+1. Access the protocol image metadata from `babel.yaml` through the `node_env()` function
+2. Configure protocol image behavior based on the selected `babel.yaml` variant
 3. Initialize and manage protocol services
 4. Report node status back to the API
 

@@ -57,26 +57,6 @@ Each protocol implementation follows a standardized structure and includes:
 
 ## Getting Started
 
-### Prerequisites
-
-- Docker 20.10.0 or later
-- Access to BlockJoy platform services (for production use)
-- Git LFS for downloading large files
-
-### Development
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/blockjoy/blockvisor-protocols.git
-   cd blockvisor-protocols
-   ```
-
-2. **Examine protocol implementations**:
-   Browse the `protocols/` directory to see existing implementations.
-
-3. **Create a new protocol implementation**:
-   Follow the [Protocol Development Guide](docs/HOWTO.md) for detailed instructions.
-
 ### Creating a New Protocol Implementation
 
 To create a new protocol implementation:
