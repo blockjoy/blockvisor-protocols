@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250304.4
-ARG NEAR_IMAGE=nearprotocol/nearcore:2.5.0
+ARG NEAR_IMAGE=nearprotocol/nearcore:2.5.1
 
 
 FROM ${NEAR_IMAGE} AS near_node
