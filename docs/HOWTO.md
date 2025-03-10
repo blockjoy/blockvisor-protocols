@@ -16,6 +16,10 @@ This guide explains how to create and maintain protocol implementations for the 
   - [aux.rhai - Auxiliary, client specific configurations and functions](#2-aux-rhai-auxiliary-client-specific-configurations-and-functions)
   - [Templates and Configuration Files](#3-templates-and-configuration-files)
   - [Dockerfile - Protocol image configuration](#4-dockerfile-protocol-image-configuration)
+- [Testing and Deploying Protocols](#testing-and-deploying-protocols)
+  - [Checking Protocol Syntax and Configuration](#checking-protocol-syntax-and-configuration)
+  - [Testing Protocol Nodes](#testing-protocol-nodes)
+  - [Deploying to the BlockJoy API](#deploying-to-the-blockjoy-api)
 - [Best Practices](#best-practices)
 - [Example Implementation](#example-implementation)
   - [Example](./example/)
@@ -347,6 +351,70 @@ COPY --from=lighthouse /root/bin/lighthouse /root/bin/
 COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/
 ```
+
+## Testing and Deploying Protocols
+
+### Checking Protocol Syntax and Configuration
+
+Before deploying your protocol, you should check its syntax and configuration using `nib`. This tool is used in our CI/CD pipeline to validate protocols before they are built and deployed.
+
+To check a protocol's syntax:
+```bash
+nib image check --variant <variant-name> --path <path-to-babel-yaml> plugin
+```
+
+For example:
+```bash
+nib image check --variant mainnet --path protocols/your_protocol/your_protocol-exec_client/babel.yaml plugin
+```
+
+This will validate:
+- The `babel.yaml` file structure and required fields
+- The presence and syntax of required Rhai scripts
+- The configuration templates and their variables
+
+### Testing Protocol Nodes
+
+Once the syntax check passes, you can test your protocol nodes. There are two main types of checks:
+
+1. Service Status Checks - Verify that all services defined in your protocol start correctly (doesn't check for service restarts, only service startup):
+```bash
+nib image check --variant <variant-name> --path <path-to-babel-yaml> --cleanup jobs-status
+```
+
+2. Service Restart Checks - Verify that your protocol handles service restarts properly (besides checking for proper service start, it will also check if the service fails and restarts):
+```bash
+nib image check --variant <variant-name> --path <path-to-babel-yaml> --cleanup jobs-restarts
+```
+
+Notes:
+`babel` (the component running on the node as part of the blockvisor suite) is responsible for starting and monitoring the node services. If a service isn't configured properly, it will start and eventually fail, so babel will restart start it according to the restart policy of the service. This will register as a service restart and is detected by the `job-restarts` check (`job-status` will only detect the initial failure to execute), but shouldn't be considered a critical error since some jobs won't start without specific requirements (for example, some execution clients won't start without a dataset since syncing from genesis isn't possible). These restarts are expected and can be normal behavior of the node, but they need to be checked thoroughly in order to identify configuration issues early on. In case of automated workflows, it's recommended to not fail the workflow on these errors, instead they should trigger a soft alert and get double-checked.
+
+### Deploying to the BlockJoy API
+
+#### Pushing the protocols.yaml File
+
+When you've added a new protocol or modified protocol metadata in `protocols.yaml`, you need to push these changes to the API:
+
+```bash
+nib protocol push --path protocols/protocols.yaml
+```
+
+#### Deploying Individual Protocol Images
+
+To deploy a specific protocol implementation:
+
+```bash
+nib image push --path <path-to-babel-yaml>
+```
+
+For example:
+```bash
+nib image push --path protocols/your_protocol/your_protocol-exec_client/babel.yaml
+```
+Notes:
+- The `nib` CLI tool is part of `bv` bundle released as part of the [bv-host-setup](https://github.com/blockjoy/bv-host-setup) repository.
+- The `--path` argument is optional and added throughout the documentation for clarity.
 
 ## Best Practices
 
