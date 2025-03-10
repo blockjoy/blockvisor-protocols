@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250304.4
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250304.5
 ARG NEAR_IMAGE=nearprotocol/nearcore:2.5.1
 
 
