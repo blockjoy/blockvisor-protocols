@@ -377,12 +377,12 @@ This will validate:
 
 Once the syntax check passes, you can test your protocol nodes. There are two main types of checks:
 
-1. Service Status Checks - Verify that all services defined in your protocol start correctly (doesn't check for service restarts, only service startup):
+1. Service Status Checks - Verify that all services defined in your configuration start correctly (doesn't check for service restarts, only service startup):
 ```bash
 nib image check --variant <variant-name> --path <path-to-babel-yaml> --cleanup jobs-status
 ```
 
-2. Service Restart Checks - Verify that your protocol handles service restarts properly (besides checking for proper service start, it will also check if the service fails and restarts):
+2. Service Restart Checks - Verify that the node services run properly once started (besides checking for proper service startup, it will also check if the services fail and then get restarted):
 ```bash
 nib image check --variant <variant-name> --path <path-to-babel-yaml> --cleanup jobs-restarts
 ```
