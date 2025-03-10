@@ -261,17 +261,17 @@ fn aux_services() {
 
 Base and aux functions are imported into the protocol's `main.rhai` using:
 ```rhai
-import "base" as base;        // Inherrited from the base-image used
-import "aux" as aux;          // Inherrited from the aux.rhai in protocol directory
+import "base" as base;        // Inherited from the base-image used
+import "aux" as aux;          // Inherited from the aux.rhai in protocol directory
 
 // Import auxiliary configuration
 fn plugin_config() {
         aux_services: base::aux_services() + aux::aux_services(), // pull from base.rhai and aux.rhai
-        config_files: base::config_files() + aux::config_files(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::AUTHRPC_PORT,global::OP_RPC_PORT,global::CADDY_DIR), // use global variables to interpolate into configs and pull them in
+        config_files: base::config_files() + aux::config_files(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::AUTHRPC_PORT,global::OP_RPC_PORT,global::CADDY_DIR), // use global variables to interpolate into configs and pull them in the `main.rhai`
         services : [
             #{
-                name: "example-node",   
-                run_sh: `/usr/bin/example-node \
+                name: "erigon",
+                run_sh: `/root/bin/erigon \
                         --network=${global::VARIANT.network} \
                         ${global::VARIANT.extra_args}`,
             },
@@ -334,18 +334,18 @@ These templates are referenced in the auxiliary configuration (`aux.rhai`) and a
 
 ### 4. Dockerfile - Protocol image configuration
 ```dockerfile
-FROM golang:1.21-alpine AS builder
-RUN apk add --no-cache make gcc musl-dev linux-headers git
+FROM privaterepo/erigon as erigon
+FROM privaterepo/lighthouse as lighthouse
 
-# Build example client
-RUN git clone https://github.com/example/example-client.git /src
-WORKDIR /src
-RUN make build
+FROM privaterepo/debian-bookworm-base
 
-FROM ghcr.io/blockjoy/node-base:latest
-COPY --from=builder /src/build/example-node /usr/bin/
-COPY templates/Caddyfile.template /var/lib/babel/templates/
-COPY config/static.config /etc/static.config
+RUN mkdir -p /root/bin /root/lib
+COPY --from=erigon /root/bin/erigon /root/bin/
+COPY --from=erigon /root/lib/libsilkworm_capi.so /root/lib/
+COPY --from=lighthouse /root/bin/lighthouse /root/bin/
+
+COPY aux.rhai /var/lib/babel/plugin/
+COPY main.rhai /var/lib/babel/plugin/
 ```
 
 ## Best Practices
