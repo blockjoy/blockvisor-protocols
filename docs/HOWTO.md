@@ -388,7 +388,7 @@ nib image check --variant <variant-name> --path <path-to-babel-yaml> --cleanup j
 ```
 
 Notes:
-`babel` (the component running on the node as part of the blockvisor suite) is responsible for starting and monitoring the node services. If a service isn't configured properly, it will start and eventually fail, so babel will restart start it according to the restart policy of the service. This will register as a service restart and is detected by the `job-restarts` check (`job-status` will only detect the initial failure to execute), but shouldn't be considered a critical error since some jobs won't start without specific requirements (for example, some execution clients won't start without a dataset since syncing from genesis isn't possible).
+`babel` (the component running on the node as part of the blockvisor suite) is responsible for starting and monitoring the node services. If a service isn't configured properly, it will start and eventually fail, so babel will restart start it according to the restart policy of the service. This will register as a service restart and is detected by the `job-restarts` check (`job-status` will only detect the initial failure to execute), but shouldn't be considered a critical error since some jobs won't start without specific requirements (for example, some execution clients won't start without a dataset since syncing from genesis isn't possible). These restarts are expected and can be normal behavior of the node, but they need to be checked thoroughly in order to identify configuration issues early on. In case of automated workflows, it's recommended to not fail the workflow on these errors, instead they should trigger a soft alert and get double-checked.
 
 ### Deploying to the BlockJoy API
 
