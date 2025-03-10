@@ -377,15 +377,18 @@ This will validate:
 
 Once the syntax check passes, you can test your protocol nodes. There are two main types of checks:
 
-1. Service Status Checks - Verify that all services defined in your protocol start correctly:
+1. Service Status Checks - Verify that all services defined in your protocol start correctly (doesn't check for service restarts, only service startup):
 ```bash
 nib image check --variant <variant-name> --path <path-to-babel-yaml> --cleanup jobs-status
 ```
 
-2. Service Restart Checks - Verify that your protocol handles service restarts properly:
+2. Service Restart Checks - Verify that your protocol handles service restarts properly (besides checking for proper service start, it will also check if the service fails and restarts):
 ```bash
 nib image check --variant <variant-name> --path <path-to-babel-yaml> --cleanup jobs-restarts
 ```
+
+Notes:
+`babel` (the component running on the node as part of the blockvisor suite) is responsible for starting and monitoring the node services. If a service isn't configured properly, it will start and eventually fail, so babel will restart start it according to the restart policy for the service. This will register as a service restart and is detected by the `job-restarts` check (`job-status` will only detect the initial failure to execute), but shouldn't be considered a critical error since some jobs won't start without specific requirements (for example, some execution clients won't start without a dataset since syncing from genesis isn't possible).
 
 ### Deploying to the BlockJoy API
 
