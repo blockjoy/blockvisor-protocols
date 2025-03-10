@@ -414,7 +414,7 @@ nib image push --path protocols/your_protocol/your_protocol-exec_client/babel.ya
 ```
 Notes:
 - The `nib` CLI tool is part of `bv` bundle released as part of the [bv-host-setup](https://github.com/blockjoy/bv-host-setup) repository.
-- The `--path` argument is optional and added throughout for clarity
+- The `--path` argument is optional and added throughout for clarity.
 
 ## Best Practices
 
