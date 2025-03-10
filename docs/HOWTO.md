@@ -119,9 +119,9 @@ pub struct NodeEnv {
 ### Implementation Flow
 
 When implementing a new blockchain protocol image:
-1. **Create client(s) used by protocol being implemented:**
+1. **Create client(s) used by the protocol being implemented:**
    - Define Dockerfile for each client
-   - Setup build for client
+   - Setup build for client(s)
    - Copy client binaries to common location for future use
    - Copy client specific libraries to common location for future use
 
@@ -145,10 +145,10 @@ When implementing a new blockchain protocol image:
 
 4. **Set Up Container** (`Dockerfile`):
    - Use appropriate base image
-   - Use related client images
+   - Copy related client binaries from the previously built client images (or use external images where required) 
    - Add protocol-specific dependencies
    - Configure runtime environment
-   - Put all necessary Rhai scripts (`main.rhai` in particular) into the container (`/var/lib/babel/plugin/`)
+   - Place all necessary Rhai scripts (`main.rhai` in particular) into the container (`/var/lib/babel/plugin/`)
 
 The BlockJoy API uses the metadata from `babel.yaml` to plan and create node deployments, while the RHAI files control how the node actually operates within those parameters.
 
@@ -310,7 +310,7 @@ Comprehensive documentation on the plugin's configuration and supported function
 
 ### 3. Templates and Configuration Files
 
-The protocol implementation may includes template files that are processed during node initialization:
+The protocol implementation may include template files that are processed during node initialization. These templates are used to create configuration files for node services, such as the reverse proxy, and may also include additional configuration for the node.
 
 **Caddyfile.template** - Reverse proxy configuration:
 ```bash
@@ -330,8 +330,7 @@ The protocol implementation may includes template files that are processed durin
 }
 ```
 
-These templates are referenced in the auxiliary configuration (`aux.rhai`) and are processed with values from the node environment.
-
+These templates are referenced in the auxiliary configuration (`aux.rhai`) and are processed with values from the node `main.rhai` to ensure consistency across services.
 
 ### 4. Dockerfile - Protocol image configuration
 ```dockerfile
@@ -345,30 +344,27 @@ RUN make build
 
 FROM ghcr.io/blockjoy/node-base:latest
 COPY --from=builder /src/build/example-node /usr/bin/
-COPY . /var/lib/babel/
 COPY templates/Caddyfile.template /var/lib/babel/templates/
+COPY config/static.config /etc/static.config
 ```
 
 ## Best Practices
 
 1. **Version Management**:
    - Use semantic versioning in `babel.yaml`
-   - Update the version when making protocol changes
+   - Update the version when making any changes to the protocol implementation
 
 2. **Configuration**:
    - Use environment variables for configurable values
-   - Document all configuration options
    - Follow the example protocols for structure
 
 3. **Service Management**:
-   - Implement proper shutdown handling
    - Use appropriate timeouts
-   - Monitor service health
+   - Ensure all functions required by the API are implemented
+   - Test functions to ensure they work as expected
 
 4. **Metrics**:
    - Expose Prometheus metrics when possible
-   - Use standard metric paths
-   - Include basic health metrics
 
 ## Example Implementation
 
