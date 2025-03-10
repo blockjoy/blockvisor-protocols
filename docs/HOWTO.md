@@ -270,8 +270,8 @@ fn plugin_config() {
         config_files: base::config_files() + aux::config_files(global::METRICS_PORT,global::METRICS_PATH,global::RPC_PORT,global::WS_PORT,global::AUTHRPC_PORT,global::OP_RPC_PORT,global::CADDY_DIR), // use global variables to interpolate into configs and pull them in the `main.rhai`
         services : [
             #{
-                name: "example-node",   
-                run_sh: `/usr/bin/example-node \
+                name: "erigon",
+                run_sh: `/root/bin/erigon \
                         --network=${global::VARIANT.network} \
                         ${global::VARIANT.extra_args}`,
             },
@@ -334,20 +334,18 @@ These templates are referenced in the auxiliary configuration (`aux.rhai`) and a
 
 ### 4. Dockerfile - Protocol image configuration
 ```dockerfile
-ARG ERIGON_IMAGE=blockjoy/erigon
-ARG LIGHTHOUSE_IMAGE=blockjoy/lighthouse
-ARG BASE_IMAGE=blockjoy/debian-bookworm
+FROM privaterepo/erigon as erigon
+FROM privaterepo/lighthouse as lighthouse
 
-FROM ${ERIGON_IMAGE} AS erigon
-
-FROM ${LIGHTHOUSE_IMAGE} AS lighthouse
-
-FROM ${BASE_IMAGE}
+FROM privaterepo/debian-bookworm-base
 
 RUN mkdir -p /root/bin /root/lib
 COPY --from=erigon /root/bin/erigon /root/bin/
 COPY --from=erigon /root/lib/libsilkworm_capi.so /root/lib/
 COPY --from=lighthouse /root/bin/lighthouse /root/bin/
+
+COPY aux.rhai /var/lib/babel/plugin/
+COPY main.rhai /var/lib/babel/plugin/
 ```
 
 ## Best Practices
