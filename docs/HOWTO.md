@@ -119,11 +119,11 @@ pub struct NodeEnv {
 ### Implementation Flow
 
 When implementing a new blockchain protocol image:
-1. **Create client(s) used by protocol being implemented:
+1. **Create client(s) used by protocol being implemented:**
    - Define Dockerfile for each client
-     - Setup build for client
-     - Copy client binaries to common location for future use
-     - Copy client specific libraries to common location for future use
+   - Setup build for client
+   - Copy client binaries to common location for future use
+   - Copy client specific libraries to common location for future use
 
 2. **Define Protocol Image Metadata** (`babel.yaml`):
    - Set protocol image identification (version, SKU, description)
@@ -165,7 +165,7 @@ variants:
     sku_code: EXPL-MF
 ```
 
-2. Configure variant-specific behavior in RHAI files:
+2. Configure variant-specific behavior in the protocol's `main.rhai`:
 ```rhai
 // Map node_env().node_variant to protocol configuration
 const VARIANTS = #{
@@ -199,7 +199,7 @@ See docs and examples with comments, delivered with BV bundle in `/opt/blockviso
 
 ### 1. base.rhai - Common protocol functions
 
-The `base.rhai` file is part of the base image and provides common utility functions used by all protocols. It is located at `/usr/lib/babel/plugin/base.rhai` in the container:
+The `base.rhai` file is part of the base image and provides common services and their configurations that are used by all protocols. It is located at `/usr/lib/babel/plugin/base.rhai` in the container:
 
 ```rhai
 // Base configuration that protocols can extend
@@ -230,7 +230,7 @@ fn aux_services() {
 }
 ```
 
-### 2. aux.rhai - Auxiliary, client specific configurations and functions
+### 2. aux.rhai - Auxiliary, client specific services and configurations
 ```rhai
 fn config_files() {
         [
@@ -259,7 +259,7 @@ fn aux_services() {
 
 ```
 
-Base and aux functions are imported in `main.rhai` using:
+Base and aux functions are imported into the protocol's `main.rhai` using:
 ```rhai
 import "base" as base;        // Inherrited from the base-image used
 import "aux" as aux;          // Inherrited from the aux.rhai in protocol directory
@@ -277,6 +277,36 @@ fn plugin_config() {
             },
         ]
 }
+```
+
+The `main.rhai` also contains protocol specific functions that the API uses to communicate with the running services and assess the node's health or status:
+
+```rhai
+fn protocol_status() {
+    let resp = parse_hex(run_jrpc(#{host: global::API_HOST, method: "eth_chainId"}).expect(200).result);
+
+    if resp == 1 { // Example chain ID
+        #{state: "broadcasting", health: "healthy"}
+    } else {
+        #{state: "delinquent", health: "healthy"}
+    }
+}
+
+fn height() {
+    parse_hex(run_jrpc(#{ host: global::API_HOST, method: "eth_blockNumber"}).expect(200).result)
+}
+
+fn sync_status() {
+    let resp = run_jrpc(#{host: global::API_HOST, method: "eth_syncing"}).expect(200);
+    if resp.result == false {
+        "synced"
+    } else {
+        "syncing"
+    }
+}
+```
+
+Comprehensive documentation on the plugin's configuration and supported functions can be found here: [Protocol RHAI Plugin Guide](https://github.com/blockjoy/blockvisor/blob/master/babel_api/rhai_plugin_guide.md).
 
 ### 3. Templates and Configuration Files
 
