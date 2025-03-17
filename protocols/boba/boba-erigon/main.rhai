@@ -58,7 +58,7 @@ fn plugin_config() {
     }
 }
 
-fn application_status() {
+fn protocol_status() {
     let resp = run_jrpc(#{host: global::API_HOST, method: "/"});
 
     if resp.status_code == 200 {

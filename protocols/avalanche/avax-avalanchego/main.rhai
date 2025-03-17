@@ -62,7 +62,7 @@ fn plugin_config() {
     }
 }
 
-fn application_status() {
+fn protocol_status() {
     let path = "ext/health";
     let data = #{host: global::API_HOST + path,
         method: "health.health",
