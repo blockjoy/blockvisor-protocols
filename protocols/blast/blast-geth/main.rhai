@@ -73,7 +73,7 @@ fn plugin_config() {
     }
 }
 
-fn application_status() {
+fn protocol_status() {
     let resp = parse_hex(run_jrpc(#{host: global::GETH_API, method: "eth_chainId"}).expect(200).result);
 
     if resp == 81457 {

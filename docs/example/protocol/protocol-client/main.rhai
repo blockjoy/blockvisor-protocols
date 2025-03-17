@@ -83,7 +83,7 @@ fn plugin_config() {
 }
 
 // Required status functions
-fn application_status() {
+fn protocol_status() {
     let resp = parse_hex(run_jrpc(#{host: global::API_HOST, method: "eth_chainId"}).expect(200).result);
 
     if resp == 1 { // Example chain ID

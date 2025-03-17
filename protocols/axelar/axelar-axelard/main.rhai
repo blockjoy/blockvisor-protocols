@@ -56,7 +56,7 @@ fn plugin_config() {
     }
 }
 
-fn application_status() {
+fn protocol_status() {
     /// "uploading", "downloading", "initializing" statuses are automatically handled by BV if BABEL_CONFIG const is defined
     let result = run_jrpc(#{
             host: global::API_HOST,

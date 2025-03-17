@@ -52,7 +52,7 @@ fn plugin_config() {
     }
 }
 
-fn application_status() {
+fn protocol_status() {
     let resp = run_jrpc(#{host: global::API_HOST, method: "sui_getChainIdentifier", headers: [["content-type", "application/json"]]}).expect(200).result.to_string();
 
     if resp == "35834a8a" {

@@ -88,7 +88,7 @@ fn plugin_config() {
         },
 }}
 
-fn application_status() {
+fn protocol_status() {
     let resp = run_jrpc(#{host: global::GETH_API, method: ""});
 
     if resp.status_code == 200 {

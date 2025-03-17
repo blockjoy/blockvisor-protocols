@@ -51,7 +51,7 @@ fn plugin_config() {
     }
 }
 
-fn application_status() {
+fn protocol_status() {
     let res = run_jrpc(#{
         host: global::API_HOST,
         method: "eth_blockNumber",
