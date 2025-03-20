@@ -356,7 +356,7 @@ COPY main.rhai /var/lib/babel/plugin/
 
 ### Checking Protocol Syntax and Configuration
 
-Before deploying your protocol, you should check its syntax and configuration using `nib`. This tool is used in our CI/CD pipeline to validate protocols. Please refer to the documentation [here](https://github.com/blockjoy/bv-host-setup) for installation and authentication instructions.
+Before deploying your protocol, you should check its syntax and configuration using `nib`. This tool is used in our CI/CD pipeline to validate protocols. Please refer to the documentation [here](https://github.com/blockjoy/blockvisor/blob/master/node_image_builder_guide.md#prerequisites) for installation and authentication instructions.
 
 To check a protocol's syntax:
 ```bash
@@ -413,7 +413,7 @@ For example:
 nib image push --path protocols/your_protocol/your_protocol-exec_client/babel.yaml
 ```
 Notes:
-- The `nib` CLI tool is part of `bv` bundle released as part of the [bv-host-setup](https://github.com/blockjoy/bv-host-setup) repository, please refer to the documentation [here](https://github.com/blockjoy/bv-host-setup) for installation and authentication instructions.
+- The `nib` CLI tool is part of `bv` bundle released in the [bv-host-setup](https://github.com/blockjoy/bv-host-setup) repository, please refer to the documentation [here](https://github.com/blockjoy/blockvisor/blob/master/node_image_builder_guide.md#prerequisites) for installation and authentication instructions.
 - The `--path` argument is optional and added throughout the documentation for clarity.
 
 ## Best Practices
