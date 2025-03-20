@@ -356,7 +356,7 @@ COPY main.rhai /var/lib/babel/plugin/
 
 ### Checking Protocol Syntax and Configuration
 
-Before deploying your protocol, you should check its syntax and configuration using `nib`. This tool is used in our CI/CD pipeline to validate protocols before they are built and deployed.
+Before deploying your protocol, you should check its syntax and configuration using `nib`. This tool is used in our CI/CD pipeline to validate protocols. Please refer to its documentation [here](https://github.com/blockjoy/bv-host-setup) for installation and authentication instructions.
 
 To check a protocol's syntax:
 ```bash
