@@ -280,7 +280,7 @@ jobs:
               echo "Please review these findings and make necessary fixes to improve the security of your Dockerfile."
             } > comment.md
             # Check if comment is too large and truncate if needed
-            COMMENT_SIZE=$(stat -f%z comment.md)
+            COMMENT_SIZE=$(wc -c < comment.md)
             MAX_SIZE=65000
             
             if [ $COMMENT_SIZE -gt $MAX_SIZE ]; then
@@ -520,7 +520,7 @@ jobs:
             } > comment.md
             
             # Check if comment is too large and truncate if needed
-            COMMENT_SIZE=$(stat -f%z comment.md)
+            COMMENT_SIZE=$(wc -c < comment.md)
             MAX_SIZE=65000
             
             if [ $COMMENT_SIZE -gt $MAX_SIZE ]; then
