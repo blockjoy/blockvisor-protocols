@@ -1,4 +1,4 @@
-version: 1.2.6
+version: 1.2.7
 container_uri: docker://ghcr.io/blockjoy/base-op-reth-protocol:v20250317.1
 sku_code: BASEOPRETH
 org_id: null
