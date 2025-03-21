@@ -1,9 +1,9 @@
 #1
-ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250304.5
+ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250321.1
 FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV OP_NODE_VERSION=op-node/v1.11.1
+ENV OP_NODE_VERSION=op-node/v1.12.2
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 # Build Op Node
