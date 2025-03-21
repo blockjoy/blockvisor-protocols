@@ -266,7 +266,6 @@ jobs:
         run: |
           set -x
           if [ -s trivy-dockerfile-results.txt ]; then
-            echo "Vulnerabilities found, commenting on PR"
             {
               echo "### 🔍 Trivy Dockerfile Scan Results for \`${{ matrix.image_path }}/Dockerfile\`"
               echo ""
@@ -280,7 +279,21 @@ jobs:
               echo ""
               echo "Please review these findings and make necessary fixes to improve the security of your Dockerfile."
             } > comment.md
+            # Check if comment is too large and truncate if needed
+            COMMENT_SIZE=$(stat -f%z comment.md)
+            MAX_SIZE=65000
+            
+            if [ $COMMENT_SIZE -gt $MAX_SIZE ]; then
+              echo "Comment is too large ($COMMENT_SIZE bytes), truncating to $MAX_SIZE bytes"
+              # Truncate the file to MAX_SIZE bytes
+              dd if=comment.md of=comment_truncated.md bs=$MAX_SIZE count=1
+              # Add truncation message
+              echo -e "\n\n**The report is truncated, please review the logs for the full report**" >> comment_truncated.md
+              mv comment_truncated.md comment.md
+            fi
+            
             gh pr comment ${{ github.event.pull_request.number }} --body-file comment.md
+            exit 0
           else
             echo "No vulnerabilities found in Dockerfile"
             gh pr comment ${{ github.event.pull_request.number }} --body "✅ No security issues found in \`${{ matrix.image_path }}/Dockerfile\`"
@@ -505,6 +518,20 @@ jobs:
               echo ""
               echo "These vulnerabilities were found in the ${{ steps.version.outputs.image_name }} image. Since this is a base image, these vulnerabilities will affect all derived images. Please review and update dependencies to their latest secure versions where possible."
             } > comment.md
+            
+            # Check if comment is too large and truncate if needed
+            COMMENT_SIZE=$(stat -f%z comment.md)
+            MAX_SIZE=65000
+            
+            if [ $COMMENT_SIZE -gt $MAX_SIZE ]; then
+              echo "Comment is too large ($COMMENT_SIZE bytes), truncating to $MAX_SIZE bytes"
+              # Truncate the file to MAX_SIZE bytes
+              dd if=comment.md of=comment_truncated.md bs=$MAX_SIZE count=1
+              # Add truncation message
+              echo -e "\n\n**The report is truncated, please review the logs for the full report**" >> comment_truncated.md
+              mv comment_truncated.md comment.md
+            fi
+            
             gh pr comment ${{ github.event.pull_request.number }} --body-file comment.md
             exit 0
           else

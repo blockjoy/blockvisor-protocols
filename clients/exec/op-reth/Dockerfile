@@ -4,7 +4,7 @@ ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250304.5
 FROM ${BASE_IMAGE} AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV OP_RETH_VERSION=v1.3.3
+ENV OP_RETH_VERSION=v1.2.0
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 # Clone and checkout in a separate layer
