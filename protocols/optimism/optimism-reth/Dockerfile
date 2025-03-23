@@ -1,6 +1,6 @@
 #1
-ARG OP_NODE_IMAGE=ghcr.io/blockjoy/op-node:v20250321.2
-ARG OP_RETH_IMAGE=ghcr.io/blockjoy/op-reth:v20250321.1
+ARG OP_NODE_IMAGE=ghcr.io/blockjoy/op-node:v20250322.1
+ARG OP_RETH_IMAGE=ghcr.io/blockjoy/op-reth:v20250322.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250304.4
 
 FROM ${OP_NODE_IMAGE} AS op-node

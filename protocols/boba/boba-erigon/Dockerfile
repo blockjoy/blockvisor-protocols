@@ -1,5 +1,5 @@
-ARG EXEC_IMAGE=ghcr.io/blockjoy/boba-erigon:v20250310.1
-ARG CONSENSUS_IMAGE=ghcr.io/blockjoy/boba-node:v20250310.1
+ARG EXEC_IMAGE=ghcr.io/blockjoy/boba-erigon:v20250322.1
+ARG CONSENSUS_IMAGE=ghcr.io/blockjoy/boba-node:v20250322.1
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250304.4
 
 FROM ${EXEC_IMAGE} AS exec

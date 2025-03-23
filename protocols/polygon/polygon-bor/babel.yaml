@@ -1,5 +1,5 @@
 version: 1.0.6
-container_uri: docker://ghcr.io/blockjoy/polygon-bor-protocol:v20250317.1
+container_uri: docker://ghcr.io/blockjoy/polygon-bor-protocol:v20250323.1
 sku_code: POLBOR
 org_id: null
 description: Polygon
