@@ -1,5 +1,5 @@
 version: 1.0.4
-container_uri: docker://ghcr.io/blockjoy/polygon-erigon-protocol:v20250317.1
+container_uri: docker://ghcr.io/blockjoy/polygon-erigon-protocol:v20250323.1
 sku_code: POLERI
 org_id: null
 description: Polygon
