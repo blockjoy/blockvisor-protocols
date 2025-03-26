@@ -3,7 +3,7 @@ ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250321.2
 
 FROM ${BASE_IMAGE} AS builder
 
-ENV CELO_GETH_VERSION=v1.8.9
+ENV CELO_GETH_VERSION=v1.8.4
 
 # Remove any existing Go installation
 RUN rm -rf /usr/local/go
