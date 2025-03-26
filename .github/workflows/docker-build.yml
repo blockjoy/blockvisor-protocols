@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   detect-changes:
-    runs-on: dev
+    runs-on: ubuntu-latest
     if: |
       github.event_name == 'pull_request' &&
       github.event.action != 'closed' &&
@@ -225,7 +225,7 @@ jobs:
       github.event_name == 'pull_request' &&
       github.event.action != 'closed' &&
       contains(needs.detect-changes.outputs.dockerfile_changes, 'true')
-    runs-on: dev
+    runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.dockerfile_matrix) }}
       fail-fast: false
@@ -305,7 +305,7 @@ jobs:
       github.event_name == 'pull_request' &&
       fromJson(needs.detect-changes.outputs.protocol_changes).include[0] ||
        needs.detect-changes.outputs.protocols_yaml_changed == 'true'
-    runs-on: dev
+    runs-on: ubuntu-latest
     outputs:
       protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
     steps:
@@ -357,7 +357,7 @@ jobs:
       fromJson(needs.detect-changes.outputs.base_matrix).include[0] &&
       github.event.action != 'closed' &&
       (needs.scan-dockerfiles.result == 'success' || needs.scan-dockerfiles.result == 'skipped')
-    runs-on: dev
+    runs-on: ubuntu-latest
     permissions:
       contents: read      # Allows reading repository contents
       packages: write     # Allows pushing/pulling container images
@@ -567,7 +567,7 @@ jobs:
       fromJson(needs.detect-changes.outputs.clients_matrix).include[0] &&
       github.event.action != 'closed' &&
       (needs.scan-dockerfiles.result == 'success' || needs.scan-dockerfiles.result == 'skipped')
-    runs-on: dev
+    runs-on: ubuntu-latest
     permissions:
       contents: read      # Allows reading repository contents
       packages: write     # Allows pushing/pulling container images
@@ -726,7 +726,7 @@ jobs:
       fromJson(needs.detect-changes.outputs.protocols_matrix).include[0] &&
       github.event.action != 'closed' &&
       (needs.scan-dockerfiles.result == 'success' || needs.scan-dockerfiles.result == 'skipped')
-    runs-on: dev
+    runs-on: ubuntu-latest
     outputs:
       image_name: ${{ steps.version.outputs.image_name }}
       image_tag: ${{ steps.version.outputs.image_tag }}
@@ -946,7 +946,7 @@ jobs:
 
   get-images:
     needs: [detect-changes, build-protocols]
-    runs-on: dev
+    runs-on: ubuntu-latest
     permissions:
       packages: read
       contents: read
@@ -1035,7 +1035,7 @@ jobs:
   workflow-status:
     needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes, clean-nodes]
     if: always() && github.event_name == 'pull_request'
-    runs-on: dev
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       statuses: write
@@ -1123,7 +1123,7 @@ jobs:
     environment: Dev
     needs: [check-protocols]
     if: needs.check-protocols.outputs.protocols_changed == 'true'
-    runs-on: dev
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
