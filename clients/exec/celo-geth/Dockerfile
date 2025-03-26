@@ -31,3 +31,4 @@ RUN apt update && \
 # Create minimal final image
 FROM ${BASE_IMAGE}
 COPY --from=builder /root/bin/geth /root/bin/
+
