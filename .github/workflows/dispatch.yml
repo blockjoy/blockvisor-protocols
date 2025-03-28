@@ -1,0 +1,67 @@
+name: Protocol PR Workflow Dispatcher
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    paths:
+      - 'protocols/**'
+      - 'clients/**'
+      - 'base-images/**'
+
+jobs:
+  trigger-docker-build:
+    runs-on: dev
+    steps:
+      - name: Generate token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.WF_APP_ID }}
+          private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
+          owner: blockjoy
+
+      - name: Trigger Docker Build Workflow
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          # Determine if the PR was merged
+          PR_MERGED=${{ github.event.pull_request.merged }}
+          
+          # Trigger the workflow in the deployer repository
+          gh workflow run proto-docker-build.yml \
+            --repo blockjoy/deployer \
+            --ref main \
+            --field pr_number=${{ github.event.pull_request.number }} \
+            --field pr_sha=${{ github.event.pull_request.head.sha }} \
+            --field pr_action=${{ github.event.action }} \
+            --field pr_merged=$PR_MERGED \
+            --field submodule_repo=${{ github.repository }}
+          
+          echo "Triggered Docker Build workflow in deployer repository"
+
+  trigger-nib-push:
+    if: github.event.pull_request.merged == true
+    runs-on: dev
+    steps:
+      - name: Generate token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.WF_APP_ID }}
+          private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
+          owner: blockjoy
+
+      - name: Trigger NIB Push Workflow
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          # Trigger the workflow in the deployer repository
+          gh workflow run proto-nib-push.yml \
+            --repo blockjoy/deployer \
+            --ref main \
+            --field pr_number=${{ github.event.pull_request.number }} \
+            --field pr_sha=${{ github.event.pull_request.head.sha }} \
+            --field pr_merged=true \
+            --field submodule_repo=${{ github.repository }}
+          
+          echo "Triggered NIB Push workflow in deployer repository"
