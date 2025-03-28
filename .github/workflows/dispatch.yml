@@ -10,7 +10,7 @@ on:
 
 jobs:
   trigger-docker-build:
-    runs-on: dev
+    runs-on: ubuntu-latest
     steps:
       - name: Generate token
         id: generate-token
@@ -41,7 +41,7 @@ jobs:
 
   trigger-nib-push:
     if: github.event.pull_request.merged == true
-    runs-on: dev
+    runs-on: ubuntu-latest
     steps:
       - name: Generate token
         id: generate-token
