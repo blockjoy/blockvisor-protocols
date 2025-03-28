@@ -27,10 +27,13 @@ jobs:
           # Determine if the PR was merged
           PR_MERGED=${{ github.event.pull_request.merged }}
           
+          # Get the default branch of the deployer repository
+          DEFAULT_BRANCH=$(gh api repos/blockjoy/deployer --jq '.default_branch')
+          
           # Trigger the workflow in the deployer repository
           gh workflow run proto-docker-build.yml \
             --repo blockjoy/deployer \
-            --ref main \
+            --ref $DEFAULT_BRANCH \
             --field pr_number=${{ github.event.pull_request.number }} \
             --field pr_sha=${{ github.event.pull_request.head.sha }} \
             --field pr_action=${{ github.event.action }} \
@@ -55,12 +58,16 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
+          # Get the default branch of the deployer repository
+          DEFAULT_BRANCH=$(gh api repos/blockjoy/deployer --jq '.default_branch')
+          
           # Trigger the workflow in the deployer repository
           gh workflow run proto-nib-push.yml \
             --repo blockjoy/deployer \
-            --ref main \
+            --ref $DEFAULT_BRANCH \
             --field pr_number=${{ github.event.pull_request.number }} \
             --field pr_sha=${{ github.event.pull_request.head.sha }} \
+            --field pr_action=closed \
             --field pr_merged=true \
             --field submodule_repo=${{ github.repository }}
           
