@@ -1,5 +1,5 @@
 version: 1.0.2
-container_uri: docker://ghcr.io/blockjoy/gnosis-erigon-protocol:v20250323.1
+container_uri: docker://ghcr.io/blockjoy/gnosis-erigon-protocol:v20250331.26
 sku_code: GNOERI
 org_id: null
 description: Gnosis Chain Erigon node
@@ -25,7 +25,7 @@ firewall_config:
   default_in: deny
   default_out: allow
   rules:
-    - key: Allow incoming ports TCP
+    - key: allow-incoming-tcp
       description: Allow TCP inbound traffic on port 80, 443
       protocol: tcp
       direction: in
@@ -44,7 +44,7 @@ firewall_config:
           name: P2P port 2
         - port: 42069
           name: Torrent port
-    - key: Allow P2P ports UDP
+    - key: allow-incoming-udp
       description: Allow UDP inbound traffic on P2P ports
       protocol: udp
       direction: in
