@@ -8,8 +8,6 @@ on:
       - 'clients/**'
       - 'base-images/**'
 
-run-name: PR no. ${{ github.event.pull_request.number }} by @${{ github.actor }}
-
 jobs:
   trigger-docker-build:
     if: github.actor != 'bj-workflow-app[bot]'
