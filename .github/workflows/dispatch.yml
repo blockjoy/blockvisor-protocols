@@ -10,6 +10,7 @@ on:
 
 jobs:
   trigger-docker-build:
+    if: github.actor != 'bj-workflow-app[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Generate token
@@ -44,7 +45,7 @@ jobs:
           echo "Triggered Docker Build workflow in deployer repository"
 
   trigger-nib-push:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true && github.actor != 'bj-workflow-app[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Generate token
