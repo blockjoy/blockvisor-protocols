@@ -38,7 +38,8 @@ jobs:
             --field pr_sha=${{ github.event.pull_request.head.sha }} \
             --field pr_action=${{ github.event.action }} \
             --field pr_merged=$PR_MERGED \
-            --field submodule_repo=${{ github.repository }}
+            --field submodule_repo=${{ github.repository }} \
+            --field pr_ghactor=${{ github.actor }}
           
           echo "Triggered Docker Build workflow in deployer repository"
 
@@ -69,6 +70,7 @@ jobs:
             --field pr_sha=${{ github.event.pull_request.head.sha }} \
             --field pr_action=closed \
             --field pr_merged=true \
-            --field submodule_repo=${{ github.repository }}
+            --field submodule_repo=${{ github.repository }} \
+            --field pr_ghactor=${{ github.actor }}
           
           echo "Triggered NIB Push workflow in deployer repository"
