@@ -32,8 +32,30 @@ const VARIANTS = #{
         bootnodes: "enr:-Iu4QN7Ohk84lCZMSAbuPbU1vSMF93J7FUUab2_JBNX8q6wSPBeWrGu85ENsL-s2fcf9gvYc_Eiw8ZzdBzP5i05g9DwBgmlkgnY0gmlwhCP2ulGJc2VjcDI1NmsxoQLqBVn4RC7vvLvOB95odV2bp6zKCQHPw7j60wBG68qGJYN0Y3CCIyuDdWRwgiMs",
         network: "sepolia",
     },
+    "geth-mainnet-archive": #{
+        sequencer_url: "https://rpc-gel.inkonchain.com",
+        l1_url: "https://eth-l1.blkjy.io",
+        beacon_url: "https://lighthouse.blkjy.io",
+        op_network: "ink-mainnet",
+        bootnodes: "enr:-Iu4QCqTQZVBnbPWXcdUxcakGoCCzCFr5vVzDfNTOr-Pi3KaOJZMXlnqTR9r9p4EemXS8fS59EdQaX8qrkyE01nvsNcBgmlkgnY0gmlwhCIgwYaJc2VjcDI1NmsxoQMW3w0F1AibYelKqJUKaie5RuKc7S9sPfWvH4lSJw4Fo4N0Y3CCIyuDdWRwgiMs",
+        network: "mainnet",
+    },
+    "geth-sepolia-archive": #{
+        sequencer_url: "https://rpc-gel-sepolia.inkonchain.com",
+        l1_url: "https://eth-l1-sepolia.blkjy.io",
+        beacon_url: "https://lighthouse-sepolia.blkjy.io",
+        op_network: "ink-sepolia",
+        bootnodes: "enr:-Iu4QN7Ohk84lCZMSAbuPbU1vSMF93J7FUUab2_JBNX8q6wSPBeWrGu85ENsL-s2fcf9gvYc_Eiw8ZzdBzP5i05g9DwBgmlkgnY0gmlwhCP2ulGJc2VjcDI1NmsxoQLqBVn4RC7vvLvOB95odV2bp6zKCQHPw7j60wBG68qGJYN0Y3CCIyuDdWRwgiMs",
+        network: "sepolia",
+    },
 
 };
+
+if node_env().node_variant.ends_with("-archive") {
+    GETH_EXTRA_ARGS = "--gcmode archive";
+} else {
+    GETH_EXTRA_ARGS = "";
+}
 
 const VARIANT = VARIANTS[node_env().node_variant];
 const SEQUENCER_URL = VARIANTS[node_env().node_variant].sequencer_url;
@@ -68,7 +90,7 @@ fn plugin_config() {
                         --authrpc.addr=127.0.0.1 --authrpc.jwtsecret=${global::INK_DIR}/jwt.txt --authrpc.port=${global::AUTHRPC_PORT} \
                         --authrpc.vhosts="*" --verbosity=3 --rollup.sequencerhttp=${global::SEQUENCER_URL} --metrics \
                         --metrics.addr=127.0.0.1 --metrics.port=${global::METRICS_PORT} --datadir=${global::INK_DIR}/ \
-                        --rollup.disabletxpoolgossip=true --nodiscover --maxpeers=0`,
+                        --rollup.disabletxpoolgossip=true --nodiscover --maxpeers=0 ${global::GETH_EXTRA_ARGS}`,
                 shutdown_timeout_secs: 120,
             },
             #{

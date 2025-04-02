@@ -20,6 +20,20 @@ variants:
     sku_code: INKGETH-F-SEP
     archive_pointers:
       - pointer: !store_key ink-geth-sepolia-full-v1
+  - key: geth-mainnet-archive
+    min_cpu: 12
+    min_memory_mb: 16384
+    min_disk_gb: 100
+    sku_code: INKGETH-A-MN
+    archive_pointers:
+      - pointer: !store_key ink-geth-mainnet-archive-v1
+  - key: geth-sepolia-archive
+    min_cpu: 12
+    min_memory_mb: 16384
+    min_disk_gb: 100
+    sku_code: INKGETH-A-SEP
+    archive_pointers:
+      - pointer: !store_key ink-geth-sepolia-archive-v1
 firewall_config:
   default_in: deny
   default_out: allow
