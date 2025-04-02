@@ -16,7 +16,7 @@ const INK_API = "http://127.0.0.1:8547";
 const INK_DIR = node_env().protocol_data_path + "/ink";
 
 const VARIANTS = #{
-    "ink-mainnet-full": #{
+    "geth-mainnet-full": #{
         sequencer_url: "https://rpc-gel.inkonchain.com",
         l1_url: "https://eth-l1.blkjy.io",
         beacon_url: "https://lighthouse.blkjy.io",
@@ -24,7 +24,7 @@ const VARIANTS = #{
         bootnodes: "enr:-Iu4QCqTQZVBnbPWXcdUxcakGoCCzCFr5vVzDfNTOr-Pi3KaOJZMXlnqTR9r9p4EemXS8fS59EdQaX8qrkyE01nvsNcBgmlkgnY0gmlwhCIgwYaJc2VjcDI1NmsxoQMW3w0F1AibYelKqJUKaie5RuKc7S9sPfWvH4lSJw4Fo4N0Y3CCIyuDdWRwgiMs",
         network: "mainnet",
     },
-    "ink-sepolia-full": #{
+    "geth-sepolia-full": #{
         sequencer_url: "https://rpc-gel-sepolia.inkonchain.com",
         l1_url: "https://eth-l1-sepolia.blkjy.io",
         beacon_url: "https://lighthouse-sepolia.blkjy.io",

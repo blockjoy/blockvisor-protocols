@@ -1,25 +1,25 @@
 version: 1.1.4
-container_uri: docker://ghcr.io/blockjoy/shape-geth-protocol:v20250323.1
-sku_code: SHAPEGETH
+container_uri: docker://ghcr.io/blockjoy/ink-geth-protocol:v20250323.1
+sku_code: INKGETH
 org_id: null
-description: Shape Geth
+description: Ink Geth
 visibility: public
-protocol_key: shape
+protocol_key: Ink
 variants:
   - key: geth-mainnet-full
     min_cpu: 12
     min_memory_mb: 16384
     min_disk_gb: 100
-    sku_code: SHAPEGETH-F-MN
+    sku_code: INKGETH-F-MN
     archive_pointers:
-      - pointer: !store_key shape-geth-mainnet-full-v1
+      - pointer: !store_key ink-geth-mainnet-full-v1
   - key: geth-sepolia-full
     min_cpu: 12
     min_memory_mb: 16384
     min_disk_gb: 100
-    sku_code: SHAPEGETH-F-SEP
+    sku_code: INKGETH-F-SEP
     archive_pointers:
-      - pointer: !store_key shape-geth-sepolia-full-v1
+      - pointer: !store_key ink-geth-sepolia-full-v1
 firewall_config:
   default_in: deny
   default_out: allow
