@@ -952,17 +952,11 @@ jobs:
       - name: Check variants
         id: check-variants
         run: |
-          mkdir -p ~/temp
-          chmod 777 ~/temp
-          export TMPDIR=~/temp
-          echo "TMPDIR=~/temp" >> $GITHUB_ENV
-          echo "APPTAINER_TMPDIR=~/temp" >> $GITHUB_ENV
-
           cp ${{ matrix.image_path }}/babel.yaml ${{ matrix.image_path }}/babel.yaml-test
 
           # Update container_uri with newly built image
           NEW_URI="docker://ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}"
-          TMPDIR=~/temp yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
+          yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
 
           echo "test_file=${{ matrix.image_path }}/babel.yaml-test" >> $GITHUB_OUTPUT
 
