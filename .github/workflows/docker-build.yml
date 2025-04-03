@@ -1059,7 +1059,7 @@ jobs:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           MATRIX_JSON: ${{ needs.get-images.outputs.matrix }}
         run: |
-          echo "Triggering test-nodes.yml in deployer repository..."
+          echo "Triggering proto-test-nodes.yml in deployer repository..."
           
           # Get the default branch of the deployer repository
           DEFAULT_BRANCH=$(gh api repos/blockjoy/deployer --jq '.default_branch')
@@ -1069,7 +1069,7 @@ jobs:
           echo "$MATRIX_JSON"
           
           # Trigger the workflow in the deployer repository
-          gh workflow run test-nodes.yml \
+          gh workflow run proto-test-nodes.yml \
             --repo blockjoy/deployer \
             --ref $DEFAULT_BRANCH \
             --field matrix="$MATRIX_JSON" \
@@ -1079,7 +1079,7 @@ jobs:
             --field pr_merged=false \
             --field pr_closed=false
             
-          echo "Triggered test-nodes.yml workflow in deployer repository"
+          echo "Triggered proto-test-nodes.yml workflow in deployer repository"
 
   clean-nodes:
     if: |
@@ -1099,7 +1099,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
-          echo "Triggering test-nodes.yml for cleanup in deployer repository..."
+          echo "Triggering proto-test-nodes.yml for cleanup in deployer repository..."
           PR_MERGED=${{ github.event.pull_request.merged }}
 
           # Get the default branch of the deployer repository
@@ -1109,7 +1109,7 @@ jobs:
 
           # Trigger the workflow in the deployer repository
           # Matrix is not needed for cleanup, so we don't pass it
-          gh workflow run test-nodes.yml \
+          gh workflow run proto-test-nodes.yml \
             --repo blockjoy/deployer \
             --ref $DEFAULT_BRANCH \
             --field pr_number=${{ github.event.pull_request.number }} \
