@@ -1,5 +1,5 @@
 version: 1.1.3
-container_uri: docker://ghcr.io/blockjoy/ethereum-reth-protocol:v20250403.3
+container_uri: docker://ghcr.io/blockjoy/ethereum-reth-protocol:v20250403.4
 sku_code: ETHRETH
 org_id: null
 description: Ethereum Reth node
