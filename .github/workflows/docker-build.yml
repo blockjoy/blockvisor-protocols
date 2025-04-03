@@ -1107,7 +1107,7 @@ jobs:
 
   workflow-status:
     needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes-dispatch, clean-nodes-dispatch]
-    if: always() && github.event_name == 'pull_request' && (github.actor == 'github-actions[bot]')
+    if: always() && github.event_name == 'pull_request' && github.actor == 'github-actions[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
