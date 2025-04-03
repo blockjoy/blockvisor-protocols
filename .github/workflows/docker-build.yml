@@ -461,17 +461,25 @@ jobs:
             --allow-insecure-entitlement network.host
 
       - name: Build base image
-        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6
-        with:
-          context: ./${{ matrix.image_path }}
-          push: false
-          load: true
-          build-contexts: ${{ steps.build-contexts.outputs.contexts }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: |
-            localhost/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
-
+        env:
+          IMAGE_NAME: ${{ steps.version.outputs.image_name }}
+          IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
+          VERSION_TAG: ${{ steps.version.outputs.version_tag }}
+          IMAGE_PATH: ${{ matrix.image_path }}
+          BUILD_CONTEXTS: ${{ steps.build-contexts.outputs.contexts }}
+        run: |
+          # Set up Docker config to use workspace directory
+          mkdir -p $GITHUB_WORKSPACE/.docker
+          export DOCKER_CONFIG=$GITHUB_WORKSPACE/.docker
+          
+          echo "Building image ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}"
+          
+          # Build the image
+          docker build \
+            -t ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG} \
+            -t ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG} \
+            ./${IMAGE_PATH}
+          
       - name: Run Trivy vulnerability scanner
         id: scan
         uses: aquasecurity/trivy-action@master
@@ -544,19 +552,16 @@ jobs:
           # Use --password-stdin to avoid credential leakage in logs
           echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_USER" --password-stdin
 
-      - name: Push base image
+      - name: Push images
         if: success()
-        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6
-        with:
-          context: ./${{ matrix.image_path }}
-          push: true
-          build-contexts: ${{ steps.build-contexts.outputs.contexts }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: |
-            ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
-            ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
-
+        run: |
+          # Push the images
+          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}
+          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}
+          
+          echo "Successfully built and pushed images:"
+          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}"
+          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}"
   build-clients:
     needs: [detect-changes, scan-dockerfiles]
     if: |
@@ -710,16 +715,32 @@ jobs:
             --debug
             --allow-insecure-entitlement network.host
       - name: Build and push client images
-        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6
-        with:
-          context: ./${{ matrix.image_path }}
-          push: true
-          build-contexts: ${{ steps.build-contexts.outputs.contexts }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: |
-            ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
-            ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
+        env:
+          IMAGE_NAME: ${{ steps.version.outputs.image_name }}
+          IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
+          VERSION_TAG: ${{ steps.version.outputs.version_tag }}
+          IMAGE_PATH: ${{ matrix.image_path }}
+          BUILD_CONTEXTS: ${{ steps.build-contexts.outputs.contexts }}
+        run: |
+          # Set up Docker config to use workspace directory
+          mkdir -p $GITHUB_WORKSPACE/.docker
+          export DOCKER_CONFIG=$GITHUB_WORKSPACE/.docker
+          
+          echo "Building image ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}"
+          
+          # Build the image
+          docker build \
+            -t ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG} \
+            -t ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG} \
+            ./${IMAGE_PATH}
+          
+          # Push the images
+          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}
+          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}
+          
+          echo "Successfully built and pushed images:"
+          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}"
+          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}"
 
   build-protocols:
     needs: [detect-changes, scan-dockerfiles, check-protocols]
@@ -882,22 +903,42 @@ jobs:
           echo "$IMAGE_ARGS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
       - name: Build and push protocol images
-        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6
-        with:
-          context: ./${{ matrix.image_path }}
-          push: true
-          build-args: |
-            ${{ steps.build-args.outputs.image_args }}
-          build-contexts: ${{ steps.build-contexts.outputs.contexts }}
-          cache-from: |
-            type=registry,ref=ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:buildcache
-          cache-to: |
-            type=registry,ref=ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:buildcache,mode=max
-          platforms: linux/amd64
-          tags: |
-            ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
-            ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
-
+        env:
+          IMAGE_NAME: ${{ steps.version.outputs.image_name }}
+          IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
+          VERSION_TAG: ${{ steps.version.outputs.version_tag }}
+          IMAGE_PATH: ${{ matrix.image_path }}
+          BUILD_ARGS: ${{ steps.build-args.outputs.image_args }}
+          BUILD_CONTEXTS: ${{ steps.build-contexts.outputs.contexts }}
+        run: |
+          # Set up Docker config to use workspace directory
+          mkdir -p $GITHUB_WORKSPACE/.docker
+          export DOCKER_CONFIG=$GITHUB_WORKSPACE/.docker
+          
+          echo "Building image ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}"
+          
+          # Parse build args
+          BUILD_ARG_FLAGS=""
+          echo "${BUILD_ARGS}" | while IFS= read -r line; do
+            if [ -n "$line" ]; then
+              BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg ${line}"
+            fi
+          done
+          
+          # Build the image
+          docker build \
+            ${BUILD_ARG_FLAGS} \
+            -t ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG} \
+            -t ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG} \
+            ./${IMAGE_PATH}
+          
+          # Push the images
+          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}
+          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}
+          
+          echo "Successfully built and pushed images:"
+          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}"
+          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}"
       - name: Get variants from babel.yaml
         id: get-variants
         run: |
