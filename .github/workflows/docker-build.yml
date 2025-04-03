@@ -53,15 +53,17 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v45
-        with:
-          files_ignore: |
-            **.md
-            docs/**
-            .gitignore
-            LICENSE
-            .github/**
-            !.github/workflows/**
+        run: |
+          BASE_SHA=$(git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+          HEAD_SHA=${{ github.event.pull_request.head.sha }}
+          echo "Base SHA: $BASE_SHA"
+          echo "Head SHA: $HEAD_SHA"   
+          ALL_FILES=$(git diff --name-only $BASE_SHA $HEAD_SHA)     
+          FILTERED_FILES=$(echo "$ALL_FILES" | grep -v -E '\.md$|^docs/|^\.gitignore$|^LICENSE$|^\.github/(?!workflows/)')    
+          CHANGED_FILES=$(echo "$FILTERED_FILES" | tr '\n' ' ')   
+          echo "Changed files after filtering:"
+          echo "$CHANGED_FILES"
+          echo "all_changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
 
       - name: List all changed files
         run: |
@@ -660,8 +662,8 @@ jobs:
             LATEST_BUILD=$(echo "$OUTPUT" | \
               jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
             if [ -z "$LATEST_BUILD" ] || [ "$LATEST_BUILD" = "null" ]; then
-              echo "No existing versions found for today, starting at 0"
-              BUILD_NUM=0
+              echo "No existing versions found for today, starting at 1"
+              BUILD_NUM=1
             else
               echo "Found $LATEST_BUILD existing versions today"
               BUILD_NUM=$((LATEST_BUILD + 1))
@@ -677,8 +679,8 @@ jobs:
           
           # Make sure we have a build number before continuing
           if [ -z "$BUILD_NUM" ]; then
-            echo "Error: Build number is empty, defaulting to 0"
-            BUILD_NUM=0
+            echo "Error: Build number is empty, defaulting to 1"
+            BUILD_NUM=1
             VERSION_TAG="v${DATE}.${BUILD_NUM}"
           fi
           
@@ -1084,6 +1086,7 @@ jobs:
             --field pr_number=${{ github.event.pull_request.number }} \
             --field pr_sha=${{ github.event.pull_request.head.sha }} \
             --field event_action=${{ github.event.action }} \
+            --field submodule_repo=${{ github.repository }} \
             --field pr_merged=false \
             --field pr_closed=false
             
@@ -1123,6 +1126,7 @@ jobs:
             --field pr_number=${{ github.event.pull_request.number }} \
             --field event_action=${{ github.event.action }} \
             --field pr_merged=$PR_MERGED \
+            --field submodule_repo=${{ github.repository }} \
             --field pr_closed=true
             
           echo "Triggered test-nodes.yml workflow for cleanup in deployer repository"
