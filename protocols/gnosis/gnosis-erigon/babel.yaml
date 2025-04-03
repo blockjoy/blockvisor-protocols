@@ -1,5 +1,5 @@
 version: 1.0.4
-container_uri: docker://ghcr.io/blockjoy/gnosis-erigon-protocol:v20250403.14
+container_uri: docker://ghcr.io/blockjoy/gnosis-erigon-protocol:v20250403.15
 sku_code: GNOERI
 org_id: null
 description: Gnosis Chain Erigon node
