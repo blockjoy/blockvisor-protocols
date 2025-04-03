@@ -39,6 +39,13 @@ jobs:
       dockerfile_matrix: ${{ steps.set-matrix.outputs.dockerfile_matrix }}
       protocols_yaml_changed: ${{ steps.set-matrix.outputs.protocols_yaml_changed }}
     steps:
+      - name: Configure Git
+        run: |
+          echo "[safe]
+            directory = $GITHUB_WORKSPACE" > $GITHUB_WORKSPACE/.gitconfig
+          export GIT_CONFIG_GLOBAL=$GITHUB_WORKSPACE/.gitconfig
+          echo "GIT_CONFIG_GLOBAL=$GITHUB_WORKSPACE/.gitconfig" >> $GITHUB_ENV
+
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
@@ -562,6 +569,7 @@ jobs:
           echo "Successfully built and pushed images:"
           echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}"
           echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}"
+
   build-clients:
     needs: [detect-changes, scan-dockerfiles]
     if: |
@@ -652,8 +660,8 @@ jobs:
             LATEST_BUILD=$(echo "$OUTPUT" | \
               jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
             if [ -z "$LATEST_BUILD" ] || [ "$LATEST_BUILD" = "null" ]; then
-              echo "No existing versions found for today, starting at 1"
-              BUILD_NUM=1
+              echo "No existing versions found for today, starting at 0"
+              BUILD_NUM=0
             else
               echo "Found $LATEST_BUILD existing versions today"
               BUILD_NUM=$((LATEST_BUILD + 1))
@@ -669,8 +677,8 @@ jobs:
           
           # Make sure we have a build number before continuing
           if [ -z "$BUILD_NUM" ]; then
-            echo "Error: Build number is empty, defaulting to 1"
-            BUILD_NUM=1
+            echo "Error: Build number is empty, defaulting to 0"
+            BUILD_NUM=0
             VERSION_TAG="v${DATE}.${BUILD_NUM}"
           fi
           
