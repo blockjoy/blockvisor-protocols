@@ -28,7 +28,6 @@ jobs:
     if: |
       github.event_name == 'pull_request' &&
       github.event.action != 'closed' &&
-      github.actor != 'github-actions[bot]' &&
       github.actor != 'bj-workflow-app[bot]'
     outputs:
       base_matrix: ${{ steps.set-matrix.outputs.base_matrix }}
