@@ -1,5 +1,5 @@
 version: 1.1.4
-container_uri: docker://ghcr.io/blockjoy/shape-geth-protocol:v20250323.1
+container_uri: docker://ghcr.io/blockjoy/shape-geth-protocol:v20250403.7
 sku_code: SHAPEGETH
 org_id: null
 description: Shape Geth
@@ -24,7 +24,7 @@ firewall_config:
   default_in: deny
   default_out: allow
   rules:
-    - key: Allow incoming ports TCP
+    - key: allow-incoming-tcp
       description: Allow TCP inbound traffic on ports 80, 443, 30303, 30304, 30305
       protocol: tcp
       direction: in
@@ -43,7 +43,7 @@ firewall_config:
           name: L2 Geth P2P port
         - port: 30305
           name: L1 Geth P2P port
-    - key: Allow incoming ports UDP
+    - key: allow-incoming-udp
       description: Allow UDP inbound traffic on ports 30303, 30304, 30305
       protocol: udp
       direction: in
