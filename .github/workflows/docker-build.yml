@@ -28,7 +28,7 @@ jobs:
     if: |
       github.event_name == 'pull_request' &&
       github.event.action != 'closed' &&
-      github.actor != 'bj-workflow-app[bot]'
+      github.actor != 'github-actions[bot]'
     outputs:
       base_matrix: ${{ steps.set-matrix.outputs.base_matrix }}
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
@@ -1107,7 +1107,7 @@ jobs:
 
   workflow-status:
     needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes-dispatch, clean-nodes-dispatch]
-    if: always() && github.event_name == 'pull_request'
+    if: always() && github.event_name == 'pull_request' && (github.actor == 'github-actions[bot]')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -1119,66 +1119,7 @@ jobs:
         run: |
           # Get the latest commit SHA from the PR
           LATEST_SHA=$(gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq .head.sha)
-          
-          if [[ "${{ needs.build-base-images.result }}" == "failure" ]] || \
-             [[ "${{ needs.build-clients.result }}" == "failure" ]] || \
-             [[ "${{ needs.build-protocols.result }}" == "failure" ]] || \
-             [[ "${{ needs.test-nodes-dispatch.result }}" == "failure" ]] || \
-             [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] || \
-             [[ "${{ needs.detect-changes.result }}" == "failure" ]] || \
-             [[ "${{ needs.check-protocols.result }}" == "failure" ]] || \
-             [[ "${{ needs.build-base-images.result }}" == "cancelled" ]] || \
-             [[ "${{ needs.build-clients.result }}" == "cancelled" ]] || \
-             [[ "${{ needs.build-protocols.result }}" == "cancelled" ]] || \
-             [[ "${{ needs.test-nodes-dispatch.result }}" == "cancelled" ]] || \
-             [[ "${{ needs.scan-dockerfiles.result }}" == "cancelled" ]] || \
-             [[ "${{ needs.detect-changes.result }}" == "cancelled" ]] || \
-             [[ "${{ needs.check-protocols.result }}" == "cancelled" ]]; then
-            DESCRIPTION="Workflow failed"
-            [[ "${{ needs.test-nodes-dispatch.result }}" == "failure" ]] && DESCRIPTION="Node testing failed"
-            [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] && DESCRIPTION="Dockerfile scanning failed"
-            [[ "${{ needs.check-protocols.result }}" == "failure" ]] && DESCRIPTION="Protocol validation failed"
-            [[ "${{ needs.detect-changes.result }}" == "failure" ]] && DESCRIPTION="Failed to detect changes"
-            
-            # Add cancelled status descriptions
-            [[ "${{ needs.test-nodes-dispatch.result }}" == "cancelled" ]] && DESCRIPTION="Node testing was cancelled"
-            [[ "${{ needs.scan-dockerfiles.result }}" == "cancelled" ]] && DESCRIPTION="Dockerfile scanning was cancelled"
-            [[ "${{ needs.check-protocols.result }}" == "cancelled" ]] && DESCRIPTION="Protocol validation was cancelled"
-            [[ "${{ needs.detect-changes.result }}" == "cancelled" ]] && DESCRIPTION="Change detection was cancelled"
-            [[ "${{ needs.build-base-images.result }}" == "cancelled" ]] && DESCRIPTION="Base image build was cancelled"
-            [[ "${{ needs.build-clients.result }}" == "cancelled" ]] && DESCRIPTION="Client build was cancelled"
-            [[ "${{ needs.build-protocols.result }}" == "cancelled" ]] && DESCRIPTION="Protocol build was cancelled"
-            
-            STATE='failure'
-            [[ "$DESCRIPTION" == *"cancelled"* ]] && STATE='error'
-            
-            gh api \
-              --method POST \
-              -H "Accept: application/vnd.github+json" \
-              "/repos/${{ github.repository }}/statuses/$LATEST_SHA" \
-              -f state="$STATE" \
-              -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-              -f description="$DESCRIPTION" \
-              -f context="workflow-status" \
-              -f owner="${{ github.repository_owner }}" \
-              -f repo="${{ github.event.repository.name }}" \
-              -f sha="$LATEST_SHA" \
-              -f token="${{ secrets.GITHUB_TOKEN }}"
-            exit 1
-          fi
 
-          if [[ "${{ needs.build-base-images.result }}" == "skipped" ]] && \
-             [[ "${{ needs.build-clients.result }}" == "skipped" ]] && \
-             [[ "${{ needs.build-protocols.result }}" == "skipped" ]] && \
-             [[ "${{ needs.test-nodes-dispatch.result }}" == "skipped" ]] && \
-             [[ "${{ needs.scan-dockerfiles.result }}" == "skipped" ]] && \
-             [[ "${{ needs.detect-changes.result }}" == "skipped" ]] && \
-             [[ "${{ needs.check-protocols.result }}" == "skipped" ]]; then
-            DESCRIPTION="No changes detected"
-          else
-            DESCRIPTION="All checks passed successfully"
-          fi
-          
           gh api \
             --method POST \
             -H "Accept: application/vnd.github+json" \
