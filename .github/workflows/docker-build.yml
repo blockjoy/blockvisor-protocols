@@ -738,14 +738,13 @@ jobs:
           echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
       - name: Download latest nib binary
         run: |
-          # Get the latest release URL for the nib binary
           echo "Downloading latest nib binary..."
-          mkdir -p $HOME/bin
-          curl -L -o $HOME/bin/nib https://github.com/blockjoy/blockvisor/releases/latest/download/nib
-          chmod +x $HOME/bin/nib
-          echo "$HOME/bin" >> $GITHUB_PATH
-          echo "nib binary installed at $HOME/bin/nib"
-          nib --version || echo "nib version command failed, but continuing"
+          mkdir -p $GITHUB_WORKSPACE/.github/bin
+          curl -L -o $GITHUB_WORKSPACE/.github/bin/nib https://github.com/blockjoy/blockvisor/releases/latest/download/nib
+          chmod +x $GITHUB_WORKSPACE/.github/bin/nib
+          echo "$GITHUB_WORKSPACE/.github/bin" >> $GITHUB_PATH
+          echo "nib binary installed at $GITHUB_WORKSPACE/.github/bin/nib"
+          $GITHUB_WORKSPACE/.github/bin/nib --version || echo "nib version command failed, but continuing"
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
         with:
