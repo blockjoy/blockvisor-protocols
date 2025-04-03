@@ -28,7 +28,8 @@ jobs:
     if: |
       github.event_name == 'pull_request' &&
       github.event.action != 'closed' &&
-      github.actor != 'github-actions[bot]'
+      github.actor != 'github-actions[bot]' &&
+      github.actor != 'bj-workflow-app[bot]'
     outputs:
       base_matrix: ${{ steps.set-matrix.outputs.base_matrix }}
       clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
@@ -136,32 +137,6 @@ jobs:
               dirname "$file" | cut -d/ -f1-3 | sort -u
             fi
           done | sort -u)
-
-          # # Check for duplicate names between clients and protocols
-          # if [[ -n "$CLIENTS" || -n "$PROTOCOLS" ]]; then
-          #   # Get client and protocol paths
-          #   CLIENT_PATHS=$(echo "$DOCKER_DIRS" | grep "^clients/")
-          #   PROTOCOL_PATHS=$(echo "$DOCKER_DIRS" | grep "^protocols/")
-            
-          #   # Get just the names for comparison
-          #   CLIENT_NAMES=$(echo "$CLIENT_PATHS" | xargs -n1 basename)
-          #   PROTOCOL_NAMES=$(echo "$PROTOCOL_PATHS" | xargs -n1 basename)
-
-          #   while IFS= read -r client; do
-          #     client_path=$(echo "$CLIENT_PATHS" | grep "/${client}$")
-          #     while IFS= read -r protocol; do
-          #       if [ "$client" = "$protocol" ]; then
-          #         protocol_path=$(echo "$PROTOCOL_PATHS" | grep "/${protocol}$")
-          #         echo "A protocol folder and a client folder can not have the same name."
-          #         echo "Naming convention: Append the '-protocol' suffix to the colliding protocol."
-          #         echo "Found duplicate: $protocol"
-          #         echo "Client path: $client_path"
-          #         echo "Protocol path: $protocol_path"
-          #         exit 1
-          #       fi
-          #     done <<< "$PROTOCOL_NAMES"
-          #   done <<< "$CLIENT_NAMES"
-          # fi
 
           # Verify that all component directories have a Dockerfile
           if [[ -n "$BASE" ]]; then
@@ -1051,10 +1026,10 @@ jobs:
           
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
-  test-nodes:
+  test-nodes-dispatch:
     needs: [get-images]
     if: needs.get-images.result == 'success'
-    runs-on: ubuntu-latest # Use the specified runner
+    runs-on: ubuntu-latest
     steps:
       - name: Generate token
         id: generate-token
@@ -1062,7 +1037,7 @@ jobs:
         with:
           app-id: ${{ secrets.WF_APP_ID }}
           private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
-          owner: blockjoy # Assuming the app is owned by 'blockjoy'
+          owner: blockjoy
 
       - name: Trigger Test Nodes Workflow
         env:
@@ -1092,11 +1067,11 @@ jobs:
             
           echo "Triggered proto-test-nodes.yml workflow in deployer repository"
 
-  clean-nodes:
+  clean-nodes-dispatch:
     if: |
       github.event_name == 'pull_request' &&
       github.event.action == 'closed'
-    runs-on: ubuntu-latest # Use the specified runner
+    runs-on: ubuntu-latest
     steps:
       - name: Generate token
         id: generate-token
@@ -1104,7 +1079,7 @@ jobs:
         with:
           app-id: ${{ secrets.WF_APP_ID }}
           private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
-          owner: blockjoy # Assuming the app is owned by 'blockjoy'
+          owner: blockjoy
 
       - name: Trigger Clean Nodes Workflow (using test-nodes.yml)
         env:
@@ -1132,7 +1107,7 @@ jobs:
           echo "Triggered test-nodes.yml workflow for cleanup in deployer repository"
 
   workflow-status:
-    needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes, clean-nodes]
+    needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes-dispatch, clean-nodes-dispatch]
     if: always() && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
@@ -1149,25 +1124,25 @@ jobs:
           if [[ "${{ needs.build-base-images.result }}" == "failure" ]] || \
              [[ "${{ needs.build-clients.result }}" == "failure" ]] || \
              [[ "${{ needs.build-protocols.result }}" == "failure" ]] || \
-             [[ "${{ needs.test-nodes.result }}" == "failure" ]] || \
+             [[ "${{ needs.test-nodes-dispatch.result }}" == "failure" ]] || \
              [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] || \
              [[ "${{ needs.detect-changes.result }}" == "failure" ]] || \
              [[ "${{ needs.check-protocols.result }}" == "failure" ]] || \
              [[ "${{ needs.build-base-images.result }}" == "cancelled" ]] || \
              [[ "${{ needs.build-clients.result }}" == "cancelled" ]] || \
              [[ "${{ needs.build-protocols.result }}" == "cancelled" ]] || \
-             [[ "${{ needs.test-nodes.result }}" == "cancelled" ]] || \
+             [[ "${{ needs.test-nodes-dispatch.result }}" == "cancelled" ]] || \
              [[ "${{ needs.scan-dockerfiles.result }}" == "cancelled" ]] || \
              [[ "${{ needs.detect-changes.result }}" == "cancelled" ]] || \
              [[ "${{ needs.check-protocols.result }}" == "cancelled" ]]; then
             DESCRIPTION="Workflow failed"
-            [[ "${{ needs.test-nodes.result }}" == "failure" ]] && DESCRIPTION="Node testing failed"
+            [[ "${{ needs.test-nodes-dispatch.result }}" == "failure" ]] && DESCRIPTION="Node testing failed"
             [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] && DESCRIPTION="Dockerfile scanning failed"
             [[ "${{ needs.check-protocols.result }}" == "failure" ]] && DESCRIPTION="Protocol validation failed"
             [[ "${{ needs.detect-changes.result }}" == "failure" ]] && DESCRIPTION="Failed to detect changes"
             
             # Add cancelled status descriptions
-            [[ "${{ needs.test-nodes.result }}" == "cancelled" ]] && DESCRIPTION="Node testing was cancelled"
+            [[ "${{ needs.test-nodes-dispatch.result }}" == "cancelled" ]] && DESCRIPTION="Node testing was cancelled"
             [[ "${{ needs.scan-dockerfiles.result }}" == "cancelled" ]] && DESCRIPTION="Dockerfile scanning was cancelled"
             [[ "${{ needs.check-protocols.result }}" == "cancelled" ]] && DESCRIPTION="Protocol validation was cancelled"
             [[ "${{ needs.detect-changes.result }}" == "cancelled" ]] && DESCRIPTION="Change detection was cancelled"
@@ -1196,7 +1171,7 @@ jobs:
           if [[ "${{ needs.build-base-images.result }}" == "skipped" ]] && \
              [[ "${{ needs.build-clients.result }}" == "skipped" ]] && \
              [[ "${{ needs.build-protocols.result }}" == "skipped" ]] && \
-             [[ "${{ needs.test-nodes.result }}" == "skipped" ]] && \
+             [[ "${{ needs.test-nodes-dispatch.result }}" == "skipped" ]] && \
              [[ "${{ needs.scan-dockerfiles.result }}" == "skipped" ]] && \
              [[ "${{ needs.detect-changes.result }}" == "skipped" ]] && \
              [[ "${{ needs.check-protocols.result }}" == "skipped" ]]; then
