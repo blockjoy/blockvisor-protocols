@@ -1096,7 +1096,7 @@ jobs:
 
   workflow-status:
     needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes-dispatch, clean-nodes-dispatch]
-    if: always() && github.event_name == 'pull_request' && needs.test-nodes-dispatch.result == 'skipped'
+    if: always() && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -1168,11 +1168,12 @@ jobs:
             DESCRIPTION="All checks passed successfully"
           fi
 
-          gh api \
-            --method POST \
-            -H "Accept: application/vnd.github+json" \
-            "/repos/${{ github.repository }}/statuses/$LATEST_SHA" \
-            -f state='success' \
+          if [[ "${{ needs.test-nodes-dispatch.result }}" == "skipped" ]]; then
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/${{ github.repository }}/statuses/$LATEST_SHA" \
+              -f state='success' \
             -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             -f description="$DESCRIPTION" \
             -f context="workflow-status" \
@@ -1180,3 +1181,4 @@ jobs:
             -f repo="${{ github.event.repository.name }}" \
             -f sha="$LATEST_SHA" \
             -f token="${{ secrets.GITHUB_TOKEN }}"
+          fi
