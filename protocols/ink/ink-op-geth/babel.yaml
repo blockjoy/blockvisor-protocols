@@ -1,5 +1,5 @@
-version: 1.1.4
-container_uri: docker://ghcr.io/blockjoy/ink-op-geth-protocol:v20250404.4
+version: 0.0.1
+container_uri: docker://ghcr.io/blockjoy/ink-geth-protocol:v20250323.4
 sku_code: INKGETH
 org_id: null
 description: Ink Geth
