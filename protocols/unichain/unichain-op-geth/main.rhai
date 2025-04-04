@@ -56,19 +56,23 @@ const L1_URL = VARIANTS[node_env().node_variant].l1_url;
 const BEACON_URL = VARIANTS[node_env().node_variant].beacon_url;
 const OP_NETWORK = VARIANTS[node_env().node_variant].op_network;
 
-if node_env().node_variant.contains("sepolia") {
-    const NODE_BOOTNODES = "--p2p.bootnodes=" + VARIANTS[node_env().node_variant].node_bootnodes;
-    const GETH_BOOTNODES = "--bootnodes=" + VARIANTS[node_env().node_variant].geth_bootnodes;
+const NODE_BOOTNODES = if node_env().node_variant.contains("sepolia") {
+    "--p2p.bootnodes=" + VARIANTS[node_env().node_variant].node_bootnodes;
 } else {
-    const NODE_BOOTNODES = "";
-    const GETH_BOOTNODES = "";
-}
+     "";
+};
 
-if node_env().node_variant.ends_with("archive") {
-    const GETH_EXTRA_ARGS = "--gcmode=archive";
+const GETH_BOOTNODES = if node_env().node_variant.contains("sepolia") {
+    "--bootnodes=" + VARIANTS[node_env().node_variant].geth_bootnodes;
 } else {
-    const GETH_EXTRA_ARGS = "";
-}
+    "";
+};
+
+const GETH_EXTRA_ARGS = if node_env().node_variant.ends_with("archive") {
+    "--gcmode=archive";
+} else {
+    "";
+};
 
 const NETWORK = VARIANTS[node_env().node_variant].network;
 
