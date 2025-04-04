@@ -280,8 +280,6 @@ jobs:
       fromJson(needs.detect-changes.outputs.protocol_changes).include[0] ||
        needs.detect-changes.outputs.protocols_yaml_changed == 'true'
     runs-on: ubuntu-latest
-    outputs:
-      protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -313,15 +311,6 @@ jobs:
               echo "Found exactly one occurrence of key '$PROTOCOL_KEY'"
             fi
           done
-          
-          # Check if protocols.yaml has changed
-          if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -q "^protocols/protocols.yaml$"; then
-            echo "protocols/protocols.yaml has changed, will push protocol updates"
-            echo "protocols_changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "protocols/protocols.yaml unchanged"
-            echo "protocols_changed=false" >> $GITHUB_OUTPUT
-          fi
         
   build-base-images:
     name: build-base-images
