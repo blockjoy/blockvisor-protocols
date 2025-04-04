@@ -1,0 +1,1145 @@
+name: Build Docker Images
+
+on:
+  pull_request:
+    branches: [ main ]
+    types:
+      - opened      # PR is created
+      - synchronize # New commits pushed
+      - reopened    # Closed PR is reopened
+      - closed      # PR is closed or merged
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  pull-requests: write
+
+env:
+  HOME: /home/github-runner
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      github.actor != 'bj-workflow-app[bot]'
+    outputs:
+      base_matrix: ${{ steps.set-matrix.outputs.base_matrix }}
+      clients_matrix: ${{ steps.set-matrix.outputs.clients_matrix }}
+      protocols_matrix: ${{ steps.set-matrix.outputs.protocols_matrix }}
+      protocol_changes: ${{ steps.set-matrix.outputs.protocol_changes }}
+      all_changed_files: ${{ steps.changed-files.outputs.all_changed_files }}
+      dockerfile_changes: ${{ steps.set-matrix.outputs.dockerfile_changes }}
+      dockerfile_matrix: ${{ steps.set-matrix.outputs.dockerfile_matrix }}
+      protocols_yaml_changed: ${{ steps.set-matrix.outputs.protocols_yaml_changed }}
+    steps:
+      - name: Configure Git
+        run: |
+          echo "[safe]
+            directory = $GITHUB_WORKSPACE" > $GITHUB_WORKSPACE/.gitconfig
+          export GIT_CONFIG_GLOBAL=$GITHUB_WORKSPACE/.gitconfig
+          echo "GIT_CONFIG_GLOBAL=$GITHUB_WORKSPACE/.gitconfig" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0  # Fetch all history for all tags and branches
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+          BASE_SHA=$(git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+          HEAD_SHA=${{ github.event.pull_request.head.sha }}
+          echo "Base SHA: $BASE_SHA"
+          echo "Head SHA: $HEAD_SHA"   
+          ALL_FILES=$(git diff --name-only $BASE_SHA $HEAD_SHA)     
+          FILTERED_FILES=$(echo "$ALL_FILES" | grep -v -E '\.md$|^docs/|^\.gitignore$|^LICENSE$|^\.github/(?!workflows/)')    
+          CHANGED_FILES=$(echo "$FILTERED_FILES" | tr '\n' ' ')   
+          echo "Changed files after filtering:"
+          echo "$CHANGED_FILES"
+          echo "all_changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+
+      - name: List all changed files
+        run: |
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "$file was changed"
+          done
+          
+      - name: Debug changed files outputs
+        run: |
+          echo "Debug outputs from changed-files action:"
+          echo "Changed files:"
+          echo "${{ steps.changed-files.outputs.all_changed_files }}"
+
+      - name: Generate build matrices
+        id: set-matrix
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          # First find all Docker build contexts (directories containing Dockerfile)
+          DOCKER_DIRS=$(find . -name Dockerfile -exec dirname {} \; | sed 's|^./||' | sort)
+          echo "Found Docker directories:"
+          echo "$DOCKER_DIRS"
+          
+          echo "Changed files in this commit:"
+          echo "$ALL_CHANGED_FILES"
+          
+          # For each changed file, find which Docker directory it belongs to
+          CHANGED_DIRS=$(for file in ${ALL_CHANGED_FILES}; do
+            echo "Checking file: $file"
+            
+            # Get protocol key from babel.yaml
+            echo "$DOCKER_DIRS" | while read -r docker_dir; do
+              if [[ "$file" =~ ^"$docker_dir"(/|$) ]]; then
+                echo "$docker_dir"
+              fi
+            done
+          done | sort -u)
+          echo "Changed directories:"
+          echo "$CHANGED_DIRS"
+          
+          # Check if protocols.yaml changed
+          if [[ "$ALL_CHANGED_FILES" =~ protocols/protocols.yaml ]]; then
+            echo "protocols_yaml_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "protocols_yaml_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Function to check if directory has a Dockerfile
+          check_dockerfile() {
+            local dir=$1
+            local type=$2
+            if [[ ! -f "$dir/Dockerfile" ]]; then
+              echo "Error: $type directory $dir does not contain a Dockerfile"
+              exit 1
+            fi
+            # Check for main.rhai in protocol directories
+            if [[ "$type" == "Protocol" && ! -f "$dir/main.rhai" ]]; then
+              echo "Protocol folder must contain a main.rhai file"
+              echo "Missing main.rhai in: $dir"
+              exit 1
+            fi
+          }
+
+          # Filter by component
+          BASE=$(echo "$CHANGED_DIRS" | grep "^base-images/" || true)
+          CLIENTS=$(echo "$CHANGED_DIRS" | grep "^clients/" || true)
+          PROTOCOLS=$(echo "$CHANGED_DIRS" | grep "^protocols/[^/]\+/[^/]\+$" || true)
+          PROTOCOL_CHANGES=$(for file in ${ALL_CHANGED_FILES}; do
+            if [[ "$file" =~ ^protocols/ && ! "$file" =~ ^protocols/protocols.yaml$ ]]; then
+              dirname "$file" | cut -d/ -f1-3 | sort -u
+            fi
+          done | sort -u)
+
+          # Verify that all component directories have a Dockerfile
+          if [[ -n "$BASE" ]]; then
+            echo "$BASE" | while read -r dir; do
+              check_dockerfile "$dir" "Base image"
+            done
+          fi
+
+          if [[ -n "$CLIENTS" ]]; then
+            echo "$CLIENTS" | while read -r dir; do
+              check_dockerfile "$dir" "Client"
+            done
+          fi
+
+          if [[ -n "$PROTOCOL_CHANGES" ]]; then
+            echo "$PROTOCOL_CHANGES" | while read -r dir; do
+              check_dockerfile "$dir" "Protocol"
+            done
+          fi
+
+          DOCKERFILE_CHANGES=$(echo "$CHANGED_DIRS" | grep -E "^base-images/|^clients/|^protocols/" || true)
+
+          echo "Base dirs: $BASE"
+          echo "Client dirs: $CLIENTS"
+          echo "Protocol dirs: $PROTOCOLS"
+          echo "Protocol changes: $PROTOCOL_CHANGES"
+          echo "Dockerfile changes: $DOCKERFILE_CHANGES"
+          
+          # Generate base image matrix from changed base-images directories
+          if [[ -n "$BASE" ]]; then
+            BASE_MATRIX=$(echo "$BASE" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')
+          else
+            BASE_MATRIX='{"include":[]}'
+          fi
+          echo "base_matrix=$BASE_MATRIX" >> $GITHUB_OUTPUT
+          
+          if [[ -n "$CLIENTS" ]]; then
+            echo "clients_matrix=$(echo "$CLIENTS" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          else
+            echo 'clients_matrix={"include":[]}' >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ -n "$PROTOCOLS" ]]; then
+            echo "protocols_matrix=$(echo "$PROTOCOLS" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          else
+            echo 'protocols_matrix={"include":[]}' >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ -n "$PROTOCOL_CHANGES" ]]; then
+            PROTOCOL_JSON=$(echo "$PROTOCOL_CHANGES" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')
+            echo "Debug - PROTOCOL_CHANGES JSON:"
+            echo "$PROTOCOL_JSON" | jq '.'
+            echo "protocol_changes=$PROTOCOL_JSON" >> $GITHUB_OUTPUT
+          else
+            echo "Debug - PROTOCOL_CHANGES is empty"
+            echo 'protocol_changes={"include":[]}' >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ -n "$DOCKERFILE_CHANGES" ]]; then
+            echo "dockerfile_changes=true" >> $GITHUB_OUTPUT
+            echo "dockerfile_matrix=$(echo "$DOCKERFILE_CHANGES" | jq -Rsc 'split("\n")[:-1] | {include: map({image_path: .})}')" >> $GITHUB_OUTPUT
+          else
+            echo 'dockerfile_changes=false' >> $GITHUB_OUTPUT
+            echo 'dockerfile_matrix={"include":[]}' >> $GITHUB_OUTPUT
+          fi
+
+  scan-dockerfiles:
+    needs: [detect-changes]
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      contains(needs.detect-changes.outputs.dockerfile_changes, 'true')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.dockerfile_matrix) }}
+      fail-fast: false
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy Dockerfile scan
+        id: scan
+        run: |
+          # Use Docker to run Trivy instead of the action
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            aquasec/trivy:latest config \
+            --severity CRITICAL,HIGH \
+            --format table \
+            /workspace/${{ matrix.image_path }}/Dockerfile > trivy-dockerfile-results.txt
+          
+          cat trivy-dockerfile-results.txt
+          
+      - name: Comment on PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -x
+          if [ -s trivy-dockerfile-results.txt ]; then
+            {
+              echo "### 🔍 Trivy Dockerfile Scan Results for \`${{ matrix.image_path }}/Dockerfile\`"
+              echo ""
+              echo "<details>"
+              echo "<summary>Click to view findings</summary>"
+              echo ""
+              echo "\`\`\`"
+              cat trivy-dockerfile-results.txt
+              echo "\`\`\`"
+              echo "</details>"
+              echo ""
+              echo "Please review these findings and make necessary fixes to improve the security of your Dockerfile."
+            } > comment.md
+            # Check if comment is too large and truncate if needed
+            COMMENT_SIZE=$(wc -m < comment.md)
+            MAX_SIZE=65000
+            
+            if [ $COMMENT_SIZE -gt $MAX_SIZE ]; then
+              echo "Comment is too large ($COMMENT_SIZE bytes), truncating to $MAX_SIZE bytes"
+              # Truncate the file to MAX_SIZE bytes
+              dd if=comment.md of=comment_truncated.md bs=$MAX_SIZE count=1
+              # Add truncation message
+              echo -e "\n\n**The report is truncated, please review the logs for the full report**" >> comment_truncated.md
+              mv comment_truncated.md comment.md
+            fi
+            
+            gh pr comment ${{ github.event.pull_request.number }} --body-file comment.md
+            exit 0
+          else
+            echo "No vulnerabilities found in Dockerfile"
+            gh pr comment ${{ github.event.pull_request.number }} --body "✅ No security issues found in \`${{ matrix.image_path }}/Dockerfile\`"
+          fi
+
+  check-protocols:
+    needs: [detect-changes]
+    if: |
+      github.event_name == 'pull_request' &&
+      fromJson(needs.detect-changes.outputs.protocol_changes).include[0] ||
+       needs.detect-changes.outputs.protocols_yaml_changed == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history to allow commit comparisons
+
+      - name: Check protocol keys in protocols.yaml
+        id: check-protocol
+        run: |
+          # Get all changed protocols from detect-changes
+          CHANGED_PROTOCOLS='${{ needs.detect-changes.outputs.protocol_changes }}'
+          
+          # Check each protocol key
+          echo "$CHANGED_PROTOCOLS" | jq -r '.include[] | .image_path' | while read -r IMAGE_PATH; do
+            echo "Checking protocol in $IMAGE_PATH"
+            
+            # Get protocol key from babel.yaml
+            PROTOCOL_KEY=$(yq e '.protocol_key' "$IMAGE_PATH/babel.yaml")
+            echo "Checking for protocol key: $PROTOCOL_KEY"
+            
+            # Count occurrences of the key in protocols.yaml
+            KEY_COUNT=$(yq e '[.[] | select(.key == "'$PROTOCOL_KEY'")] | length' protocols/protocols.yaml)
+            if [ "$KEY_COUNT" -eq 0 ]; then
+              echo "Error: Protocol key '$PROTOCOL_KEY' not found in protocols/protocols.yaml"
+              exit 1
+            elif [ "$KEY_COUNT" -gt 1 ]; then
+              echo "Error: Found $KEY_COUNT occurrences of protocol key '$PROTOCOL_KEY' in protocols.yaml. Protocol keys must be unique."
+              exit 1
+            else
+              echo "Found exactly one occurrence of key '$PROTOCOL_KEY'"
+            fi
+          done
+          
+          # Check if protocols.yaml has changed
+          if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -q "^protocols/protocols.yaml$"; then
+            echo "protocols/protocols.yaml has changed, will push protocol updates"
+            echo "protocols_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "protocols/protocols.yaml unchanged"
+            echo "protocols_changed=false" >> $GITHUB_OUTPUT
+          fi
+        
+  build-base-images:
+    name: build-base-images
+    needs: [detect-changes, scan-dockerfiles]
+    if: |
+      github.event_name == 'pull_request' &&
+      fromJson(needs.detect-changes.outputs.base_matrix).include[0] &&
+      github.event.action != 'closed' &&
+      (needs.scan-dockerfiles.result == 'success' || needs.scan-dockerfiles.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read      # Allows reading repository contents
+      packages: write     # Allows pushing/pulling container images
+      security-events: write  # For trivy scan results
+      pull-requests: write    # For commenting on PRs
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.base_matrix) }}
+    outputs:
+      image_name: ${{ steps.version.outputs.image_name }}
+      image_tag: ${{ steps.version.outputs.image_tag }}
+      version_tag: ${{ steps.version.outputs.version_tag }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Authenticate GitHub CLI
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      - name: Extract image name
+        id: version
+        run: |
+          set -x
+          # Extract image name from path - get the last part of the path
+          IMAGE_NAME=$(basename ${{ matrix.image_path }})
+          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+
+          # Generate version tag
+          SHA=$(git rev-parse --short HEAD)
+          DATE=$(date '+%Y%m%d')
+          
+          # Try to get the current build number, default to 0 if API call fails
+          set +e
+          OUTPUT=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
+          API_STATUS=$?
+          set -e
+          
+          if echo "$OUTPUT" | grep -q "message.*Package not found" || \
+             echo "$OUTPUT" | grep -q "status.*404" || \
+             [ $API_STATUS -ne 0 ]; then
+            echo "Package $IMAGE_NAME not found in registry - this is expected for new images"
+            echo "Starting with build number 1"
+            BUILD_NUM=1
+          else
+            echo "API call succeeded, parsing response"
+            LATEST_BUILD=$(echo "$OUTPUT" | \
+              jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
+            if [ -z "$LATEST_BUILD" ] || [ "$LATEST_BUILD" = "null" ]; then
+              echo "No existing versions found for today, starting at 0"
+              BUILD_NUM=0
+            else
+              echo "Found $LATEST_BUILD existing versions today"
+              BUILD_NUM=$((LATEST_BUILD + 1))
+            fi
+          fi
+          
+          echo "Debug: Final build number: ${BUILD_NUM}"
+          
+          # Format: v20250108.1, v20250108.2, etc
+          VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          
+          # Make sure we have a build number before continuing
+          if [ -z "$BUILD_NUM" ]; then
+            echo "Error: Build number is empty, defaulting to 0"
+            BUILD_NUM=0
+            VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          fi
+          
+          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
+          echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
+          echo "sha=${SHA}" >> $GITHUB_OUTPUT
+
+      - name: Generate build contexts
+        id: build-contexts
+        run: |
+          # First, find all directories containing Dockerfiles to build our valid image list
+          VALID_IMAGES=$(find . -name Dockerfile -exec dirname {} \; | while read dir; do
+            # Convert directory path to image name (e.g., ./ethereum/ethereum-erigon -> ethereum-erigon)
+            basename "$dir" | tr '[:upper:]' '[:lower:]'
+            # For protocol directories, also add the protocol-client format
+            if [[ "$dir" =~ ^./[^/]+/[^/]+ ]]; then
+              echo "$dir" | sed 's|^./\([^/]\+\)/\([^/]\+\)|\1-\2|' | tr '[:upper:]' '[:lower:]'
+            fi
+          done | sort -u)
+
+          # Now extract FROM directives and filter against our valid images
+          BUILD_CONTEXTS=$(grep -h "^FROM.*\${.*_IMAGE}" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
+            # Extract variable name from FROM line
+            var_name=$(echo "$line" | grep -o '\${[^}]*}' | tr -d '${}\n')
+            # Extract image name and remove any default tag
+            image=$(grep "^ARG ${var_name}=" ./${{ matrix.image_path }}/Dockerfile | cut -d'=' -f2 | cut -d':' -f1)
+            # Check if this image is in our valid image list
+            if echo "$VALID_IMAGES" | grep -q "^${image}$"; then
+              # Use short name for context key but specify it as a docker-image context with SHA tag
+              echo "${image}=docker-image://ghcr.io/blockjoy/${image}:${{ steps.version.outputs.sha }}"
+            fi
+          done | sort -u | tr '\n' ',' | sed 's/,$//')
+          echo "contexts=${BUILD_CONTEXTS}" >> $GITHUB_OUTPUT
+          echo "Generated build contexts: ${BUILD_CONTEXTS}"
+          echo "Valid images: ${VALID_IMAGES}"
+          echo "Current image path: '${{ matrix.image_path }}'"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3
+        with:
+          buildkitd-flags: |
+            --debug
+            --allow-insecure-entitlement network.host
+
+      - name: Build base image
+        env:
+          IMAGE_NAME: ${{ steps.version.outputs.image_name }}
+          IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
+          VERSION_TAG: ${{ steps.version.outputs.version_tag }}
+          IMAGE_PATH: ${{ matrix.image_path }}
+          BUILD_CONTEXTS: ${{ steps.build-contexts.outputs.contexts }}
+        run: |
+          # Set up Docker config to use workspace directory
+          mkdir -p $GITHUB_WORKSPACE/.docker
+          export DOCKER_CONFIG=$GITHUB_WORKSPACE/.docker
+          
+          echo "Building image ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}"
+          
+          # Build the image
+          docker build \
+            -t ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG} \
+            -t ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG} \
+            ./${IMAGE_PATH}
+          
+      - name: Run Trivy vulnerability scanner
+        id: scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'image'
+          image-ref: 'localhost/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          timeout: '10m'
+          exit-code: '0'
+
+      - name: Generate human-readable report
+        if: always()
+        run: |
+          set -x
+          trivy image --severity CRITICAL,HIGH --format table localhost/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }} > trivy-image-results.txt
+
+      - name: Comment on PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -x
+          if [ -s trivy-image-results.txt ]; then
+            {
+              echo "### 🔍 Trivy Image Scan Results for \`${{ steps.version.outputs.image_name }}\`"
+              echo ""
+              echo "<details><summary>Click to show scan results</summary>"
+              echo ""
+              echo "\`\`\`"
+              cat trivy-image-results.txt
+              echo "\`\`\`"
+              echo ""
+              echo "</details>"
+              echo ""
+              echo "These vulnerabilities were found in the ${{ steps.version.outputs.image_name }} image. Since this is a base image, these vulnerabilities will affect all derived images. Please review and update dependencies to their latest secure versions where possible."
+            } > comment.md
+            
+            # Check if comment is too large and truncate if needed
+            COMMENT_SIZE=$(wc -m < comment.md)
+            MAX_SIZE=65000
+            
+            if [ $COMMENT_SIZE -gt $MAX_SIZE ]; then
+              echo "Comment is too large ($COMMENT_SIZE bytes), truncating to $MAX_SIZE bytes"
+              # Truncate the file to MAX_SIZE bytes
+              dd if=comment.md of=comment_truncated.md bs=$MAX_SIZE count=1
+              # Add truncation message
+              echo -e "\n\n**The report is truncated, please review the logs for the full report**" >> comment_truncated.md
+              mv comment_truncated.md comment.md
+            fi
+            
+            gh pr comment ${{ github.event.pull_request.number }} --body-file comment.md
+            exit 0
+          else
+            echo "No vulnerabilities found in image"
+            gh pr comment ${{ github.event.pull_request.number }} --body "✅ No vulnerabilities found in \`${{ steps.version.outputs.image_name }}\` image"
+          fi
+
+      - name: Log in to GitHub Container Registry
+        if: success()
+        env:
+          GITHUB_USER: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Configure Docker to not store credentials
+          mkdir -p $GITHUB_WORKSPACE/.docker
+          echo '{"credsStore":"","auths":{"ghcr.io":{}}}' > $GITHUB_WORKSPACE/.docker/config.json
+          export DOCKER_CONFIG=$GITHUB_WORKSPACE/.docker
+          
+          # Use --password-stdin to avoid credential leakage in logs
+          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_USER" --password-stdin
+
+      - name: Push images
+        if: success()
+        run: |
+          # Push the images
+          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}
+          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}
+          
+          echo "Successfully built and pushed images:"
+          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}"
+          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}"
+
+  build-clients:
+    needs: [detect-changes, scan-dockerfiles]
+    if: |
+      github.event_name == 'pull_request' &&
+      fromJson(needs.detect-changes.outputs.clients_matrix).include[0] &&
+      github.event.action != 'closed' &&
+      (needs.scan-dockerfiles.result == 'success' || needs.scan-dockerfiles.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read      # Allows reading repository contents
+      packages: write     # Allows pushing/pulling container images
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.clients_matrix) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Authenticate GitHub CLI
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+      - name: Log in to GitHub Container Registry
+        env:
+          GITHUB_USER: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Configure Docker to not store credentials
+          mkdir -p $GITHUB_WORKSPACE/.docker
+          echo '{"credsStore":"","auths":{"ghcr.io":{}}}' > $GITHUB_WORKSPACE/.docker/config.json
+          export DOCKER_CONFIG=$GITHUB_WORKSPACE/.docker
+          
+          # Use --password-stdin to avoid credential leakage in logs
+          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_USER" --password-stdin
+      - name: Generate version
+        id: version
+        run: |
+          set -x  # Enable debug mode to see commands being executed
+          set +e
+          SHA=$(git rev-parse --short HEAD)
+          DATE=$(date '+%Y%m%d')
+          CLIENT_NAME=$(basename ${{ matrix.image_path }})
+          IMAGE_NAME="${CLIENT_NAME}"
+          
+          # Extract version for any client under /clients/
+          if [[ "${{ matrix.image_path }}" =~ ^clients/ ]]; then
+            CLIENT_NO_HYPHEN=$(echo "${CLIENT_NAME}" | tr -d '-' | tr '[:lower:]' '[:upper:]')
+            CLIENT_WITH_UNDERSCORE=$(echo "${CLIENT_NAME}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+            
+            # Try both variants when searching for the version, allowing for path prefixes before the version
+            CLIENT_VERSION=$(grep -E "ENV (${CLIENT_NO_HYPHEN}|${CLIENT_WITH_UNDERSCORE})_VERSION=[[:space:]]*[^[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*" "${{ matrix.image_path }}/Dockerfile" | grep -oE "v?[0-9]+\.[0-9]+\.[0-9]+[-.a-zA-Z0-9]*")
+            
+            if [[ ! -z "$CLIENT_VERSION" ]]; then
+              # Remove 'v' prefix and ensure version is Docker-compatible (only alphanumeric and . - _)
+              CLIENT_VERSION=${CLIENT_VERSION#v}
+              CLIENT_VERSION=$(echo "$CLIENT_VERSION" | tr -cd '[:alnum:].-')
+              IMAGE_TAG="${CLIENT_VERSION}-${SHA}"
+            else
+              IMAGE_TAG="${SHA}"
+            fi
+          else
+            IMAGE_TAG="${SHA}"
+          fi
+
+          echo "Debug: matrix.image_path = ${{ matrix.image_path }}"
+          echo "Debug: IMAGE_NAME = ${IMAGE_NAME}"
+          echo "Debug: IMAGE_TAG = ${IMAGE_TAG}"
+          
+          # Try to get the current build number, default to 0 if API call fails
+          echo "Debug: Querying GitHub API for package ${IMAGE_NAME}"
+          
+          OUTPUT=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
+          API_STATUS=$?
+          
+          echo "Debug: Full command output:"
+          echo "$OUTPUT"
+          echo "Debug: API Status: $API_STATUS"
+          echo "Debug: Checking if output contains error message..."
+          
+          # More detailed error checking
+          if echo "$OUTPUT" | grep -q "message.*Package not found" || \
+             echo "$OUTPUT" | grep -q "status.*404" || \
+             [ $API_STATUS -ne 0 ]; then
+            echo "Package $IMAGE_NAME not found in registry - this is expected for new images"
+            echo "Starting with build number 1"
+            BUILD_NUM=1
+          else
+            echo "API call succeeded, parsing response"
+            LATEST_BUILD=$(echo "$OUTPUT" | \
+              jq "[.[] | select(.metadata.container.tags[] | startswith(\"v${DATE}\"))] | length")
+            if [ -z "$LATEST_BUILD" ] || [ "$LATEST_BUILD" = "null" ]; then
+              echo "No existing versions found for today, starting at 1"
+              BUILD_NUM=1
+            else
+              echo "Found $LATEST_BUILD existing versions today"
+              BUILD_NUM=$((LATEST_BUILD + 1))
+            fi
+          fi
+          
+          echo "Debug: Final build number: ${BUILD_NUM}"
+          
+          # Format: v20250108.1, v20250108.2, etc
+          VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          
+          echo "Debug: Version tag: ${VERSION_TAG}"
+          
+          # Make sure we have a build number before continuing
+          if [ -z "$BUILD_NUM" ]; then
+            echo "Error: Build number is empty, defaulting to 1"
+            BUILD_NUM=1
+            VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          fi
+          
+          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
+          echo "sha=${SHA}" >> $GITHUB_OUTPUT
+
+      - name: Generate build contexts
+        id: build-contexts
+        run: |
+          # First, find all directories containing Dockerfiles to build our valid image list
+          VALID_IMAGES=$(find . -name Dockerfile -exec dirname {} \; | while read dir; do
+            # Convert directory path to image name (e.g., ./ethereum/ethereum-erigon -> ethereum-erigon)
+            basename "$dir" | tr '[:upper:]' '[:lower:]'
+            # For protocol directories, also add the protocol-client format
+            if [[ "$dir" =~ ^./[^/]+/[^/]+ ]]; then
+              echo "$dir" | sed 's|^./\([^/]\+\)/\([^/]\+\)|\1-\2|' | tr '[:upper:]' '[:lower:]'
+            fi
+          done | sort -u)
+
+          # Now extract FROM directives and filter against our valid images
+          BUILD_CONTEXTS=$(grep -h "^FROM.*\${.*_IMAGE}" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
+            # Extract variable name from FROM line
+            var_name=$(echo "$line" | grep -o '\${[^}]*}' | tr -d '${}\n')
+            # Extract image name and remove any default tag
+            image=$(grep "^ARG ${var_name}=" ./${{ matrix.image_path }}/Dockerfile | cut -d'=' -f2 | cut -d':' -f1)
+            # Check if this image is in our valid image list
+            if echo "$VALID_IMAGES" | grep -q "^${image}$"; then
+              # Use short name for context key but specify it as a docker-image context with SHA tag
+              echo "${image}=docker-image://ghcr.io/blockjoy/${image}:${{ steps.version.outputs.sha }}"
+            fi
+          done | sort -u | tr '\n' ',' | sed 's/,$//')
+          echo "contexts=${BUILD_CONTEXTS}" >> $GITHUB_OUTPUT
+          echo "Generated build contexts: ${BUILD_CONTEXTS}"
+          echo "Valid images: ${VALID_IMAGES}"
+          echo "Current image path: '${{ matrix.image_path }}'"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3
+        with:
+          buildkitd-flags: |
+            --debug
+            --allow-insecure-entitlement network.host
+      - name: Build and push client images
+        env:
+          IMAGE_NAME: ${{ steps.version.outputs.image_name }}
+          IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
+          VERSION_TAG: ${{ steps.version.outputs.version_tag }}
+          IMAGE_PATH: ${{ matrix.image_path }}
+          BUILD_CONTEXTS: ${{ steps.build-contexts.outputs.contexts }}
+        run: |
+          # Set up Docker config to use workspace directory
+          mkdir -p $GITHUB_WORKSPACE/.docker
+          export DOCKER_CONFIG=$GITHUB_WORKSPACE/.docker
+          
+          echo "Building image ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}"
+          
+          # Build the image
+          docker build \
+            -t ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG} \
+            -t ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG} \
+            ./${IMAGE_PATH}
+          
+          # Push the images
+          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}
+          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}
+          
+          echo "Successfully built and pushed images:"
+          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}"
+          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}"
+
+  build-protocols:
+    needs: [detect-changes, scan-dockerfiles, check-protocols]
+    environment: Dev
+    if: |
+      github.event_name == 'pull_request' &&
+      fromJson(needs.detect-changes.outputs.protocols_matrix).include[0] &&
+      github.event.action != 'closed' &&
+      (needs.scan-dockerfiles.result == 'success' || needs.scan-dockerfiles.result == 'skipped')
+    runs-on: ubuntu-latest
+    outputs:
+      image_name: ${{ steps.version.outputs.image_name }}
+      image_tag: ${{ steps.version.outputs.image_tag }}
+      version_tag: ${{ steps.version.outputs.version_tag }}
+      runner_hostname: ${{ steps.get-hostname.outputs.hostname }}
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.protocols_matrix) }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Get runner hostname
+        id: get-hostname
+        run: echo "hostname=$(hostname)" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Authenticate GitHub CLI
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+      - name: Download latest nib binary
+        run: |
+          echo "Downloading latest nib binary..."
+          mkdir -p $GITHUB_WORKSPACE/.github/bin
+          curl -L -o $GITHUB_WORKSPACE/.github/bin/nib https://github.com/blockjoy/blockvisor/releases/latest/download/nib
+          chmod +x $GITHUB_WORKSPACE/.github/bin/nib
+          echo "$GITHUB_WORKSPACE/.github/bin" >> $GITHUB_PATH
+          echo "nib binary installed at $GITHUB_WORKSPACE/.github/bin/nib"
+          $GITHUB_WORKSPACE/.github/bin/nib --version || echo "nib version command failed, but continuing"
+      - name: Log in to GitHub Container Registry
+        env:
+          GITHUB_USER: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Configure Docker to not store credentials
+          mkdir -p $GITHUB_WORKSPACE/.docker
+          echo '{"credsStore":"","auths":{"ghcr.io":{}}}' > $GITHUB_WORKSPACE/.docker/config.json
+          export DOCKER_CONFIG=$GITHUB_WORKSPACE/.docker
+          
+          # Use --password-stdin to avoid credential leakage in logs
+          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_USER" --password-stdin
+      - name: Generate version
+        id: version
+        run: |
+          set -x  # Enable debug mode to see commands being executed
+          set +e
+          SHA=$(git rev-parse --short HEAD)
+          DATE=$(date '+%Y%m%d')
+          PROTOCOL_PATH=${{ matrix.image_path }}
+          # Extract just the protocol name without the parent directory
+          PROTOCOL=$(echo "${{ matrix.image_path }}" | cut -d'/' -f2)
+          IMAGE_NAME=$(echo "${{ matrix.image_path }}" | cut -d'/' -f3)-protocol
+          
+          echo "Debug: matrix.image_path = ${{ matrix.image_path }}"
+          echo "Debug: IMAGE_NAME = ${IMAGE_NAME}"
+          
+          # Try to get the current build number, default to 0 if API call fails
+          echo "Debug: Querying GitHub API for package ${IMAGE_NAME}"
+          
+          OUTPUT=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/orgs/blockjoy/packages/container/${IMAGE_NAME}/versions" 2>&1)
+          API_STATUS=$?
+          set -e
+          
+          # More detailed error checking
+          if echo "$OUTPUT" | grep -q "message.*Package not found" || \
+             echo "$OUTPUT" | grep -q "status.*404" || \
+             [ $API_STATUS -ne 0 ]; then
+            echo "Package $IMAGE_NAME not found in registry - this is expected for new images"
+            echo "Starting with build number 1"
+            BUILD_NUM=1
+          else
+            echo "API call succeeded, parsing response"
+            # Get the highest build number for today's date
+            LATEST_BUILD=$(echo "$OUTPUT" | \
+              jq -r "[.[] | select(.metadata.container.tags[] | select(startswith(\"v${DATE}\"))) | 
+                  .metadata.container.tags[] | select(startswith(\"v${DATE}\")) | 
+                  split(\".\")[1] | tonumber] | max // 0")
+            if [ -z "$LATEST_BUILD" ] || [ "$LATEST_BUILD" = "null" ]; then
+              echo "No existing versions found for today, starting at 1"
+              BUILD_NUM=1
+            else
+              echo "Found highest build number $LATEST_BUILD for today"
+              BUILD_NUM=$((LATEST_BUILD + 1))
+            fi
+          fi
+          
+          echo "Debug: Final build number: ${BUILD_NUM}"
+          
+          # Format: v20250108.1, v20250108.2, etc
+          VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          
+          echo "Debug: Version tag: ${VERSION_TAG}"
+          
+          # Make sure we have a build number before continuing
+          if [ -z "$BUILD_NUM" ]; then
+            echo "Error: Build number is empty, defaulting to 1"
+            BUILD_NUM=1
+            VERSION_TAG="v${DATE}.${BUILD_NUM}"
+          fi
+          
+          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "image_tag=${SHA}" >> $GITHUB_OUTPUT
+          echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
+          echo "sha=${SHA}" >> $GITHUB_OUTPUT
+          
+          # Script should succeed even if API call failed
+          exit 0
+
+      - name: Generate build contexts
+        id: build-contexts
+        run: |
+          # First, find all directories containing Dockerfiles to build our valid image list
+          VALID_IMAGES=$(find . -name Dockerfile -exec dirname {} \; | while read dir; do
+            # Convert directory path to image name (e.g., ./ethereum/ethereum-erigon -> ethereum-erigon)
+            basename "$dir" | tr '[:upper:]' '[:lower:]'
+            # For protocol directories, also add the protocol-client format
+            if [[ "$dir" =~ ^./[^/]+/[^/]+ ]]; then
+              echo "$dir" | sed 's|^./\([^/]\+\)/\([^/]\+\)|\1-\2|' | tr '[:upper:]' '[:lower:]'
+            fi
+          done | sort -u)
+
+          # Now extract FROM directives and filter against our valid images
+          BUILD_CONTEXTS=$(grep -h "^FROM.*\${.*_IMAGE}" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
+            # Extract variable name from FROM line
+            var_name=$(echo "$line" | grep -o '\${[^}]*}' | tr -d '${}\n')
+            # Extract image name and remove any default tag
+            image=$(grep "^ARG ${var_name}=" ./${{ matrix.image_path }}/Dockerfile | cut -d'=' -f2 | cut -d':' -f1)
+            # Check if this image is in our valid image list
+            if echo "$VALID_IMAGES" | grep -q "^${image}$"; then
+              # Use short name for context key but specify it as a docker-image context with SHA tag
+              echo "${image}=docker-image://ghcr.io/blockjoy/${image}:${{ steps.version.outputs.sha }}"
+            fi
+          done | sort -u | tr '\n' ',' | sed 's/,$//')
+          echo "contexts=${BUILD_CONTEXTS}" >> $GITHUB_OUTPUT
+          echo "Generated build contexts: ${BUILD_CONTEXTS}"
+          echo "Valid images: ${VALID_IMAGES}"
+          echo "Current image path: '${{ matrix.image_path }}'"
+      - name: Generate build args
+        id: build-args
+        run: |
+          # Extract all *_IMAGE args from Dockerfile with their specified tags
+          IMAGE_ARGS=$(grep "^ARG.*_IMAGE=" ./${{ matrix.image_path }}/Dockerfile | while read -r line; do
+            var_name=$(echo "$line" | cut -d'=' -f1 | cut -d' ' -f2)
+            # Use the full image reference from the Dockerfile, including its tag
+            image_ref=$(echo "$line" | cut -d'=' -f2)
+            echo "${var_name}=${image_ref}"
+          done | tr '\n' '\n')
+          echo "image_args<<EOF" >> $GITHUB_OUTPUT
+          echo "$IMAGE_ARGS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Build and push protocol images
+        env:
+          IMAGE_NAME: ${{ steps.version.outputs.image_name }}
+          IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
+          VERSION_TAG: ${{ steps.version.outputs.version_tag }}
+          IMAGE_PATH: ${{ matrix.image_path }}
+          BUILD_ARGS: ${{ steps.build-args.outputs.image_args }}
+          BUILD_CONTEXTS: ${{ steps.build-contexts.outputs.contexts }}
+        run: |
+          # Set up Docker config to use workspace directory
+          mkdir -p $GITHUB_WORKSPACE/.docker
+          export DOCKER_CONFIG=$GITHUB_WORKSPACE/.docker
+          
+          echo "Building image ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}"
+          
+          # Parse build args
+          BUILD_ARG_FLAGS=""
+          echo "${BUILD_ARGS}" | while IFS= read -r line; do
+            if [ -n "$line" ]; then
+              BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg ${line}"
+            fi
+          done
+          
+          # Build the image
+          docker build \
+            ${BUILD_ARG_FLAGS} \
+            -t ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG} \
+            -t ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG} \
+            ./${IMAGE_PATH}
+          
+          # Push the images
+          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}
+          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}
+          
+          echo "Successfully built and pushed images:"
+          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}"
+          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}"
+      - name: Get variants from babel.yaml
+        id: get-variants
+        run: |
+          variants=$(yq e '.variants[].key' ${{ matrix.image_path }}/babel.yaml | tr '\n' ' ')
+          if [ -z "$variants" ]; then
+            echo " No variants found in ${{ matrix.image_path }}/babel.yaml"
+            exit 1
+          fi
+          echo "variants=$variants" >> $GITHUB_OUTPUT
+
+      - name: Check variants
+        id: check-variants
+        run: |
+          cp ${{ matrix.image_path }}/babel.yaml ${{ matrix.image_path }}/babel.yaml-test
+
+          # Update container_uri with newly built image
+          NEW_URI="docker://ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}"
+          yq -i e ".container_uri = \"$NEW_URI\"" ${{ matrix.image_path }}/babel.yaml-test
+
+          echo "test_file=${{ matrix.image_path }}/babel.yaml-test" >> $GITHUB_OUTPUT
+
+          success_variants=()
+          failed_variants=()
+          
+          for variant in ${{ steps.get-variants.outputs.variants }}; do
+            echo "Checking variant: $variant"
+            echo "Running: nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test plugin"
+            if OUTPUT=$(nib image check --variant $variant --path ${{ matrix.image_path }}/babel.yaml-test plugin 2>&1); then
+              success_variants+=("$variant")
+              echo " Variant $variant check passed"
+              echo "Command output:"
+              echo "$OUTPUT"
+            else
+              echo " Variant $variant check failed"
+              echo "Command output:"
+              echo "$OUTPUT"
+              failed_variants+=("$variant")
+            fi
+          done
+          
+          rm -rf ${{ matrix.image_path }}/babel.yaml-test
+          
+          if [ ${#failed_variants[@]} -gt 0 ]; then
+            echo " The following variants failed checks: ${failed_variants[*]}"
+            exit 1
+          fi
+          
+          echo "success_variants=${success_variants[*]}" >> $GITHUB_OUTPUT
+
+  get-images:
+    needs: [detect-changes, build-protocols]
+    runs-on: ubuntu-latest
+    permissions:
+      packages: read
+      contents: read
+      actions: read
+      id-token: write
+    outputs:
+      matrix: ${{ steps.combine.outputs.matrix }}
+    steps:
+      - name: Combine matrices
+        id: combine
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the protocol matrix from detect-changes
+          PROTOCOL_MATRIX='${{ needs.detect-changes.outputs.protocols_matrix }}'
+          
+          # Initialize array for new matrix entries
+          MATRIX_ENTRIES=()
+          
+          # Process each image path
+          for IMAGE_PATH in $(echo "$PROTOCOL_MATRIX" | jq -r '.include[].image_path'); do
+            echo "Processing $IMAGE_PATH"
+            
+            # Get image name from path (last part of path)
+            IMAGE_NAME=$(basename "$IMAGE_PATH")-protocol
+            
+            # Query GitHub API for latest tag
+            LATEST_TAG=$(gh api \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              /orgs/blockjoy/packages/container/${IMAGE_NAME}/versions \
+              --jq 'map(select(.metadata.container.tags[] | test("^v[0-9]"))) | sort_by(.created_at) | last.metadata.container.tags[] | select(test("^v[0-9]"))')
+            
+            if [ -n "$LATEST_TAG" ]; then
+              echo "Found latest tag $LATEST_TAG for $IMAGE_NAME"
+              # Add to matrix entries
+              MATRIX_ENTRIES+=("{\"image_path\":\"$IMAGE_PATH\",\"version_tag\":\"$LATEST_TAG\"}")
+            else
+              echo "No version tags found for $IMAGE_NAME"
+            fi
+          done
+          
+          # Combine all entries into a matrix
+          MATRIX=$(printf '{"include":[%s]}' "$(IFS=,; echo "${MATRIX_ENTRIES[*]}")")
+          
+          echo "Combined matrix:"
+          echo "$MATRIX" | jq '.'
+          
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
+  test-nodes-dispatch:
+    needs: [get-images]
+    if: needs.get-images.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.WF_APP_ID }}
+          private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
+          owner: blockjoy
+
+      - name: Trigger Test Nodes Workflow
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          MATRIX_JSON: ${{ needs.get-images.outputs.matrix }}
+        run: |
+          echo "Triggering proto-test-nodes.yml in deployer repository..."
+          
+          # Get the default branch of the deployer repository
+          DEFAULT_BRANCH=$(gh api repos/blockjoy/deployer --jq '.default_branch')
+          
+          echo "Deployer default branch: $DEFAULT_BRANCH"
+          echo "Matrix Input:"
+          echo "$MATRIX_JSON"
+          
+          # Trigger the workflow in the deployer repository
+          gh workflow run proto-test-nodes.yml \
+            --repo blockjoy/deployer \
+            --ref $DEFAULT_BRANCH \
+            --field matrix="$MATRIX_JSON" \
+            --field pr_number=${{ github.event.pull_request.number }} \
+            --field pr_sha=${{ github.event.pull_request.head.sha }} \
+            --field event_action=${{ github.event.action }} \
+            --field submodule_repo=${{ github.repository }} \
+            --field pr_merged=false \
+            --field pr_closed=false
+            
+          echo "Triggered proto-test-nodes.yml workflow in deployer repository"
+
+  clean-nodes-dispatch:
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.WF_APP_ID }}
+          private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
+          owner: blockjoy
+
+      - name: Trigger Clean Nodes Workflow (using test-nodes.yml)
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          echo "Triggering proto-test-nodes.yml for cleanup in deployer repository..."
+          PR_MERGED=${{ github.event.pull_request.merged }}
+
+          # Get the default branch of the deployer repository
+          DEFAULT_BRANCH=$(gh api repos/blockjoy/deployer --jq '.default_branch')
+          
+          echo "Deployer default branch: $DEFAULT_BRANCH"
+
+          # Trigger the workflow in the deployer repository
+          # Matrix is not needed for cleanup, so we don't pass it
+          gh workflow run proto-test-nodes.yml \
+            --repo blockjoy/deployer \
+            --ref $DEFAULT_BRANCH \
+            --field pr_number=${{ github.event.pull_request.number }} \
+            --field event_action=${{ github.event.action }} \
+            --field pr_merged=$PR_MERGED \
+            --field submodule_repo=${{ github.repository }} \
+            --field pr_closed=true
+            
+          echo "Triggered test-nodes.yml workflow for cleanup in deployer repository"
+
+  workflow-status:
+    needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes-dispatch, clean-nodes-dispatch]
+    if: always() && github.event_name == 'pull_request' && needs.test-nodes-dispatch.result == 'skipped'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
+    steps:
+      - name: Report Status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the latest commit SHA from the PR
+          LATEST_SHA=$(gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq .head.sha)
+
+          # Determine the description based on job results
+          if [[ "${{ needs.build-base-images.result }}" == "skipped" ]] && \
+             [[ "${{ needs.build-clients.result }}" == "skipped" ]] && \
+             [[ "${{ needs.build-protocols.result }}" == "skipped" ]] && \
+             [[ "${{ needs.scan-dockerfiles.result }}" == "skipped" ]] && \
+             [[ "${{ needs.check-protocols.result }}" == "skipped" ]]; then
+            DESCRIPTION="No changes detected"
+          else
+            DESCRIPTION="All checks passed successfully"
+          fi
+
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/statuses/$LATEST_SHA" \
+            -f state='success' \
+            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            -f description="$DESCRIPTION" \
+            -f context="workflow-status" \
+            -f owner="${{ github.repository_owner }}" \
+            -f repo="${{ github.event.repository.name }}" \
+            -f sha="$LATEST_SHA" \
+            -f token="${{ secrets.GITHUB_TOKEN }}"
