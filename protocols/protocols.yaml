@@ -122,6 +122,6 @@
   name: Ink
   org_id: null
   ticker: null
-  description: Ink is a Layer 2 blockchain built on top of OP that provides faster and cheaper transactions while maintaining OP's security guarantees.
+  description: Ink is a Layer-2 blockchain built on top of OP that provides faster and cheaper transactions while maintaining OP's security guarantees.
   visibility: public
 

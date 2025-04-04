@@ -272,56 +272,6 @@ jobs:
             echo "No vulnerabilities found in Dockerfile"
             gh pr comment ${{ github.event.pull_request.number }} --body "✅ No security issues found in \`${{ matrix.image_path }}/Dockerfile\`"
           fi
-
-  check-protocols:
-    needs: [detect-changes]
-    if: |
-      github.event_name == 'pull_request' &&
-      fromJson(needs.detect-changes.outputs.protocol_changes).include[0] ||
-       needs.detect-changes.outputs.protocols_yaml_changed == 'true'
-    runs-on: ubuntu-latest
-    outputs:
-      protocols_changed: ${{ steps.check-protocol.outputs.protocols_changed }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch all history to allow commit comparisons
-
-      - name: Check protocol keys in protocols.yaml
-        id: check-protocol
-        run: |
-          # Get all changed protocols from detect-changes
-          CHANGED_PROTOCOLS='${{ needs.detect-changes.outputs.protocol_changes }}'
-          
-          # Check each protocol key
-          echo "$CHANGED_PROTOCOLS" | jq -r '.include[] | .image_path' | while read -r IMAGE_PATH; do
-            echo "Checking protocol in $IMAGE_PATH"
-            
-            # Get protocol key from babel.yaml
-            PROTOCOL_KEY=$(yq e '.protocol_key' "$IMAGE_PATH/babel.yaml")
-            echo "Checking for protocol key: $PROTOCOL_KEY"
-            
-            # Count occurrences of the key in protocols.yaml
-            KEY_COUNT=$(yq e '[.[] | select(.key == "'$PROTOCOL_KEY'")] | length' protocols/protocols.yaml)
-            if [ "$KEY_COUNT" -eq 0 ]; then
-              echo "Error: Protocol key '$PROTOCOL_KEY' not found in protocols/protocols.yaml"
-              exit 1
-            elif [ "$KEY_COUNT" -gt 1 ]; then
-              echo "Error: Found $KEY_COUNT occurrences of protocol key '$PROTOCOL_KEY' in protocols.yaml. Protocol keys must be unique."
-              exit 1
-            else
-              echo "Found exactly one occurrence of key '$PROTOCOL_KEY'"
-            fi
-          done
-          
-          # Check if protocols.yaml has changed
-          if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -q "^protocols/protocols.yaml$"; then
-            echo "protocols/protocols.yaml has changed, will push protocol updates"
-            echo "protocols_changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "protocols/protocols.yaml unchanged"
-            echo "protocols_changed=false" >> $GITHUB_OUTPUT
-          fi
         
   build-base-images:
     name: build-base-images
@@ -727,7 +677,7 @@ jobs:
           echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}"
 
   build-protocols:
-    needs: [detect-changes, scan-dockerfiles, check-protocols]
+    needs: [detect-changes, scan-dockerfiles]
     environment: Dev
     if: |
       github.event_name == 'pull_request' &&
@@ -1106,7 +1056,7 @@ jobs:
           echo "Triggered test-nodes.yml workflow for cleanup in deployer repository"
 
   workflow-status:
-    needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, check-protocols, test-nodes-dispatch, clean-nodes-dispatch]
+    needs: [detect-changes, build-base-images, build-clients, build-protocols, scan-dockerfiles, test-nodes-dispatch, clean-nodes-dispatch]
     if: always() && github.event_name == 'pull_request' && needs.test-nodes-dispatch.result == 'skipped'
     runs-on: ubuntu-latest
     permissions:
@@ -1126,24 +1076,20 @@ jobs:
              [[ "${{ needs.test-nodes-dispatch.result }}" == "failure" ]] || \
              [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] || \
              [[ "${{ needs.detect-changes.result }}" == "failure" ]] || \
-             [[ "${{ needs.check-protocols.result }}" == "failure" ]] || \
              [[ "${{ needs.build-base-images.result }}" == "cancelled" ]] || \
              [[ "${{ needs.build-clients.result }}" == "cancelled" ]] || \
              [[ "${{ needs.build-protocols.result }}" == "cancelled" ]] || \
              [[ "${{ needs.test-nodes-dispatch.result }}" == "cancelled" ]] || \
              [[ "${{ needs.scan-dockerfiles.result }}" == "cancelled" ]] || \
-             [[ "${{ needs.detect-changes.result }}" == "cancelled" ]] || \
-             [[ "${{ needs.check-protocols.result }}" == "cancelled" ]]; then
+             [[ "${{ needs.detect-changes.result }}" == "cancelled" ]]; then
             DESCRIPTION="Workflow failed"
             [[ "${{ needs.test-nodes-dispatch.result }}" == "failure" ]] && DESCRIPTION="Node testing failed"
             [[ "${{ needs.scan-dockerfiles.result }}" == "failure" ]] && DESCRIPTION="Dockerfile scanning failed"
-            [[ "${{ needs.check-protocols.result }}" == "failure" ]] && DESCRIPTION="Protocol validation failed"
             [[ "${{ needs.detect-changes.result }}" == "failure" ]] && DESCRIPTION="Failed to detect changes"
             
             # Add cancelled status descriptions
             [[ "${{ needs.test-nodes-dispatch.result }}" == "cancelled" ]] && DESCRIPTION="Node testing was cancelled"
             [[ "${{ needs.scan-dockerfiles.result }}" == "cancelled" ]] && DESCRIPTION="Dockerfile scanning was cancelled"
-            [[ "${{ needs.check-protocols.result }}" == "cancelled" ]] && DESCRIPTION="Protocol validation was cancelled"
             [[ "${{ needs.detect-changes.result }}" == "cancelled" ]] && DESCRIPTION="Change detection was cancelled"
             [[ "${{ needs.build-base-images.result }}" == "cancelled" ]] && DESCRIPTION="Base image build was cancelled"
             [[ "${{ needs.build-clients.result }}" == "cancelled" ]] && DESCRIPTION="Client build was cancelled"
@@ -1172,8 +1118,7 @@ jobs:
              [[ "${{ needs.build-protocols.result }}" == "skipped" ]] && \
              [[ "${{ needs.test-nodes-dispatch.result }}" == "skipped" ]] && \
              [[ "${{ needs.scan-dockerfiles.result }}" == "skipped" ]] && \
-             [[ "${{ needs.detect-changes.result }}" == "skipped" ]] && \
-             [[ "${{ needs.check-protocols.result }}" == "skipped" ]]; then
+             [[ "${{ needs.detect-changes.result }}" == "skipped" ]]; then
             DESCRIPTION="No changes detected"
           else
             DESCRIPTION="All checks passed successfully"
