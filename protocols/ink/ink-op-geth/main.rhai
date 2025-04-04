@@ -52,9 +52,9 @@ const VARIANTS = #{
 };
 
 if node_env().node_variant.ends_with("-archive") {
-    GETH_EXTRA_ARGS = "--gcmode archive";
+    const GETH_EXTRA_ARGS = "--gcmode archive";
 } else {
-    GETH_EXTRA_ARGS = "";
+    const GETH_EXTRA_ARGS = "";
 }
 
 const VARIANT = VARIANTS[node_env().node_variant];
