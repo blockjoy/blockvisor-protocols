@@ -1168,12 +1168,12 @@ jobs:
             DESCRIPTION="All checks passed successfully"
           fi
 
-          if [[ "${{ needs.test-nodes-dispatch.result }}" == "skipped" ]]; then
+          if [[ "${{ needs.test-nodes-dispatch.result }}" != "skipped" ]]; then
             gh api \
               --method POST \
               -H "Accept: application/vnd.github+json" \
               "/repos/${{ github.repository }}/statuses/$LATEST_SHA" \
-              -f state='success' \
+              -f state='pending' \
             -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             -f description="$DESCRIPTION" \
             -f context="workflow-status" \
@@ -1181,4 +1181,17 @@ jobs:
             -f repo="${{ github.event.repository.name }}" \
             -f sha="$LATEST_SHA" \
             -f token="${{ secrets.GITHUB_TOKEN }}"
+          else
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/${{ github.repository }}/statuses/$LATEST_SHA" \
+              -f state='success' \
+              -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              -f description="$DESCRIPTION" \
+              -f context="workflow-status" \
+              -f owner="${{ github.repository_owner }}" \
+              -f repo="${{ github.event.repository.name }}" \
+              -f sha="$LATEST_SHA" \
+              -f token="${{ secrets.GITHUB_TOKEN }}"
           fi
