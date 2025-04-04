@@ -1,25 +1,39 @@
-version: 1.1.4
-container_uri: docker://ghcr.io/blockjoy/shape-geth-protocol:v20250403.7
-sku_code: SHAPEGETH
+version: 0.0.1
+container_uri: docker://ghcr.io/blockjoy/ink-op-geth-protocol:v20250404.5
+sku_code: INKGETH
 org_id: null
-description: Shape Geth
+description: Ink Geth
 visibility: public
-protocol_key: shape
+protocol_key: ink
 variants:
   - key: geth-mainnet-full
     min_cpu: 12
     min_memory_mb: 16384
     min_disk_gb: 100
-    sku_code: SHAPEGETH-F-MN
+    sku_code: INKGETH-F-MN
     archive_pointers:
-      - pointer: !store_key shape-geth-mainnet-full-v1
+      - pointer: !store_key ink-geth-mainnet-full-v1
   - key: geth-sepolia-full
     min_cpu: 12
     min_memory_mb: 16384
     min_disk_gb: 100
-    sku_code: SHAPEGETH-F-SEP
+    sku_code: INKGETH-F-SEP
     archive_pointers:
-      - pointer: !store_key shape-geth-sepolia-full-v1
+      - pointer: !store_key ink-geth-sepolia-full-v1
+  - key: geth-mainnet-archive
+    min_cpu: 12
+    min_memory_mb: 16384
+    min_disk_gb: 100
+    sku_code: INKGETH-A-MN
+    archive_pointers:
+      - pointer: !store_key ink-geth-mainnet-archive-v1
+  - key: geth-sepolia-archive
+    min_cpu: 12
+    min_memory_mb: 16384
+    min_disk_gb: 100
+    sku_code: INKGETH-A-SEP
+    archive_pointers:
+      - pointer: !store_key ink-geth-sepolia-archive-v1
 firewall_config:
   default_in: deny
   default_out: allow

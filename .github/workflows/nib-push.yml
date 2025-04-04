@@ -1,0 +1,42 @@
+name: Protocol PR Workflow Dispatcher
+
+on:
+  pull_request:
+    types: [closed]
+    paths:
+      - 'protocols/**'
+      - 'clients/**'
+      - 'base-images/**'
+
+jobs:
+  trigger-nib-push:
+    if: github.event.pull_request.merged == true && github.actor != 'bj-workflow-app[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.WF_APP_ID }}
+          private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
+          owner: blockjoy
+
+      - name: Trigger NIB Push Workflow
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          # Get the default branch of the deployer repository
+          DEFAULT_BRANCH=$(gh api repos/blockjoy/deployer --jq '.default_branch')
+          
+          # Trigger the workflow in the deployer repository
+          gh workflow run proto-nib-push.yml \
+            --repo blockjoy/deployer \
+            --ref $DEFAULT_BRANCH \
+            --field pr_number=${{ github.event.pull_request.number }} \
+            --field pr_sha=${{ github.event.pull_request.head.sha }} \
+            --field pr_action=closed \
+            --field pr_merged=true \
+            --field submodule_repo=${{ github.repository }} \
+            --field pr_ghactor=${{ github.actor }}
+          
+          echo "Triggered NIB Push workflow in deployer repository"
