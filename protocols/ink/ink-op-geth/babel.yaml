@@ -4,7 +4,7 @@ sku_code: INKGETH
 org_id: null
 description: Ink Geth
 visibility: public
-protocol_key: Ink
+protocol_key: ink
 variants:
   - key: geth-mainnet-full
     min_cpu: 12
