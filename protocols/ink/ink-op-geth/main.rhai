@@ -51,11 +51,11 @@ const VARIANTS = #{
 
 };
 
-if node_env().node_variant.ends_with("-archive") {
-    const GETH_EXTRA_ARGS = "--gcmode archive";
+const GETH_EXTRA_ARGS = if node_env().node_variant.ends_with("-archive") {
+    "--gcmode archive"
 } else {
-    const GETH_EXTRA_ARGS = "";
-}
+    ""
+};
 
 const VARIANT = VARIANTS[node_env().node_variant];
 const SEQUENCER_URL = VARIANTS[node_env().node_variant].sequencer_url;
