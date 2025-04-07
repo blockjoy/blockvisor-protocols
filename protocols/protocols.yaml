@@ -130,4 +130,9 @@
   ticker: null
   description: Unichain is a Layer-2 blockchain built on top of OP that provides faster and cheaper transactions while maintaining OP's security guarantees.
   visibility: public
-
+- key: worldchain
+  name: Worldchain
+  org_id: null
+  ticker: null
+  description: Worldchain is a Layer-2 blockchain built on top of OP that provides faster and cheaper transactions while maintaining OP's security guarantees.
+  visibility: public
