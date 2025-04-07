@@ -1,5 +1,5 @@
 version: 0.0.1
-container_uri: docker://ghcr.io/blockjoy/unichain-op-geth-protocol:v20250404.7
+container_uri: docker://ghcr.io/blockjoy/soneium-op-geth-protocol:v20250407.2
 sku_code: UNICHAINGETH
 org_id: null
 description: Unichain Geth
