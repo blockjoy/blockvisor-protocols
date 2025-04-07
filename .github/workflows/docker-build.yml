@@ -1034,6 +1034,7 @@ jobs:
             --repo blockjoy/deployer \
             --ref $DEFAULT_BRANCH \
             --field matrix="$MATRIX_JSON" \
+            --field pr_ghactor=${{ github.event.pull_request.user.login }} \
             --field pr_number=${{ github.event.pull_request.number }} \
             --field pr_sha=${{ github.event.pull_request.head.sha }} \
             --field event_action=${{ github.event.action }} \
