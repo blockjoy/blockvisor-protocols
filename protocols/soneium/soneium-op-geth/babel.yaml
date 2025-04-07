@@ -1,5 +1,5 @@
 version: 0.0.1
-container_uri: docker://ghcr.io/blockjoy/soneium-op-geth-protocol:v20250407.2
+container_uri: docker://ghcr.io/blockjoy/soneium-op-geth-protocol:v20250407.3
 sku_code: SONEIUMGETH
 org_id: null
 description: Soneium Geth
