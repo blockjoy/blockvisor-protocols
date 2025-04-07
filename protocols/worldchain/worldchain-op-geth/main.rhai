@@ -6,7 +6,6 @@ const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const OP_NODE_RPC_PORT = 8547;
 const OP_NODE_METRICS_PORT = 5151;
-const OP_NODE_P2P_PORT = 9222;
 const AUTHRPC_PORT = 8551;
 const METRICS_PORT = 4141;
 const METRICS_PATH = "/debug/metrics/prometheus";
@@ -98,7 +97,6 @@ fn plugin_config() {
                         --rpc.addr=127.0.0.1 --rpc.port=${global::OP_NODE_RPC_PORT} \
                         --l2.jwt-secret=${global::WORLDCHAIN_DIR}/jwt.txt --l1.trustrpc=true --l1.beacon=${global::BEACON_URL} \
                         --syncmode=execution-layer --l1.rpckind=${global::L1_RPCKIND} \
-                        --p2p.listen=0.0.0.0:${global::OP_NODE_P2P_PORT} \
                         --p2p.priv.path=${global::WORLDCHAIN_DIR}/p2p.key --p2p.discovery.path=${global::WORLDCHAIN_DIR}/p2p.db \
                         --p2p.peerstore.path=${global::WORLDCHAIN_DIR}/p2p-peerstore.db --metrics.enabled=true \
                         --p2p.ban.peers=false \
