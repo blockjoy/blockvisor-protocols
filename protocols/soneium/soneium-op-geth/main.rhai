@@ -5,6 +5,7 @@ const CADDY_DIR = node_env().data_mount_point + "/caddy";
 const RPC_PORT = 8545;
 const WS_PORT = 8546;
 const OP_NODE_RPC_PORT = 8547;
+const OP_NODE_METRICS_PORT = 5151;
 const AUTHRPC_PORT = 8551;
 const METRICS_PORT = 4141;
 const METRICS_PATH = "/debug/metrics/prometheus";
