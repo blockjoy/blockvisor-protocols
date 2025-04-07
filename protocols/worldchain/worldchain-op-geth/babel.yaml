@@ -10,9 +10,9 @@ variants:
   #   min_cpu: 12
   #   min_memory_mb: 16384
   #   min_disk_gb: 100
-  #   sku_code: UNICHAINGETH-F-MN
+  #   sku_code: WORLDCHAINGETH-F-MN
   #   archive_pointers:
-  #     - pointer: !store_key unichain-geth-mainnet-full-v1
+  #     - pointer: !store_key worldchain-geth-mainnet-full-v1
   - key: geth-sepolia-full
     min_cpu: 12
     min_memory_mb: 16384
@@ -24,9 +24,9 @@ variants:
   #   min_cpu: 12
   #   min_memory_mb: 16384
   #   min_disk_gb: 100
-  #   sku_code: UNICHAINGETH-A-MN
+  #   sku_code: WORLDCHAINGETH-A-MN
   #   archive_pointers:
-  #     - pointer: !store_key unichain-geth-mainnet-archive-v1
+  #     - pointer: !store_key worldchain-geth-mainnet-archive-v1
   - key: geth-sepolia-archive
     min_cpu: 12
     min_memory_mb: 16384
