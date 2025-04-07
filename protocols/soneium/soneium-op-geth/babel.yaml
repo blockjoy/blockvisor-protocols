@@ -1,39 +1,39 @@
 version: 0.0.1
-container_uri: docker://ghcr.io/blockjoy/soneium-op-geth-protocol:v20250407.2
-sku_code: UNICHAINGETH
+container_uri: docker://ghcr.io/blockjoy/soneium-op-geth-protocol:v20250407.3
+sku_code: SONEIUMGETH
 org_id: null
-description: Unichain Geth
+description: Soneium Geth
 visibility: public
-protocol_key: unichain
+protocol_key: soneium
 variants:
   # - key: geth-mainnet-full
   #   min_cpu: 12
   #   min_memory_mb: 16384
   #   min_disk_gb: 100
-  #   sku_code: UNICHAINGETH-F-MN
+  #   sku_code: SONEIUMGETH-F-MN
   #   archive_pointers:
-  #     - pointer: !store_key unichain-geth-mainnet-full-v1
+  #     - pointer: !store_key soneium-geth-mainnet-full-v1
   - key: geth-sepolia-full
     min_cpu: 12
     min_memory_mb: 16384
     min_disk_gb: 100
-    sku_code: UNICHAINGETH-F-SEP
+    sku_code: SONEIUMGETH-F-SEP
     archive_pointers:
-      - pointer: !store_key unichain-geth-sepolia-full-v1
+      - pointer: !store_key soneium-geth-sepolia-full-v1
   # - key: geth-mainnet-archive
   #   min_cpu: 12
   #   min_memory_mb: 16384
   #   min_disk_gb: 100
-  #   sku_code: UNICHAINGETH-A-MN
+  #   sku_code: SONEIUMGETH-A-MN
   #   archive_pointers:
-  #     - pointer: !store_key unichain-geth-mainnet-archive-v1
+  #     - pointer: !store_key soneium-geth-mainnet-archive-v1
   - key: geth-sepolia-archive
     min_cpu: 12
     min_memory_mb: 16384
     min_disk_gb: 100
-    sku_code: UNICHAINGETH-A-SEP
+    sku_code: SONEIUMGETH-A-SEP
     archive_pointers:
-      - pointer: !store_key unichain-geth-sepolia-archive-v1
+      - pointer: !store_key soneium-geth-sepolia-archive-v1
 firewall_config:
   default_in: deny
   default_out: allow
