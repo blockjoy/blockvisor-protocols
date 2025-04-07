@@ -1,5 +1,5 @@
 version: 0.0.1
-container_uri: docker://ghcr.io/blockjoy/worldchain-op-geth-protocol:v20250407.2
+container_uri: docker://ghcr.io/blockjoy/worldchain-op-geth-protocol:v20250407.1
 sku_code: WORLDCHAINGETH
 org_id: null
 description: Worldchain Geth
