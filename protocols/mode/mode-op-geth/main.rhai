@@ -132,7 +132,6 @@ fn plugin_config() {
                         --l2.jwt-secret=${global::MODE_DIR}/jwt.txt \
                         --l1.trustrpc=true \
                         --l1.beacon=${global::BEACON_URL} \
-                        --rollup.config=${global::ROLLUP_FILE} \
                         --rpc.addr=127.0.0.1 \
                         --rpc.port=${global::OP_NODE_RPC_PORT} \
                         --p2p.priv.path=${global::MODE_DIR}/p2p.key \
