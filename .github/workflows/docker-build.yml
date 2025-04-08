@@ -508,12 +508,10 @@ jobs:
         env:
           GITHUB_USER: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOME: ${{ github.workspace }}
         run: |
-          # Create Docker config directory in the workspace
-          mkdir -p ${{ github.workspace }}/.docker
-          # Set Docker config path to workspace directory
-          echo "DOCKER_CONFIG=${{ github.workspace }}/.docker" >> $GITHUB_ENV
-          # Login to GitHub Container Registry
+          mkdir -p $HOME/.docker
+          echo '{"auths":{"ghcr.io":{}}}' > $HOME/.docker/config.json
           echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_USER" --password-stdin
 
       - name: Push images
