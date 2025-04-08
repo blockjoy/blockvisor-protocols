@@ -458,7 +458,7 @@ jobs:
             --severity CRITICAL,HIGH \
             --format table \
             --timeout 10m \
-            localhost/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }} > trivy-image-results.txt
+            ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG} > trivy-image-results.txt
           
           cat trivy-image-results.txt
 
