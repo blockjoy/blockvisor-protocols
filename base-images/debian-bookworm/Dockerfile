@@ -2,7 +2,7 @@ FROM golang:1.23.1 AS go-builder
 
 RUN go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest && \
     cd / && \
-    xcaddy build --with github.com/caddy-dns/cloudflare --with github.com/blockjoy/request-decompressor
+    xcaddy build --with github.com/caddy-dns/cloudflare@1fb64108d4debf196b19d7398e763cb78c8a0f41 --with github.com/blockjoy/request-decompressor
 
 FROM debian:bookworm-slim@sha256:f70dc8d6a8b6a06824c92471a1a258030836b26b043881358b967bf73de7c5ab
 
