@@ -505,17 +505,11 @@ jobs:
 
       - name: Log in to GitHub Container Registry
         if: success()
-        env:
-          GITHUB_USER: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Configure Docker to not store credentials
-          mkdir -p $GITHUB_WORKSPACE/.docker
-          echo '{"credsStore":"","auths":{"ghcr.io":{}}}' > $GITHUB_WORKSPACE/.docker/config.json
-          export DOCKER_CONFIG=$GITHUB_WORKSPACE/.docker
-          
-          # Use --password-stdin to avoid credential leakage in logs
-          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_USER" --password-stdin
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push images
         if: success()
