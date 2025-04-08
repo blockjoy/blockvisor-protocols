@@ -521,12 +521,12 @@ jobs:
         if: success()
         run: |
           # Push the images
-          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}
-          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}
+          docker push ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
+          docker push ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
           
           echo "Successfully built and pushed images:"
-          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}"
-          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}"
+          echo "  - ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag}}"
+          echo "  - ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag}}"
 
   build-clients:
     needs: [detect-changes, scan-dockerfiles]
