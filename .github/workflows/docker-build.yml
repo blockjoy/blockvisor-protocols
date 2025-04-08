@@ -503,7 +503,7 @@ jobs:
             gh pr comment ${{ github.event.pull_request.number }} --body "✅ No vulnerabilities found in \`${{ steps.version.outputs.image_name }}\` image"
           fi
 
-      - name: Log in to GitHub Container Registry
+      - name: Log in to GitHub Container Registry and push images
         if: success()
         env:
           GITHUB_USER: ${{ github.actor }}
@@ -517,9 +517,6 @@ jobs:
           # Use --password-stdin to avoid credential leakage in logs
           echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_USER" --password-stdin
 
-      - name: Push images
-        if: success()
-        run: |
           # Push the images
           docker push ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
           docker push ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
