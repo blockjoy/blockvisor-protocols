@@ -508,10 +508,13 @@ jobs:
         env:
           GITHUB_USER: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HOME: ${{ github.workspace }}
         run: |
-          mkdir -p $HOME/.docker
-          echo '{"auths":{"ghcr.io":{}}}' > $HOME/.docker/config.json
+          # Configure Docker to not store credentials
+          mkdir -p $GITHUB_WORKSPACE/.docker
+          echo '{"credsStore":"","auths":{"ghcr.io":{}}}' > $GITHUB_WORKSPACE/.docker/config.json
+          export DOCKER_CONFIG=$GITHUB_WORKSPACE/.docker
+          
+          # Use --password-stdin to avoid credential leakage in logs
           echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_USER" --password-stdin
 
       - name: Push images
