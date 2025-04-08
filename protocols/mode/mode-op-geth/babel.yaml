@@ -1,5 +1,5 @@
 version: 0.0.1
-container_uri: docker://ghcr.io/blockjoy/mode-op-geth-protocol:v20250407.5
+container_uri: docker://ghcr.io/blockjoy/mode-op-geth-protocol:v20250408.2
 sku_code: MODEOPGETH
 org_id: null
 description: Mode Geth
