@@ -447,20 +447,20 @@ jobs:
           
       - name: Run Trivy vulnerability scanner
         id: scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'image'
-          image-ref: 'localhost/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}'
-          format: 'table'
-          severity: 'CRITICAL,HIGH'
-          timeout: '10m'
-          exit-code: '0'
-
-      - name: Generate human-readable report
         if: always()
         run: |
           set -x
-          trivy image --severity CRITICAL,HIGH --format table localhost/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }} > trivy-image-results.txt
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $(pwd):/workspace \
+            aquasec/trivy:latest \
+            image \
+            --severity CRITICAL,HIGH \
+            --format table \
+            --timeout 10m \
+            ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }} > trivy-image-results.txt
+          
+          cat trivy-image-results.txt
 
       - name: Comment on PR
         if: always()
@@ -503,7 +503,7 @@ jobs:
             gh pr comment ${{ github.event.pull_request.number }} --body "✅ No vulnerabilities found in \`${{ steps.version.outputs.image_name }}\` image"
           fi
 
-      - name: Log in to GitHub Container Registry
+      - name: Log in to GitHub Container Registry and push images
         if: success()
         env:
           GITHUB_USER: ${{ github.actor }}
@@ -517,16 +517,13 @@ jobs:
           # Use --password-stdin to avoid credential leakage in logs
           echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_USER" --password-stdin
 
-      - name: Push images
-        if: success()
-        run: |
           # Push the images
-          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}
-          docker push ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}
+          docker push ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag }}
+          docker push ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag }}
           
           echo "Successfully built and pushed images:"
-          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${IMAGE_TAG}"
-          echo "  - ghcr.io/blockjoy/${IMAGE_NAME}:${VERSION_TAG}"
+          echo "  - ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.image_tag}}"
+          echo "  - ghcr.io/blockjoy/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version_tag}}"
 
   build-clients:
     needs: [detect-changes, scan-dockerfiles]
