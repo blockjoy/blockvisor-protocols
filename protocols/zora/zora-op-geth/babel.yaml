@@ -1,5 +1,5 @@
 version: 0.0.1
-container_uri: docker://ghcr.io/blockjoy/zora-op-geth-protocol:v20250409.2
+container_uri: docker://ghcr.io/blockjoy/zora-op-geth-protocol:v20250409.3
 sku_code: ZORAOPGETH
 org_id: null
 description: Zora Geth
