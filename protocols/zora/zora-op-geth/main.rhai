@@ -67,7 +67,7 @@ const GETH_EXTRA_ARGS = if node_env().node_variant.ends_with("archive") {
 const GETH_NETWORK_ARGS = if CHAIN_ID == "999999999" {
     "--rollup.superchain-upgrades --op-network zora-sepolia --rollup.halt=major";
 } else if CHAIN_ID == "7777777" {
-    "--override.canyon=1704992401 --rollup.halt=major";
+    "--override.canyon=1704992401 --rollup.halt=major --op-network zora-mainnet";
 } else {
     "";
 };
