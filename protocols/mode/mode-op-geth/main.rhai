@@ -67,7 +67,7 @@ const GETH_EXTRA_ARGS = if node_env().node_variant.ends_with("archive") {
 const GETH_NETWORK_ARGS = if CHAIN_ID == "919" {
     "--rollup.superchain-upgrades --op-network mode-sepolia --rollup.halt=major";
 } else if CHAIN_ID == "34443" {
-    "--override.canyon=1704992401 --rollup.halt=major";
+    "--override.canyon=1704992401 --op-network mode-mainnet --rollup.halt=major";
 } else {
     "";
 };
