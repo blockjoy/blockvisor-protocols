@@ -1,0 +1,75 @@
+version: 0.0.1
+container_uri: docker://ghcr.io/blockjoy/zora-op-geth-protocol:v20250408.2
+sku_code: ZORAOPGETH
+org_id: null
+description: Zora Geth
+visibility: public
+protocol_key: zora
+variants:
+  - key: geth-mainnet-full
+    min_cpu: 12
+    min_memory_mb: 16384
+    min_disk_gb: 100
+    sku_code: ZORAOPGETH-F-MN
+    archive_pointers:
+      - pointer: !store_key zora-op-geth-mainnet-full-v1
+  - key: geth-sepolia-full
+    min_cpu: 12
+    min_memory_mb: 16384
+    min_disk_gb: 100
+    sku_code: ZORAOPGETH-F-SEP
+    archive_pointers:
+      - pointer: !store_key zora-op-geth-sepolia-full-v1
+  - key: geth-mainnet-archive
+    min_cpu: 12
+    min_memory_mb: 16384
+    min_disk_gb: 100
+    sku_code: ZORAOPGETH-A-MN
+    archive_pointers:
+      - pointer: !store_key zora-op-geth-mainnet-archive-v1
+  - key: geth-sepolia-archive
+    min_cpu: 12
+    min_memory_mb: 16384
+    min_disk_gb: 100
+    sku_code: ZORAOPGETH-A-SEP
+    archive_pointers:
+      - pointer: !store_key zora-op-geth-sepolia-archive-v1
+firewall_config:
+  default_in: deny
+  default_out: allow
+  rules:
+    - key: allow-incoming-ports-tcp
+      description: Allow TCP inbound traffic on ports 80, 443, 30303, 30304, 30305
+      protocol: tcp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 80
+          name: HTTP port
+        - port: 443
+          name: HTTPS port
+        - port: 30303
+          name: P2P port
+        - port: 30304
+          name: L2 Geth P2P port
+        - port: 30305
+          name: L1 Geth P2P port
+    - key: allow-incoming-ports-udp
+      description: Allow UDP inbound traffic on ports 30303, 30304, 30305
+      protocol: udp
+      direction: in
+      action: allow
+      ips:
+        - ip: 0.0.0.0/0
+          name: allow all traffic
+      ports:
+        - port: 30303
+          name: P2P port
+        - port: 30304
+          name: L2 Geth P2P port
+        - port: 30305
+          name: L1 Geth P2P port
+properties: []

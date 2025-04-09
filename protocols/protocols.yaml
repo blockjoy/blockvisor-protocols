@@ -148,3 +148,10 @@
   ticker: null
   description: Mode is a Layer-2 blockchain built on top of OP that provides faster and cheaper transactions while maintaining OP's security guarantees.
   visibility: public
+- key: zora
+  name: Zora
+  org_id: null
+  ticker: null
+  description: Zora is a Layer-2 blockchain built on top of OP that provides faster and cheaper transactions while maintaining OP's security guarantees.
+  visibility: public
+  
