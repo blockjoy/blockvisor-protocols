@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250321.2
-ARG WORKER_VERSION=v2.1.0
+ARG WORKER_VERSION=v2.2.0
 
 FROM ${BASE_IMAGE} AS builder
 
