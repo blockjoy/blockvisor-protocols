@@ -1,5 +1,5 @@
-version: 1.0.10
-container_uri: docker://ghcr.io/blockjoy/sqd-worker-protocol:v20250323.1
+version: 1.0.11
+container_uri: docker://ghcr.io/blockjoy/sqd-worker-protocol:v20250410.3
 sku_code: SQDWORKER
 org_id: null
 description: Sqd
@@ -17,7 +17,7 @@ firewall_config:
   default_in: deny
   default_out: allow
   rules:
-    - key: Allow incoming ports TCP
+    - key: allow-incoming-ports-tcp
       description: Allow TCP inbound traffic on ports 80, 443
       protocol: tcp
       direction: in
@@ -30,7 +30,7 @@ firewall_config:
           name: HTTP port
         - port: 443
           name: HTTPS port
-    - key: Allow incoming ports UDP
+    - key: allow-incoming-ports-udp
       description: Allow UDP inbound traffic on port 12345
       protocol: udp
       direction: in
