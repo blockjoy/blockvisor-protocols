@@ -1,4 +1,4 @@
-version: 1.0.5
+version: 1.0.6
 container_uri: docker://ghcr.io/blockjoy/gnosis-erigon-protocol:v20250411.1
 sku_code: GNOERI
 org_id: null
