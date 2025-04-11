@@ -1,7 +1,7 @@
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250321.2
-ARG WORKER_VERSION=v2.2.0
 
 FROM ${BASE_IMAGE} AS builder
+ARG WORKER_VERSION=v2.3.0
 
 WORKDIR /build
 RUN apt-get update && \
@@ -15,10 +15,7 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone and build the worker
-RUN git clone https://github.com/subsquid/worker-rs.git . && \
-    if [ "$WORKER_VERSION" != "latest" ]; then \
-        git checkout $WORKER_VERSION; \
-    fi && \
+RUN git clone --branch $WORKER_VERSION --depth 1 https://github.com/subsquid/worker-rs.git . && \
     . "$HOME/.cargo/env" && \
     cargo build --release
 
