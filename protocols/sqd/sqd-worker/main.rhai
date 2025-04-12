@@ -76,7 +76,7 @@ fn protocol_status() {
     }
 }
 
-fn peer_id () {
+fn peer_id() {
     let peer_id = run_sh(`cat ${global::DATADIR}/peer_id`).unwrap();
     peer_id
 }
