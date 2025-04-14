@@ -53,7 +53,7 @@
       "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$",
       "automerge": true,
       "prPriority": 10,
-      "schedule": ["* 3 * * *"]
+      "schedule": ["* 1 * * *"]
     },
     {
       "description": "Exclude build images from base runtime images",
@@ -87,7 +87,7 @@
       "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$",
       "automerge": true,
       "prPriority": 8,
-      "schedule": ["* 4 * * *"],
+      "schedule": ["* 2 * * *"],
       "rebaseWhen": "behind-base-branch"
     },
     {
@@ -109,7 +109,7 @@
       "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$",
       "automerge": true,
       "prPriority": 6,
-      "schedule": ["* 5 * * *"],
+      "schedule": ["* 3 * * *"],
       "rebaseWhen": "behind-base-branch"
     },
     {
@@ -131,7 +131,7 @@
       "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$",
       "automerge": true,
       "prPriority": 4,
-      "schedule": ["* 6 * * *"],
+      "schedule": ["* 4 * * *"],
       "rebaseWhen": "behind-base-branch"
     },
     {
