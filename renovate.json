@@ -35,6 +35,63 @@
       "groupSlug": "all-minor-patch"
     },
     {
+      "description": "Base runtime images (Level 1)",
+      "matchDatasources": ["docker"],
+      "matchFileNames": ["base-images/**"],
+      "excludeFileNames": ["base-images/**/*-build/**"],
+      "matchPackageNames": ["/^ghcr.io/blockjoy//"],
+      "enabled": true,
+      "groupName": "base-runtime-images",
+      "pinDigests": false,
+      "separateMinorPatch": false,
+      "separateMajorMinor": false,
+      "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$",
+      "automerge": true,
+      "prPriority": 10
+    },
+    {
+      "description": "Build base images (Level 2)",
+      "matchDatasources": ["docker"],
+      "matchFileNames": ["base-images/**/*-build/**"],
+      "matchPackageNames": ["/^ghcr.io/blockjoy//"],
+      "enabled": true,
+      "groupName": "build-base-images",
+      "pinDigests": false,
+      "separateMinorPatch": false,
+      "separateMajorMinor": false,
+      "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$",
+      "automerge": true,
+      "prPriority": 8
+    },
+    {
+      "description": "Client images (Level 3)",
+      "matchDatasources": ["docker"],
+      "matchFileNames": ["clients/**"],
+      "matchPackageNames": ["/^ghcr.io/blockjoy//"],
+      "enabled": true,
+      "groupName": "client-images",
+      "pinDigests": false,
+      "separateMinorPatch": false,
+      "separateMajorMinor": false,
+      "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$",
+      "automerge": true,
+      "prPriority": 6
+    },
+    {
+      "description": "Protocol images (Level 4)",
+      "matchDatasources": ["docker"],
+      "matchFileNames": ["protocols/**"],
+      "matchPackageNames": ["/^ghcr.io/blockjoy//"],
+      "enabled": true,
+      "groupName": "protocol-images",
+      "pinDigests": false,
+      "separateMinorPatch": false,
+      "separateMajorMinor": false,
+      "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$",
+      "automerge": true,
+      "prPriority": 4
+    },
+    {
       "description": "Client version control. To exclude multiple versions, use pattern: /^(?!2\\.56\\.0-.*|2\\.57\\.0-.*|3\\.0\\.0-.*).*$/ to exclude versions 2.56.0, 2.57.0, and 3.0.0 with any sha",
       "matchFileNames": [
         "clients/**"
@@ -43,21 +100,6 @@
       "enabled": true,
       "matchPackageNames": [
         "/.*_VERSION/"
-      ]
-    },
-    {
-      "description": "Internal image dependencies",
-      "matchDatasources": [
-        "docker"
-      ],
-      "enabled": true,
-      "groupName": "internal-dependencies",
-      "pinDigests": false,
-      "separateMinorPatch": false,
-      "separateMajorMinor": false,
-      "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$",
-      "matchPackageNames": [
-        "/^ghcr.io/blockjoy//"
       ]
     },
     {
@@ -75,8 +117,5 @@
   ],
   "prHourlyLimit": 2,
   "prConcurrentLimit": 1,
-  "schedule": [
-    "* 5 * * *"
-  ],
-  "groupName": "all"
+  "schedule": ["* 5 * * *"]
 }
