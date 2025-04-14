@@ -38,7 +38,6 @@
       "description": "Base runtime images (Level 1)",
       "matchDatasources": ["docker"],
       "matchPaths": ["base-images/**"],
-      "excludePaths": ["base-images/**/*-build/**"],
       "matchPackageNames": ["/^ghcr.io/blockjoy//"],
       "enabled": true,
       "groupName": "base-runtime-images",
@@ -48,6 +47,13 @@
       "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$",
       "automerge": true,
       "prPriority": 10
+    },
+    {
+      "description": "Exclude build images from base runtime images",
+      "matchDatasources": ["docker"],
+      "matchPaths": ["base-images/**/*-build/**"],
+      "matchPackageNames": ["/^ghcr.io/blockjoy//"],
+      "enabled": false
     },
     {
       "description": "Build base images (Level 2)",
