@@ -40,7 +40,7 @@ firewall_config:
   default_in: deny
   default_out: allow
   rules:
-    - key: Allow incoming ports TCP
+    - key: allow-incoming-tcp-ports
       description: Allow TCP inbound traffic on ports 80, 443, 9003, 30303
       direction: in
       protocol: tcp
@@ -57,7 +57,7 @@ firewall_config:
           name: port 9003
         - port: 30303
           name: P2P port
-    - key: Allow incoming ports UDP
+    - key: allow-incoming-udp-ports
       description: Allow UDP inbound traffic on port 9003
       direction: in
       protocol: udp
