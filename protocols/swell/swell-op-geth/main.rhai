@@ -65,7 +65,8 @@ fn plugin_config() {
             commands: [
                 `mkdir -p ${global::SWELL_DIR}/geth`,
                 `mkdir -p ${global::CADDY_DIR}`,
-                `cp -a ${global::CONFIG_DIR}/* ${global::SWELL_DIR}/`,
+                `cp -a ${global::CONFIG_DIR}/rollup.json ${global::SWELL_DIR}/`,
+                `cp -a ${global::CONFIG_DIR}/genesis.json ${global::SWELL_DIR}/geth/`
             ],
             jobs: [
                 #{
@@ -77,12 +78,13 @@ fn plugin_config() {
         services: [
             #{
                 name: "op-geth",
-                run_sh: `/root/bin/op-geth --datadir=${global::SWELL_DIR}/ --http --http.corsdomain=* --http.vhosts=* \
-                        --http.addr=127.0.0.1 --http.api=web3,debug,eth,txpool,net,engine --ws \
-                        --ws.addr=127.0.0.1 --ws.port=${global::WS_PORT} --ws.origins=* --ws.api=debug,eth,txpool,net,engine \
+                run_sh: `/root/bin/op-geth --datadir=${global::SWELL_DIR}/ --genesis.file=${global::SWELL_DIR}/geth/genesis.json \
+                        --http --http.corsdomain=* --http.vhosts=* --http.addr=127.0.0.1 \
+                        --http.api=web3,debug,eth,txpool,net,engine --ws --ws.addr=127.0.0.1 \
+                        --ws.port=${global::WS_PORT} --ws.origins=* --ws.api=debug,eth,txpool,net,engine \
                         --syncmode=full ${global::GETH_EXTRA_ARGS} --maxpeers=100 --authrpc.vhosts=* \
-                        --authrpc.addr=127.0.0.1 --authrpc.port=${global::AUTHRPC_PORT} --authrpc.jwtsecret=${global::SWELL_DIR}/jwt.txt --metrics \
-                        --metrics.addr=127.0.0.1 --metrics.expensive --metrics.port=${global::METRICS_PORT} \
+                        --authrpc.addr=127.0.0.1 --authrpc.port=${global::AUTHRPC_PORT} --authrpc.jwtsecret=${global::SWELL_DIR}/jwt.txt \
+                        --metrics --metrics.addr=127.0.0.1 --metrics.expensive --metrics.port=${global::METRICS_PORT} \
                         --rollup.disabletxpoolgossip=false --rpc.allow-unprotected-txs=true --db.engine=pebble --state.scheme=hash \
                         --port=30303 \
                         --bootnodes=${global::BOOTNODES} \
@@ -101,7 +103,6 @@ fn plugin_config() {
                         --p2p.ban.peers=false \
                         --metrics.port=${global::OP_NODE_METRICS_PORT} \
                         --rollup.config=${global::SWELL_DIR}/rollup.json \
-                        --genesis.l1=${global::SWELL_DIR}/genesis.json \
                         --sequencer.enabled=false \
                         --sequencer.stopped=true \
                         --l2.engine-sync=true \
