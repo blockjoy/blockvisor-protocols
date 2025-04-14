@@ -36,9 +36,15 @@
     },
     {
       "description": "Base runtime images (Level 1)",
-      "matchDatasources": ["docker"],
-      "matchPaths": ["base-images/**"],
-      "matchPackageNames": ["/^ghcr.io/blockjoy//"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchFileNames": [
+        "base-images/**"
+      ],
+      "matchPackageNames": [
+        "/^ghcr.io/blockjoy//"
+      ],
       "enabled": true,
       "groupName": "base-runtime-images",
       "pinDigests": false,
@@ -50,16 +56,28 @@
     },
     {
       "description": "Exclude build images from base runtime images",
-      "matchDatasources": ["docker"],
-      "matchPaths": ["base-images/**/*-build/**"],
-      "matchPackageNames": ["/^ghcr.io/blockjoy//"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchFileNames": [
+        "base-images/**/*-build/**"
+      ],
+      "matchPackageNames": [
+        "/^ghcr.io/blockjoy//"
+      ],
       "enabled": false
     },
     {
       "description": "Build base images (Level 2)",
-      "matchDatasources": ["docker"],
-      "matchPaths": ["base-images/**/*-build/**"],
-      "matchPackageNames": ["/^ghcr.io/blockjoy//"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchFileNames": [
+        "base-images/**/*-build/**"
+      ],
+      "matchPackageNames": [
+        "/^ghcr.io/blockjoy//"
+      ],
       "enabled": true,
       "groupName": "build-base-images",
       "pinDigests": false,
@@ -71,9 +89,15 @@
     },
     {
       "description": "Client images (Level 3)",
-      "matchDatasources": ["docker"],
-      "matchPaths": ["clients/**"],
-      "matchPackageNames": ["/^ghcr.io/blockjoy//"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchFileNames": [
+        "clients/**"
+      ],
+      "matchPackageNames": [
+        "/^ghcr.io/blockjoy//"
+      ],
       "enabled": true,
       "groupName": "client-images",
       "pinDigests": false,
@@ -85,9 +109,15 @@
     },
     {
       "description": "Protocol images (Level 4)",
-      "matchDatasources": ["docker"],
-      "matchPaths": ["protocols/**"],
-      "matchPackageNames": ["/^ghcr.io/blockjoy//"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchFileNames": [
+        "protocols/**"
+      ],
+      "matchPackageNames": [
+        "/^ghcr.io/blockjoy//"
+      ],
       "enabled": true,
       "groupName": "protocol-images",
       "pinDigests": false,
@@ -99,7 +129,7 @@
     },
     {
       "description": "Client version control. To exclude multiple versions, use pattern: /^(?!2\\.56\\.0-.*|2\\.57\\.0-.*|3\\.0\\.0-.*).*$/ to exclude versions 2.56.0, 2.57.0, and 3.0.0 with any sha",
-      "matchPaths": [
+      "matchFileNames": [
         "clients/**"
       ],
       "allowedVersions": ".*",
@@ -123,5 +153,7 @@
   ],
   "prHourlyLimit": 2,
   "prConcurrentLimit": 1,
-  "schedule": ["* 5 * * *"]
+  "schedule": [
+    "* 5 * * *"
+  ]
 }
