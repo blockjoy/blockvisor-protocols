@@ -37,8 +37,8 @@
     {
       "description": "Base runtime images (Level 1)",
       "matchDatasources": ["docker"],
-      "matchFileNames": ["base-images/**"],
-      "excludeFileNames": ["base-images/**/*-build/**"],
+      "matchPaths": ["base-images/**"],
+      "excludePaths": ["base-images/**/*-build/**"],
       "matchPackageNames": ["/^ghcr.io/blockjoy//"],
       "enabled": true,
       "groupName": "base-runtime-images",
@@ -52,7 +52,7 @@
     {
       "description": "Build base images (Level 2)",
       "matchDatasources": ["docker"],
-      "matchFileNames": ["base-images/**/*-build/**"],
+      "matchPaths": ["base-images/**/*-build/**"],
       "matchPackageNames": ["/^ghcr.io/blockjoy//"],
       "enabled": true,
       "groupName": "build-base-images",
@@ -66,7 +66,7 @@
     {
       "description": "Client images (Level 3)",
       "matchDatasources": ["docker"],
-      "matchFileNames": ["clients/**"],
+      "matchPaths": ["clients/**"],
       "matchPackageNames": ["/^ghcr.io/blockjoy//"],
       "enabled": true,
       "groupName": "client-images",
@@ -80,7 +80,7 @@
     {
       "description": "Protocol images (Level 4)",
       "matchDatasources": ["docker"],
-      "matchFileNames": ["protocols/**"],
+      "matchPaths": ["protocols/**"],
       "matchPackageNames": ["/^ghcr.io/blockjoy//"],
       "enabled": true,
       "groupName": "protocol-images",
@@ -93,7 +93,7 @@
     },
     {
       "description": "Client version control. To exclude multiple versions, use pattern: /^(?!2\\.56\\.0-.*|2\\.57\\.0-.*|3\\.0\\.0-.*).*$/ to exclude versions 2.56.0, 2.57.0, and 3.0.0 with any sha",
-      "matchFileNames": [
+      "matchPaths": [
         "clients/**"
       ],
       "allowedVersions": ".*",
