@@ -24,7 +24,7 @@ firewall_config:
   default_in: deny
   default_out: allow
   rules:
-    - key: Allow incoming ports TCP
+    - key: allow-incoming-tcp-ports
       description: Allow TCP inbound traffic on ports 80, 443
       protocol: tcp
       direction: in

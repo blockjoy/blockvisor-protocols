@@ -25,7 +25,7 @@ firewall_config:
   default_in: deny
   default_out: allow
   rules:
-    - key: Allow incoming ports TCP
+    - key: allow-incoming-tcp-ports
       description: Allow TCP inbound traffic on ports 80, 443, 9650
       protocol: tcp
       direction: in
@@ -38,7 +38,7 @@ firewall_config:
           name: HTTP port
         - port: 443
           name: HTTPS port
-    - key: Allow incoming ports UDP
+    - key: allow-incoming-udp-ports
       description: Allow UDP inbound traffic on port 9651
       protocol: udp
       direction: in

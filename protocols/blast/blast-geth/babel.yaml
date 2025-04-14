@@ -17,7 +17,7 @@ firewall_config:
   default_in: deny
   default_out: allow
   rules:
-    - key: Allow incoming ports TCP
+    - key: allow-incoming-tcp-ports
       description: Allow TCP inbound traffic on ports 80, 443, 30303, 30304, 30305
       protocol: tcp
       direction: in
@@ -32,7 +32,7 @@ firewall_config:
           name: HTTPS port
         - port: 9222
           name: OP Node p2p port
-    - key: Allow incoming ports UDP
+    - key: allow-incoming-udp-ports
       description: Allow UDP inbound traffic on ports 30303, 30304, 30305
       protocol: both
       direction: in

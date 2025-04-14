@@ -17,7 +17,7 @@ firewall_config:
   default_in: deny
   default_out: allow
   rules:
-    - key: TCP ports
+    - key: allow-incoming-tcp-ports
       protocol: tcp
       direction: in
       action: allow
@@ -27,7 +27,7 @@ firewall_config:
       ports:
         - port: 80
         - port: 443
-    - key: UDP ports
+    - key: allow-incoming-udp-ports
       protocol: udp
       direction: in
       action: allow

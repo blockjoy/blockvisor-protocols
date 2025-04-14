@@ -17,7 +17,7 @@ firewall_config:
   default_in: deny
   default_out: allow
   rules:
-    - key: Allow incoming ports TCP
+    - key: allow-incoming-tcp-ports
       description: Allow TCP inbound traffic on ports 80, 443, 30303-30307
       protocol: tcp
       direction: in
@@ -40,7 +40,7 @@ firewall_config:
           name: P2P port 4
         - port: 30307
           name: P2P port 5
-    - key: Allow P2P UDP ports
+    - key: allow-incoming-udp-ports
       description: Allow UDP inbound traffic on P2P port
       protocol: udp
       direction: in

@@ -41,7 +41,7 @@ firewall_config:
   default_in: deny
   default_out: allow
   rules:
-    - key: Allow incoming ports TCP
+    - key: allow-incoming-tcp-ports
       description: Allow TCP inbound traffic on port 80, 443
       protocol: tcp
       direction: in
@@ -56,7 +56,7 @@ firewall_config:
           name: HTTPS port
         - port: 3000
           name: Grafana port
-    - key: Allow P2P ports TCP/UDP
+    - key: allow-incoming-p2p-ports
       description: Allow inbound traffic on P2P ports
       protocol: both
       direction: in

@@ -17,7 +17,7 @@ firewall_config:
   default_in: deny
   default_out: allow
   rules:
-    - key: Allow incoming ports TCP
+    - key: allow-incoming-tcp-ports
       description: Allow TCP inbound traffic on ports 80, 443, 30303, 30304, 42069, 26656
       protocol: tcp
       direction: in
@@ -30,7 +30,7 @@ firewall_config:
           name: HTTP port
         - port: 443
           name: HTTPS port
-    - key: Allow incoming ports UDP
+    - key: allow-incoming-udp-ports
       description: Allow TCP/UDP inbound traffic on port 30303, 30304, 42069, 26656
       protocol: both
       direction: in
