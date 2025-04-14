@@ -1,5 +1,5 @@
 version: 0.0.1
-container_uri: docker://ghcr.io/blockjoy/swell-op-geth-protocol:v20250414.3
+container_uri: docker://ghcr.io/blockjoy/swell-op-geth-protocol:v20250414.1
 sku_code: SWELLGETH
 org_id: null
 description: Swell Geth
@@ -27,13 +27,13 @@ variants:
     sku_code: SWELLGETH-A-MN
     archive_pointers:
       - pointer: !store_key swell-geth-mainnet-archive-v1
-  # - key: geth-sepolia-archive
-  #   min_cpu: 12
-  #   min_memory_mb: 16384
-  #   min_disk_gb: 100
-  #   sku_code: SWELLGETH-A-SEP
-  #   archive_pointers:
-  #     - pointer: !store_key swell-geth-sepolia-archive-v1
+        # - key: geth-sepolia-archive
+        #   min_cpu: 12
+        #   min_memory_mb: 16384
+        #   min_disk_gb: 100
+        #   sku_code: SWELLGETH-A-SEP
+        #   archive_pointers:
+        #     - pointer: !store_key swell-geth-sepolia-archive-v1
 firewall_config:
   default_in: deny
   default_out: allow
