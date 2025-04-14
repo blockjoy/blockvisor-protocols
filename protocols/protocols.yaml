@@ -154,4 +154,10 @@
   ticker: null
   description: Zora is a Layer-2 blockchain built on top of OP that provides faster and cheaper transactions while maintaining OP's security guarantees.
   visibility: public
+- key: swell
+  name: Swell
+  org_id: null
+  ticker: null
+  description: Swell is a Layer-2 blockchain built on top of OP that provides faster and cheaper transactions while maintaining OP's security guarantees.
+  visibility: public
   
