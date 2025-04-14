@@ -16,4 +16,5 @@ COPY --from=op-geth /root/bin/op-geth /root/bin/
 COPY aux.rhai /var/lib/babel/plugin/
 COPY main.rhai /var/lib/babel/plugin/
 
-COPY templates/mainnet-* /root/config/mainnet/
+COPY templates/mainnet-genesis.json /root/config/mainnet/genesis.json
+COPY templates/mainnet-rollup.json /root/config/mainnet/rollup.json
