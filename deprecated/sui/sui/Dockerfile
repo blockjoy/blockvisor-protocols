@@ -1,4 +1,4 @@
-ARG PROTOCOL_IMAGE=ghcr.io/blockjoy/sui:v20250322.1
+ARG PROTOCOL_IMAGE=ghcr.io/blockjoy/sui:v20250414.2
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm:v20250408.1
 
 FROM ${PROTOCOL_IMAGE} AS protocol
