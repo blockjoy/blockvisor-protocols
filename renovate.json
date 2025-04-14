@@ -125,6 +125,7 @@
       ],
       "enabled": true,
       "groupName": "protocol-images",
+      "groupSlug": "protocol-images",
       "pinDigests": false,
       "separateMinorPatch": false,
       "separateMajorMinor": false,
