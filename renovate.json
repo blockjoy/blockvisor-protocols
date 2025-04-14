@@ -52,7 +52,8 @@
       "separateMajorMinor": false,
       "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$",
       "automerge": true,
-      "prPriority": 10
+      "prPriority": 10,
+      "schedule": ["* 5 * * *"]
     },
     {
       "description": "Exclude build images from base runtime images",
@@ -85,7 +86,9 @@
       "separateMajorMinor": false,
       "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$",
       "automerge": true,
-      "prPriority": 8
+      "prPriority": 8,
+      "schedule": ["* 6 * * *"],
+      "rebaseWhen": "behind-base-branch"
     },
     {
       "description": "Client images (Level 3)",
@@ -105,7 +108,9 @@
       "separateMajorMinor": false,
       "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$",
       "automerge": true,
-      "prPriority": 6
+      "prPriority": 6,
+      "schedule": ["* 7 * * *"],
+      "rebaseWhen": "behind-base-branch"
     },
     {
       "description": "Protocol images (Level 4)",
@@ -125,7 +130,9 @@
       "separateMajorMinor": false,
       "versioning": "regex:^v(?<major>\\d{8})\\.(?<minor>\\d+)$",
       "automerge": true,
-      "prPriority": 4
+      "prPriority": 4,
+      "schedule": ["* 8 * * *"],
+      "rebaseWhen": "behind-base-branch"
     },
     {
       "description": "Client version control. To exclude multiple versions, use pattern: /^(?!2\\.56\\.0-.*|2\\.57\\.0-.*|3\\.0\\.0-.*).*$/ to exclude versions 2.56.0, 2.57.0, and 3.0.0 with any sha",
@@ -153,7 +160,6 @@
   ],
   "prHourlyLimit": 2,
   "prConcurrentLimit": 1,
-  "schedule": [
-    "* 5 * * *"
-  ]
+  "rangeStrategy": "bump",
+  "updateNotScheduled": false
 }
