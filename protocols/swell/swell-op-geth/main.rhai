@@ -78,38 +78,40 @@ fn plugin_config() {
         services: [
             #{
                 name: "op-geth",
-                run_sh: `/root/bin/op-geth --datadir=${global::SWELL_DIR}/ --genesis.file=${global::SWELL_DIR}/geth/genesis.json \
-                        --http --http.corsdomain=* --http.vhosts=* --http.addr=127.0.0.1 \
-                        --http.api=web3,debug,eth,txpool,net,engine --ws --ws.addr=127.0.0.1 \
-                        --ws.port=${global::WS_PORT} --ws.origins=* --ws.api=debug,eth,txpool,net,engine \
-                        --syncmode=full ${global::GETH_EXTRA_ARGS} --maxpeers=100 --authrpc.vhosts=* \
-                        --authrpc.addr=127.0.0.1 --authrpc.port=${global::AUTHRPC_PORT} --authrpc.jwtsecret=${global::SWELL_DIR}/jwt.txt \
-                        --metrics --metrics.addr=127.0.0.1 --metrics.expensive --metrics.port=${global::METRICS_PORT} \
-                        --rollup.disabletxpoolgossip=false --rpc.allow-unprotected-txs=true --db.engine=pebble --state.scheme=hash \
-                        --port=30303 \
-                        --bootnodes=${global::BOOTNODES} \
-                        --op-network=${global::OP_NETWORK}`,
+                run_sh: `/root/bin/op-geth --datadir=${global::SWELL_DIR}/ \
+                        --http --http.corsdomain=* --http.vhosts=* --http.addr=0.0.0.0 \
+                        --http.api=web3,eth,txpool,net,engine,debug,miner \
+                        --ws --ws.addr=0.0.0.0 --ws.port=${global::WS_PORT} --ws.origins=* \
+                        --ws.api=web3,eth,txpool,net,engine,debug,miner \
+                        --syncmode=full ${global::GETH_EXTRA_ARGS} \
+                        --authrpc.vhosts=* --authrpc.addr=0.0.0.0 --authrpc.port=${global::AUTHRPC_PORT} \
+                        --authrpc.jwtsecret=${global::SWELL_DIR}/jwt.txt \
+                        --metrics --metrics.addr=0.0.0.0 --metrics.port=${global::METRICS_PORT} \
+                        --rollup.disabletxpoolgossip=true --rollup.sequencerhttp=${global::SEQUENCER_URL} \
+                        --rpc.allow-unprotected-txs=true --db.engine=pebble --state.scheme=hash \
+                        --config=${global::SWELL_DIR}/config.toml`,
                 shutdown_timeout_secs: 120,
             },
             #{
                 name: "op-node",
-                run_sh: `/root/bin/op-node --l1=${global::L1_URL} --l2=http://127.0.0.1:${global::AUTHRPC_PORT} \
-                        --rpc.addr=127.0.0.1 --rpc.port=${global::OP_NODE_RPC_PORT} \
-                        --l2.jwt-secret=${global::SWELL_DIR}/jwt.txt --l1.trustrpc=false --l1.beacon=${global::BEACON_URL} \
-                        --syncmode=execution-layer --l1.rpckind=${global::L1_RPCKIND} \
-                        --p2p.static=${global::P2P_STATIC} \
-                        --p2p.priv.path=${global::SWELL_DIR}/p2p.key --p2p.discovery.path=${global::SWELL_DIR}/p2p.db \
-                        --p2p.peerstore.path=${global::SWELL_DIR}/p2p-peerstore.db --metrics.enabled=true \
-                        --p2p.ban.peers=false \
-                        --metrics.port=${global::OP_NODE_METRICS_PORT} \
+                run_sh: `/root/bin/op-node \
+                        --syncmode=execution-layer \
                         --rollup.config=${global::SWELL_DIR}/rollup.json \
-                        --sequencer.enabled=false \
-                        --sequencer.stopped=true \
-                        --l2.engine-sync=true \
-                        --rpc.enable-admin \
-                        --p2p.sync.req-resp=true \
-                        --plasma.enabled=false \
-                        --txmgr.sequencer.http=${global::SEQUENCER_URL} \
+                        --safedb.path=${global::SWELL_DIR}/safedb \
+                        --l1=${global::L1_URL} \
+                        --l1.rpckind=${global::L1_RPCKIND} \
+                        --l1.trustrpc \
+                        --l1.beacon.ignore \
+                        --l2=http://127.0.0.1:${global::AUTHRPC_PORT} \
+                        --l2.jwt-secret=${global::SWELL_DIR}/jwt.txt \
+                        --metrics.enabled --metrics.port=${global::OP_NODE_METRICS_PORT} --metrics.addr=0.0.0.0 \
+                        --rpc.addr=0.0.0.0 --rpc.port=${global::OP_NODE_RPC_PORT} \
+                        --p2p.listen.ip=0.0.0.0 --p2p.listen.tcp=9003 --p2p.listen.udp=9003 \
+                        --p2p.static=${global::P2P_STATIC} \
+                        --p2p.discovery.path=${global::SWELL_DIR}/opnode_discovery_db \
+                        --p2p.peerstore.path=${global::SWELL_DIR}/opnode_peerstore_db \
+                        --p2p.priv.path=${global::SWELL_DIR}/p2p.key \
+                        --p2p.ban.peers=false \
                         --network=${global::OP_NETWORK}`,
                 shutdown_timeout_secs: 120,
             },
