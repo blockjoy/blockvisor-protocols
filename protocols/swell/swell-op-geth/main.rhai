@@ -88,8 +88,7 @@ fn plugin_config() {
                         --authrpc.jwtsecret=${global::SWELL_DIR}/jwt.txt \
                         --metrics --metrics.addr=0.0.0.0 --metrics.port=${global::METRICS_PORT} \
                         --rollup.disabletxpoolgossip=true --rollup.sequencerhttp=${global::SEQUENCER_URL} \
-                        --rpc.allow-unprotected-txs=true --db.engine=pebble --state.scheme=hash \
-                        --config=${global::SWELL_DIR}/config.toml`,
+                        --rpc.allow-unprotected-txs=true --db.engine=pebble --state.scheme=hash`,
                 shutdown_timeout_secs: 120,
             },
             #{
