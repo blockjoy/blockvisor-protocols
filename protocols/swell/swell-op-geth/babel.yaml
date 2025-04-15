@@ -1,5 +1,5 @@
 version: 0.0.1
-container_uri: docker://ghcr.io/blockjoy/swell-op-geth-protocol:v20250414.4
+container_uri: docker://ghcr.io/blockjoy/swell-op-geth-protocol:v20250415.1
 sku_code: SWELLGETH
 org_id: null
 description: Swell Geth
