@@ -111,8 +111,7 @@ fn plugin_config() {
                         --p2p.discovery.path=${global::SWELL_DIR}/opnode_discovery_db \
                         --p2p.peerstore.path=${global::SWELL_DIR}/opnode_peerstore_db \
                         --p2p.priv.path=${global::SWELL_DIR}/p2p.key \
-                        --p2p.ban.peers=false \
-                        --network=${global::OP_NETWORK}`,
+                        --p2p.ban.peers=false`,
                 shutdown_timeout_secs: 120,
             },
         ],
