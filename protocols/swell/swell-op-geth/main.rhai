@@ -88,8 +88,7 @@ fn plugin_config() {
                         --authrpc.jwtsecret=${global::SWELL_DIR}/jwt.txt \
                         --metrics --metrics.addr=0.0.0.0 --metrics.port=${global::METRICS_PORT} \
                         --rollup.disabletxpoolgossip=true --rollup.sequencerhttp=${global::SEQUENCER_URL} \
-                        --rpc.allow-unprotected-txs=true --db.engine=pebble --state.scheme=hash \
-                        --config=${global::SWELL_DIR}/config.toml`,
+                        --rpc.allow-unprotected-txs=true --db.engine=pebble --state.scheme=hash`,
                 shutdown_timeout_secs: 120,
             },
             #{
@@ -111,8 +110,7 @@ fn plugin_config() {
                         --p2p.discovery.path=${global::SWELL_DIR}/opnode_discovery_db \
                         --p2p.peerstore.path=${global::SWELL_DIR}/opnode_peerstore_db \
                         --p2p.priv.path=${global::SWELL_DIR}/p2p.key \
-                        --p2p.ban.peers=false \
-                        --network=${global::OP_NETWORK}`,
+                        --p2p.ban.peers=false`,
                 shutdown_timeout_secs: 120,
             },
         ],
