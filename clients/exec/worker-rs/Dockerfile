@@ -1,7 +1,7 @@
 ARG BASE_IMAGE=ghcr.io/blockjoy/debian-bookworm-build:v20250414.1
 
 FROM ${BASE_IMAGE} AS builder
-ARG WORKER_VERSION=v2.3.1
+ARG WORKER_VERSION=v2.3.2
 
 WORKDIR /build
 RUN apt-get update && \
